@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "scruff"
-version = "0.14.6.post1"
+version = "0.14.6-post1"
 description = "A scruffier ruff."
 authors = [{ name = "Samuel Knutsen", email = "samuel@knutsen.co" }, { name = "Astral Software Inc.", email = "hey@astral.sh" }]
 readme = "README.md"
