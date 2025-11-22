@@ -3,14 +3,15 @@ requires = ["maturin>=1.9,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "ruff"
+name = "scruff"
 version = "0.14.6"
-description = "An extremely fast Python linter and code formatter, written in Rust."
-authors = [{ name = "Astral Software Inc.", email = "hey@astral.sh" }]
+description = "A scruffier ruff."
+authors = [{ name = "Samuel Knutsen", email = "samuel@knutsen.co" }, { name = "Astral Software Inc.", email = "hey@astral.sh" }]
 readme = "README.md"
 requires-python = ">=3.7"
 license = { file = "LICENSE" }
 keywords = [
+    "ruff",
     "automation",
     "flake8",
     "pycodestyle",
@@ -39,14 +40,13 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/astral-sh/ruff"
-Documentation = "https://docs.astral.sh/ruff/"
-Changelog = "https://github.com/astral-sh/ruff/blob/main/CHANGELOG.md"
+Repository = "https://github.com/Demonstrandum/scruff"
+Changelog = "https://github.com/Demonstrandum/scruff/blob/main/CHANGELOG.md"
 
 [tool.maturin]
 bindings = "bin"
 manifest-path = "crates/ruff/Cargo.toml"
-module-name = "ruff"
+module-name = "scruff"
 python-source = "python"
 strip = true
 exclude = [
@@ -54,7 +54,7 @@ exclude = [
     "crates/ruff_linter/src/rules/*/snapshots/**/*"
 ]
 
-[tool.ruff]
+[tool.scruff]
 target-version = "py38"
 extend-exclude = [
     "crates/ty_vendored/vendor/",
@@ -65,7 +65,7 @@ extend-exclude = [
     "crates/ruff_python_semantic/resources/"
 ]
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = [
     "E", # pycodestyle (error)
     "F", # pyflakes
@@ -90,10 +90,10 @@ ignore = [
     "E501"
 ]
 
-[tool.ruff.lint.isort]
+[tool.scruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
 
-[tool.ruff.per-file-target-version]
+[tool.scruff.per-file-target-version]
 "crates/ty_python_semantic/mdtest.py" = "py310"
 "crates/ty_vendored/ty_extensions/ty_extensions.pyi" = "py312"
 

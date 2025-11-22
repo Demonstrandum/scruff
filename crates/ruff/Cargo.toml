@@ -1,5 +1,5 @@
 [package]
-name = "ruff"
+name = "scruff"
 version = "0.14.6"
 publish = true
 authors = { workspace = true }
