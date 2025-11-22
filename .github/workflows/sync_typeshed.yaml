@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # Don't run the cron job on forks:
-    if: ${{ github.repository == 'Demonstrandum/scruff || github.event_name != 'schedule' }}
+    if: ${{ github.repository == 'Demonstrandum/scruff' || github.event_name != 'schedule' }}
     permissions:
       contents: write
     steps:
@@ -121,7 +121,7 @@ jobs:
     # The job will also be skipped if the sync job failed, because it's specified in `needs` above,
     # and we haven't used `always()` in the `if` condition here
     # (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#example-requiring-successful-dependent-jobs)
-    if: ${{ github.repository == 'Demonstrandum/scruff || github.event_name != 'schedule' }}
+    if: ${{ github.repository == 'Demonstrandum/scruff' || github.event_name != 'schedule' }}
 
     permissions:
       contents: write
@@ -159,7 +159,7 @@ jobs:
     # The job will also be skipped if the sync or docstrings-windows jobs failed,
     # because they're specified in `needs` above and we haven't used an `always()` condition in the `if` here
     # (https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#example-requiring-successful-dependent-jobs)
-    if: ${{ github.repository == 'Demonstrandum/scruff || github.event_name != 'schedule' }}
+    if: ${{ github.repository == 'Demonstrandum/scruff' || github.event_name != 'schedule' }}
 
     permissions:
       contents: write
@@ -245,7 +245,7 @@ jobs:
     name: Create an issue if the typeshed sync failed
     runs-on: ubuntu-latest
     needs: [sync, docstrings-windows, docstrings-macos-and-pr]
-    if: ${{ github.repository == 'Demonstrandum/scruff && always() && github.event_name == 'schedule' && (needs.sync.result == 'failure' || needs.docstrings-windows.result == 'failure' || needs.docstrings-macos-and-pr.result == 'failure') }}
+    if: ${{ github.repository == 'Demonstrandum/scruff' && always() && github.event_name == 'schedule' && (needs.sync.result == 'failure' || needs.docstrings-windows.result == 'failure' || needs.docstrings-macos-and-pr.result == 'failure') }}
     permissions:
       issues: write
     steps:

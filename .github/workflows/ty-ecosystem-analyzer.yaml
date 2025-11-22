@@ -22,7 +22,7 @@ env:
 jobs:
   ty-ecosystem-analyzer:
     name: Compute diagnostic diff
-    runs-on: ${{ github.repository == 'Demonstrandum/scruff && 'depot-ubuntu-22.04-32' || 'ubuntu-latest' }}
+    runs-on: ${{ github.repository == 'Demonstrandum/scruff' && 'depot-ubuntu-22.04-32' || 'ubuntu-latest' }}
     timeout-minutes: 20
     if: contains(github.event.label.name, 'ecosystem-analyzer')
     steps:
