@@ -83,7 +83,7 @@ repos:
         types: [rust]
         pass_filenames: false # This makes it a lot faster
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/Demonstrandum/scruffpre-commit
     rev: v0.12.7
     hooks:
       - id: ruff-format

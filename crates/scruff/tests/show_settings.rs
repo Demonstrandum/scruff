@@ -23,7 +23,7 @@ name = "ruff"
 version = "0.9.2"
 requires-python = ">=3.7"
 
-[tool.ruff]
+[tool.scruff]
 line-length = 100
 
 [tool.ruff.lint]

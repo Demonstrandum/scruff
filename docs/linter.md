@@ -42,7 +42,7 @@ configuration file:
     ignore = ["F401"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -88,7 +88,7 @@ pedantic) might look like the following:
     ]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -128,7 +128,7 @@ For example, given the following configuration file:
     ignore = ["F401"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -221,7 +221,7 @@ For example, the following configuration would promote unsafe fixes for `F601` t
     extend-unsafe-fixes = ["UP034"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -250,7 +250,7 @@ For example, the following configuration would enable fixes for all rules except
     unfixable = ["F401"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -267,7 +267,7 @@ Conversely, the following configuration would only enable fixes for `F401`:
     fixable = ["F401"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -280,7 +280,7 @@ Ruff supports several mechanisms for suppressing lint errors, be they false posi
 permissible violations.
 
 To omit a lint rule entirely, add it to the "ignore" list via the [`lint.ignore`](settings.md#lint_ignore)
-setting, either on the command-line or in your `pyproject.toml` or `ruff.toml` file.
+setting, either on the command-line or in your `pyproject.toml` or `scruff.toml` file.
 
 To suppress a violation inline, Ruff uses a `noqa` system similar to [Flake8](https://flake8.pycqa.org/en/3.1.1/user/ignoring-errors.html).
 To ignore an individual violation, add `# noqa: {code}` to the end of the line, like so:
@@ -329,7 +329,7 @@ file, preferably towards the top, like so:
 ```
 
 Or see the [`lint.per-file-ignores`](settings.md#lint_per-file-ignores) setting, which enables the same
-functionality from within your `pyproject.toml` or `ruff.toml` file.
+functionality from within your `pyproject.toml` or `scruff.toml` file.
 
 Global `noqa` comments must be on their own line to disambiguate from comments which ignore
 violations on a single line.

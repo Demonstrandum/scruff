@@ -1,6 +1,6 @@
 # Configuring Ruff
 
-Ruff can be configured through a `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file.
+Ruff can be configured through a `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file.
 
 Whether you're using Ruff as a linter, formatter, or both, the underlying configuration strategy and
 semantics are the same.
@@ -12,7 +12,7 @@ If left unspecified, Ruff's default configuration is equivalent to:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     # Exclude a variety of commonly ignored directories.
     exclude = [
         ".bzr",
@@ -92,7 +92,7 @@ If left unspecified, Ruff's default configuration is equivalent to:
     docstring-code-line-length = "dynamic"
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     # Exclude a variety of commonly ignored directories.
@@ -199,7 +199,7 @@ As an example, the following would configure Ruff to:
     quote-style = "single"
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -235,7 +235,7 @@ Linter plugin configurations are expressed as subsections, e.g.:
     docstring-quotes = "double"
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -246,8 +246,8 @@ Linter plugin configurations are expressed as subsections, e.g.:
     docstring-quotes = "double"
     ```
 
-Ruff respects `pyproject.toml`, `ruff.toml`, and `.ruff.toml` files. All three implement an
-equivalent schema (though in the `ruff.toml` and `.ruff.toml` versions, the `[tool.ruff]` header and
+Ruff respects `pyproject.toml`, `scruff.toml`, and `.scruff.toml` files. All three implement an
+equivalent schema (though in the `scruff.toml` and `.scruff.toml` versions, the `[tool.scruff]` header and
 `tool.ruff` section prefix is omitted).
 
 For a complete enumeration of the available configuration options, see [_Settings_](settings.md).
@@ -263,7 +263,7 @@ config file.
 There are a few exceptions to these rules:
 
 1. In locating the "closest" `pyproject.toml` file for a given path, Ruff ignores any
-    `pyproject.toml` files that lack a `[tool.ruff]` section.
+    `pyproject.toml` files that lack a `[tool.scruff]` section.
 1. If a configuration file is passed directly via `--config`, those settings are used for _all_
     analyzed files, and any relative paths in that configuration file (like `exclude` globs or
     `src` paths) are resolved relative to the _current_ working directory.
@@ -284,7 +284,7 @@ config file, like so:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     # Extend the `pyproject.toml` file in the parent directory...
     extend = "../pyproject.toml"
 
@@ -292,19 +292,19 @@ config file, like so:
     line-length = 100
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
-    # Extend the `ruff.toml` file in the parent directory...
+    # Extend the `scruff.toml` file in the parent directory...
     extend = "../ruff.toml"
 
     # ...but use a different line length.
     line-length = 100
     ```
 
-All of the above rules apply equivalently to `pyproject.toml`, `ruff.toml`, and `.ruff.toml` files.
-If Ruff detects multiple configuration files in the same directory, the `.ruff.toml` file will take
-precedence over the `ruff.toml` file, and the `ruff.toml` file will take precedence over
+All of the above rules apply equivalently to `pyproject.toml`, `scruff.toml`, and `.scruff.toml` files.
+If Ruff detects multiple configuration files in the same directory, the `.scruff.toml` file will take
+precedence over the `scruff.toml` file, and the `scruff.toml` file will take precedence over
 the `pyproject.toml` file.
 
 ### Inferring the Python version
@@ -335,7 +335,7 @@ formatting `.pyi` files, but would continue to include them in linting:
     exclude = ["*.pyi"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [format]
@@ -345,7 +345,7 @@ formatting `.pyi` files, but would continue to include them in linting:
 By default, Ruff will also skip any files that are omitted via `.ignore`, `.gitignore`,
 `.git/info/exclude`, and global `gitignore` files (see: [`respect-gitignore`](settings.md#respect-gitignore)).
 
-Files that are passed to `ruff` directly are always analyzed, regardless of the above criteria, 
+Files that are passed to `ruff` directly are always analyzed, regardless of the above criteria,
 unless [`force-exclude`](settings.md#force-exclude) is also enabled (via CLI or settings file).
 For example, without `force-exclude` enabled, `ruff check /path/to/excluded/file.py` will always lint `file.py`.
 
@@ -360,11 +360,11 @@ You can also change the default selection using the [`include`](settings.md#incl
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     include = ["pyproject.toml", "src/**/*.py", "scripts/**/*.py"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     include = ["pyproject.toml", "src/**/*.py", "scripts/**/*.py"]
@@ -390,7 +390,7 @@ Notebook files and not format them:
     exclude = ["*.ipynb"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [format]
@@ -406,7 +406,7 @@ And, conversely, the following would only format Jupyter Notebook files and not 
     exclude = ["*.ipynb"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -419,11 +419,11 @@ You can completely disable Jupyter Notebook support by updating the
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     extend-exclude = ["*.ipynb"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     extend-exclude = ["*.ipynb"]
@@ -439,7 +439,7 @@ using the [`per-file-ignores`](settings.md#per-file-ignores) setting:
     "*.ipynb" = ["T20"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint.per-file-ignores]
@@ -491,7 +491,7 @@ $ ruff check path/to/file --config path/to/ruff.toml --config "lint.dummy-variab
 ```
 
 Configuration options passed to `--config` are parsed in the same way
-as configuration options in a `ruff.toml` file.
+as configuration options in a `scruff.toml` file.
 As such, options specific to the Ruff linter need to be prefixed with `lint.`
 (`--config "lint.dummy-variable-rgx = '__.*'"` rather than simply
 `--config "dummy-variable-rgx = '__.*'"`), and options specific to the Ruff formatter
@@ -551,8 +551,8 @@ Log levels:
 Global options:
       --config <CONFIG_OPTION>
           Either a path to a TOML configuration file (`pyproject.toml` or
-          `ruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
-          find in a `ruff.toml` configuration file) overriding a specific
+          `scruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
+          find in a `scruff.toml` configuration file) overriding a specific
           configuration option. Overrides of individual settings using this
           option always take precedence over all configuration files, including
           configuration files that were also specified using `--config`
@@ -688,8 +688,8 @@ Log levels:
 Global options:
       --config <CONFIG_OPTION>
           Either a path to a TOML configuration file (`pyproject.toml` or
-          `ruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
-          find in a `ruff.toml` configuration file) overriding a specific
+          `scruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
+          find in a `scruff.toml` configuration file) overriding a specific
           configuration option. Overrides of individual settings using this
           option always take precedence over all configuration files, including
           configuration files that were also specified using `--config`
@@ -778,8 +778,8 @@ Log levels:
 Global options:
       --config <CONFIG_OPTION>
           Either a path to a TOML configuration file (`pyproject.toml` or
-          `ruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
-          find in a `ruff.toml` configuration file) overriding a specific
+          `scruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
+          find in a `scruff.toml` configuration file) overriding a specific
           configuration option. Overrides of individual settings using this
           option always take precedence over all configuration files, including
           configuration files that were also specified using `--config`

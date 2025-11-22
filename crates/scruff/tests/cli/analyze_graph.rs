@@ -93,9 +93,9 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
                 from ruff import c
             "#,
         ),
-        ("ruff/c.py", ""),
+        ("scruff/c.py", ""),
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
             [analyze]
             type-checking-imports = false
@@ -120,7 +120,7 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
     "###);
 
     test.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
         [analyze]
         type-checking-imports = true

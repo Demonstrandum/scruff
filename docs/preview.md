@@ -21,7 +21,7 @@ Preview mode can be configured separately for linting and formatting. To enable 
     preview = true
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -44,7 +44,7 @@ To enable preview style formatting without enabling any preview lint rules:
     preview = true
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [format]
@@ -69,7 +69,7 @@ hypothetical rule, `HYP001`. If `HYP001` were in preview, it would _not_ be enab
     extend-select = ["HYP001"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -92,7 +92,7 @@ It also would _not_ be enabled by selecting the `HYP` category, like so:
     extend-select = ["HYP"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -115,7 +115,7 @@ Similarly, it would _not_ be enabled via the `ALL` selector:
     select = ["ALL"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -138,7 +138,7 @@ However, it _would_ be enabled in any of the above cases if you enabled preview 
     preview = true
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -168,7 +168,7 @@ setting in your configuration file:
     explicit-preview-rules = true
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]

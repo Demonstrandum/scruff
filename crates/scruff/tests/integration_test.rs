@@ -902,7 +902,7 @@ fn full_output_preview_config() -> Result<()> {
     fs::write(
         &pyproject_toml,
         r"
-[tool.ruff]
+[tool.scruff]
 preview = true
 ",
     )?;
@@ -2070,7 +2070,7 @@ fn diff_only_unsafe_fixes_available() {
 #[test]
 fn check_extend_unsafe_fixes() -> Result<()> {
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"
@@ -2106,7 +2106,7 @@ extend-unsafe-fixes = ["RUF901"]
 #[test]
 fn check_extend_safe_fixes() -> Result<()> {
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"
@@ -2143,7 +2143,7 @@ extend-safe-fixes = ["RUF902"]
 fn check_extend_unsafe_fixes_conflict_with_extend_safe_fixes() -> Result<()> {
     // Adding a rule to both options should result in it being treated as unsafe
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"
@@ -2181,7 +2181,7 @@ extend-safe-fixes = ["RUF902"]
 fn check_extend_unsafe_fixes_conflict_with_extend_safe_fixes_by_specificity() -> Result<()> {
     // Adding a rule to one option with a more specific selector should override the other option
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"
@@ -2230,7 +2230,7 @@ extend-safe-fixes = ["RUF9"]
 fn check_docstring_conventions_overrides() -> Result<()> {
     // But if we explicitly select it, we override the convention
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"
@@ -2296,7 +2296,7 @@ def log(x, base) -> float:
 #[test]
 fn fix_preview() -> Result<()> {
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"
@@ -2336,7 +2336,7 @@ select = ["RUF017"]
 #[test]
 fn unfixable_preview() -> Result<()> {
     let tempdir = TempDir::new()?;
-    let ruff_toml = tempdir.path().join("ruff.toml");
+    let ruff_toml = tempdir.path().join("scruff.toml");
     fs::write(
         &ruff_toml,
         r#"

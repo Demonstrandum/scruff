@@ -39,7 +39,7 @@ pub(crate) fn tempdir_filter(path: impl AsRef<str>) -> String {
 /// ```rust,no_run
 /// use crate::common::RuffTestFixture;
 ///
-/// let fixture = RuffTestFixture::with_file("ruff.toml", "select = ['E']")?;
+/// let fixture = RuffTestFixture::with_file("scruff.toml", "select = ['E']")?;
 /// let output = fixture.command().args(["check", "."]).output()?;
 /// ```
 pub(crate) struct CliTest {
@@ -113,7 +113,7 @@ impl CliTest {
     /// # Example
     ///
     /// ```rust,no_run
-    /// let fixture = RuffTestFixture::with_file("ruff.toml", "select = ['E']")?;
+    /// let fixture = RuffTestFixture::with_file("scruff.toml", "select = ['E']")?;
     /// ```
     pub(crate) fn with_file(path: impl AsRef<Path>, content: &str) -> Result<Self> {
         let fixture = Self::new()?;

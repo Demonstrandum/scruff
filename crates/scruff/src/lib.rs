@@ -560,8 +560,8 @@ mod test_file_change_detector {
             change_detected(&notify::Event {
                 kind: notify::EventKind::Create(notify::event::CreateKind::File),
                 paths: vec![
-                    PathBuf::from("tmp/ruff.toml"),
-                    PathBuf::from("tmp/bin/ruff.rs"),
+                    PathBuf::from("tmp/scruff.toml"),
+                    PathBuf::from("tmp/bin/scruff.rs"),
                 ],
                 attrs: notify::event::EventAttributes::default(),
             }),
@@ -571,8 +571,8 @@ mod test_file_change_detector {
             change_detected(&notify::Event {
                 kind: notify::EventKind::Create(notify::event::CreateKind::File),
                 paths: vec![
-                    PathBuf::from("tmp/.ruff.toml"),
-                    PathBuf::from("tmp/bin/ruff.rs"),
+                    PathBuf::from("tmp/.scruff.toml"),
+                    PathBuf::from("tmp/bin/scruff.rs"),
                 ],
                 attrs: notify::event::EventAttributes::default(),
             }),

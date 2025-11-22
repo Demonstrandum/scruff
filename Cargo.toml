@@ -8,12 +8,12 @@ edition = "2024"
 rust-version = "1.89"
 homepage = "https://docs.astral.sh/ruff"
 documentation = "https://docs.astral.sh/ruff"
-repository = "https://github.com/astral-sh/ruff"
+repository = "https://github.com/Demonstrandum/scruff
 authors = ["Charlie Marsh <charlie.r.marsh@gmail.com>"]
 license = "MIT"
 
 [workspace.dependencies]
-ruff = { path = "crates/ruff" }
+scruff = { path = "crates/scruff" }
 ruff_annotate_snippets = { path = "crates/ruff_annotate_snippets" }
 ruff_cache = { path = "crates/ruff_cache" }
 ruff_db = { path = "crates/ruff_db", default-features = false }

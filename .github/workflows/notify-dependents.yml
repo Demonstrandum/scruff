@@ -2,7 +2,7 @@
 #
 # Assumed to run as a subworkflow of .github/workflows/release.yml; specifically, as a post-announce
 # job within `cargo-dist`.
-name: "[ruff] Notify dependents"
+name: "[scruff] Notify dependents"
 
 on:
   workflow_call:
@@ -22,7 +22,7 @@ jobs:
           github-token: ${{ secrets.RUFF_PRE_COMMIT_PAT }}
           script: |
             github.rest.actions.createWorkflowDispatch({
-              owner: 'astral-sh',
+              owner: 'Demonstrandum',
               repo: 'ruff-pre-commit',
               workflow_id: 'main.yml',
               ref: 'main',

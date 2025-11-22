@@ -331,7 +331,7 @@ impl Violation for MissingReturnTypePrivateFunction {
 /// Note that type checkers often allow you to omit the return type annotation for
 /// `__init__` methods, as long as at least one argument has a type annotation. To
 /// opt in to this behavior, use the `mypy-init-return` setting in your `pyproject.toml`
-/// or `ruff.toml` file:
+/// or `scruff.toml` file:
 ///
 /// ```toml
 /// [tool.ruff.lint.flake8-annotations]

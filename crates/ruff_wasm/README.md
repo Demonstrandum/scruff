@@ -10,16 +10,16 @@ This is a WASM version of the Ruff API which can be used to lint/format Python i
 
 There are multiple versions for the different wasm-pack targets. See [here](https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html) for more info on targets.
 
-- [Bundler](https://www.npmjs.com/package/@astral-sh/ruff-wasm-bundler)
-- [Web](https://www.npmjs.com/package/@astral-sh/ruff-wasm-web)
-- [Node.js](https://www.npmjs.com/package/@astral-sh/ruff-wasm-nodejs)
+- [Bundler](https://www.npmjs.com/package/@Demonstrandum/scruffwasm-bundler)
+- [Web](https://www.npmjs.com/package/@Demonstrandum/scruffwasm-web)
+- [Node.js](https://www.npmjs.com/package/@Demonstrandum/scruffwasm-nodejs)
 
 ## Usage
 
 This example uses the wasm-pack web target and is known to work with Vite.
 
 ```ts
-import init, { Workspace, type Diagnostic, PositionEncoding } from '@astral-sh/ruff-wasm-web';
+import init, { Workspace, type Diagnostic, PositionEncoding } from '@Demonstrandum/scruffwasm-web';
 
 const exampleDocument = `print('hello'); print("world")`
 

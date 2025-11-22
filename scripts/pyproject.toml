@@ -7,5 +7,5 @@ requires-python = ">=3.12"
 [tool.black]
 line-length = 88
 
-[tool.ruff]
+[tool.scruff]
 extend = "../pyproject.toml"

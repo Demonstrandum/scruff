@@ -142,7 +142,7 @@ fn emit_field(output: &mut String, name: &str, field: &OptionField, parents: &[S
         field.example,
     ));
     output.push_str(&format_tab(
-        "ruff.toml",
+        "scruff.toml",
         &format_header(field.scope, parents, ConfigurationFile::RuffToml),
         field.example,
     ));

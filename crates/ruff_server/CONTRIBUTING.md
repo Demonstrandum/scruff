@@ -29,4 +29,4 @@ If you want to test any changes you've made to `ruff server`, you can simply mod
 
 #### Testing In VS Code
 
-At the moment, the [pre-release version](https://github.com/astral-sh/ruff-vscode/tree/pre-release) of Ruff's new VS Code extension only has the option to use the bundled Ruff binary. Configuration to use a custom Ruff executable path will be ready soon.
+At the moment, the [pre-release version](https://github.com/Demonstrandum/scruffvscode/tree/pre-release) of Ruff's new VS Code extension only has the option to use the bundled Ruff binary. Configuration to use a custom Ruff executable path will be ready soon.

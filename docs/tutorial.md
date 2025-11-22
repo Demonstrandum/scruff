@@ -124,14 +124,14 @@ Ruff's behavior.
 ## Configuration
 
 To determine the appropriate settings for each Python file, Ruff looks for the first
-`pyproject.toml`, `ruff.toml`, or `.ruff.toml` file in the file's directory or any parent directory.
+`pyproject.toml`, `scruff.toml`, or `.scruff.toml` file in the file's directory or any parent directory.
 
 To configure Ruff, we'll add the following to the configuration file in our project's root directory:
 
 === "pyproject.toml"
 
      ```toml
-     [tool.ruff]
+     [tool.scruff]
      # Set the maximum line length to 79.
      line-length = 79
 
@@ -142,7 +142,7 @@ To configure Ruff, we'll add the following to the configuration file in our proj
      extend-select = ["E501"]
      ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
      ```toml
      # Set the maximum line length to 79.
@@ -173,7 +173,7 @@ specifically, we'll want to make note of the minimum supported Python version:
      # Support Python 3.10+.
      requires-python = ">=3.10"
 
-     [tool.ruff]
+     [tool.scruff]
      # Set the maximum line length to 79.
      line-length = 79
 
@@ -182,7 +182,7 @@ specifically, we'll want to make note of the minimum supported Python version:
      extend-select = ["E501"]
      ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
      ```toml
      # Support Python 3.10+.
@@ -225,7 +225,7 @@ rules, we can set our configuration file to the following:
      ]
      ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
      ```toml
      target-version = "py310"
@@ -265,7 +265,7 @@ all functions have docstrings:
      convention = "google"
      ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
      ```toml
      target-version = "py310"
@@ -364,10 +364,10 @@ index 71fca60c8d..e92d839f1b 100644
 ## Integrations
 
 This tutorial has focused on Ruff's command-line interface, but Ruff can also be used as a
-[pre-commit](https://pre-commit.com) hook via [`ruff-pre-commit`](https://github.com/astral-sh/ruff-pre-commit):
+[pre-commit](https://pre-commit.com) hook via [`ruff-pre-commit`](https://github.com/Demonstrandum/scruffpre-commit):
 
 ```yaml
-- repo: https://github.com/astral-sh/ruff-pre-commit
+- repo: https://github.com/Demonstrandum/scruffpre-commit
   # Ruff version.
   rev: v0.14.6
   hooks:

@@ -1,2 +1,2 @@
-[tool.ruff]
+[tool.scruff]
 line-length = 88

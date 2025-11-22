@@ -45,7 +45,7 @@ Changelog = "https://github.com/Demonstrandum/scruff/blob/main/CHANGELOG.md"
 
 [tool.maturin]
 bindings = "bin"
-manifest-path = "crates/ruff/Cargo.toml"
+manifest-path = "crates/scruff/Cargo.toml"
 module-name = "scruff"
 python-source = "python"
 strip = true
@@ -58,7 +58,7 @@ exclude = [
 target-version = "py38"
 extend-exclude = [
     "crates/ty_vendored/vendor/",
-    "crates/ruff/resources/",
+    "crates/scruff/resources/",
     "crates/ruff_linter/resources/",
     "crates/ruff_python_formatter/resources/",
     "crates/ruff_python_parser/resources/",
@@ -118,7 +118,7 @@ version_files = [
     "pyproject.toml",
     "docs/integrations.md",
     "docs/tutorial.md",
-    "crates/ruff/Cargo.toml",
+    "crates/scruff/Cargo.toml",
     "crates/ruff_linter/Cargo.toml",
     "crates/ruff_wasm/Cargo.toml",
     "scripts/benchmarks/pyproject.toml",

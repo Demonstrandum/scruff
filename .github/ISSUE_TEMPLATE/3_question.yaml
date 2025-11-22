@@ -1,5 +1,5 @@
 name: Question
-description: Ask a question about Ruff
+description: Ask a question about Scruff
 labels: ["question"]
 body:
   - type: textarea
@@ -12,7 +12,7 @@ body:
   - type: input
     attributes:
       label: Version
-      description: What version of ruff are you using? (see `ruff version`)
-      placeholder: e.g., ruff 0.9.3 (90589372d 2025-01-23)
+      description: What version of scruff are you using? (see `scruff version`)
+      placeholder: e.g., scruff 0.9.3 (90589372d 2025-01-23)
     validations:
       required: false

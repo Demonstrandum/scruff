@@ -1,4 +1,4 @@
-[tool.ruff]
+[tool.scruff]
 src = ["."]
 
 # This will make sure that `exclude` paths are rooted

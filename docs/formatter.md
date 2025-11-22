@@ -107,7 +107,7 @@ following to your configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     line-length = 100
 
     [tool.ruff.format]
@@ -116,7 +116,7 @@ following to your configuration file:
     docstring-code-format = true
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     line-length = 100
@@ -174,7 +174,7 @@ with a fixed line length limit:
     docstring-code-line-length = 20
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [format]

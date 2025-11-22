@@ -25,7 +25,7 @@ impl CliTest {
 fn top_level_options() -> Result<()> {
     let test = CliTest::new()?;
     test.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 
@@ -36,7 +36,7 @@ inline-quotes = "single"
 
     assert_cmd_snapshot!(test.check_command()
             .arg("--config")
-            .arg("ruff.toml")
+            .arg("scruff.toml")
             .args(["--stdin-filename", "test.py"])
             .arg("-")
             .pass_stdin(r#"a = "abcba".strip("aba")"#), @r"
@@ -50,7 +50,7 @@ inline-quotes = "single"
     [*] 2 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
       - 'flake8-quotes' -> 'lint.flake8-quotes'
     ");
@@ -61,7 +61,7 @@ inline-quotes = "single"
 #[test]
 fn lint_options() -> Result<()> {
     let case = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 extend-select = ["B", "Q"]
@@ -74,7 +74,7 @@ inline-quotes = "single"
     assert_cmd_snapshot!(
         case.check_command()
             .arg("--config")
-            .arg("ruff.toml")
+            .arg("scruff.toml")
             .arg("-")
             .pass_stdin(r#"a = "abcba".strip("aba")"#), @r"
         success: false
@@ -97,7 +97,7 @@ inline-quotes = "single"
 fn mixed_levels() -> Result<()> {
     let test = CliTest::new()?;
     test.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 
@@ -108,7 +108,7 @@ inline-quotes = "single"
 
     assert_cmd_snapshot!(test.check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"a = "abcba".strip("aba")"#), @r"
     success: false
@@ -121,7 +121,7 @@ inline-quotes = "single"
     [*] 2 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
     ");
 
@@ -133,7 +133,7 @@ inline-quotes = "single"
 fn precedence() -> Result<()> {
     let test = CliTest::new()?;
     test.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 extend-select = ["B", "Q"]
@@ -148,7 +148,7 @@ inline-quotes = "single"
 
     assert_cmd_snapshot!(test.check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"a = "abcba".strip("aba")"#), @r"
     success: false
@@ -161,7 +161,7 @@ inline-quotes = "single"
     [*] 2 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'flake8-quotes' -> 'lint.flake8-quotes'
     ");
 
@@ -173,7 +173,7 @@ fn exclude() -> Result<()> {
     let case = CliTest::new()?;
 
     case.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 extend-exclude = ["out"]
@@ -216,7 +216,7 @@ OTHER = "OTHER"
 
     assert_cmd_snapshot!(
         case.check_command()
-            .args(["--config", "ruff.toml"])
+            .args(["--config", "scruff.toml"])
             // Explicitly pass test.py, should be linted regardless of it being excluded by lint.exclude
             .arg("test.py")
             // Lint all other files in the directory, should respect the `exclude` and `lint.exclude` options
@@ -231,7 +231,7 @@ OTHER = "OTHER"
     [*] 3 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
     ");
 
@@ -244,7 +244,7 @@ fn deduplicate_directory_and_explicit_file() -> Result<()> {
     let case = CliTest::new()?;
 
     case.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 exclude = ["main.py"]
@@ -255,7 +255,7 @@ exclude = ["main.py"]
 
     assert_cmd_snapshot!(
         case.check_command()
-            .args(["--config", "ruff.toml"])
+            .args(["--config", "scruff.toml"])
             .arg(".")
             // Explicitly pass main.py, should be linted regardless of it being excluded by lint.exclude
             .arg("main.py"),
@@ -277,7 +277,7 @@ exclude = ["main.py"]
 #[test]
 fn exclude_stdin() -> Result<()> {
     let case = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 
@@ -291,7 +291,7 @@ inline-quotes = "single"
 
     assert_cmd_snapshot!(
         case.check_command()
-            .args(["--config", "ruff.toml"])
+            .args(["--config", "scruff.toml"])
             .args(["--stdin-filename", "generated.py"])
             .arg("-")
             .pass_stdin(r#"
@@ -309,7 +309,7 @@ if __name__ == "__main__":
     [*] 2 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
     ");
 
@@ -320,7 +320,7 @@ if __name__ == "__main__":
 fn line_too_long_width_override() -> Result<()> {
     let test = CliTest::new()?;
     test.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 line-length = 80
 select = ["E501"]
@@ -332,7 +332,7 @@ max-line-length = 100
 
     assert_cmd_snapshot!(test.check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .args(["--stdin-filename", "test.py"])
         .arg("-")
         .pass_stdin(r#"
@@ -348,7 +348,7 @@ _ = "---------------------------------------------------------------------------
     Found 1 error.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'select' -> 'lint.select'
       - 'pycodestyle' -> 'lint.pycodestyle'
     ");
@@ -359,7 +359,7 @@ _ = "---------------------------------------------------------------------------
 #[test]
 fn per_file_ignores_stdin() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 
@@ -370,7 +370,7 @@ inline-quotes = "single"
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .args(["--stdin-filename", "generated.py"])
         .args(["--per-file-ignores", "generated.py:Q"])
         .arg("-")
@@ -390,7 +390,7 @@ if __name__ == "__main__":
     [*] 1 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
     ");
 
@@ -400,7 +400,7 @@ if __name__ == "__main__":
 #[test]
 fn extend_per_file_ignores_stdin() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 
@@ -411,7 +411,7 @@ inline-quotes = "single"
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .args(["--stdin-filename", "generated.py"])
         .args(["--extend-per-file-ignores", "generated.py:Q"])
         .arg("-")
@@ -431,7 +431,7 @@ if __name__ == "__main__":
     [*] 1 fixable with the `--fix` option.
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
     ");
 
@@ -443,7 +443,7 @@ if __name__ == "__main__":
 fn parent_configuration_override() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["ALL"]
@@ -528,13 +528,13 @@ fn config_override_rejected_if_invalid_toml() {
 #[test]
 fn too_many_config_files() -> Result<()> {
     let fixture = CliTest::new()?;
-    fixture.write_file("ruff.toml", "")?;
+    fixture.write_file("scruff.toml", "")?;
     fixture.write_file("ruff2.toml", "")?;
 
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("--config")
         .arg("ruff2.toml")
         .arg("."), @r"
@@ -574,7 +574,7 @@ fn extend_passed_via_config_argument() {
 fn nonexistent_extend_file() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend = "ruff2.toml"
 "#,
@@ -607,7 +607,7 @@ extend = "ruff3.toml"
 fn circular_extend() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend = "ruff2.toml"
 "#,
@@ -621,7 +621,7 @@ extend = "ruff3.toml"
     fixture.write_file(
         "ruff3.toml",
         r#"
-extend = "ruff.toml"
+extend = "scruff.toml"
 "#,
     )?;
 
@@ -644,7 +644,7 @@ extend = "ruff.toml"
 fn parse_error_extends() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend = "ruff2.toml"
 "#,
@@ -681,12 +681,12 @@ select = [E501]
 #[test]
 fn config_file_and_isolated() -> Result<()> {
     let fixture = CliTest::new()?;
-    fixture.write_file("ruff.toml", "")?;
+    fixture.write_file("scruff.toml", "")?;
 
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("--isolated")
         .arg("."), @r"
     success: false
@@ -707,7 +707,7 @@ fn config_file_and_isolated() -> Result<()> {
 #[test]
 fn config_override_via_cli() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 line-length = 100
 
@@ -737,7 +737,7 @@ x = "longer_than_90_charactersssssssssssssssssssssssssssssssssssssssssssssssssss
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .args(["--config", "line-length=90"])
         .args(["--config", "lint.extend-select=['E501', 'F841']"])
         .args(["--config", "lint.isort.combine-as-imports = false"])
@@ -773,7 +773,7 @@ fn valid_toml_but_nonexistent_option_provided_via_config_argument() {
            or a TOML `<KEY> = <VALUE>` pair overriding a specific configuration
            option
 
-    Could not parse the supplied argument as a `ruff.toml` configuration option:
+    Could not parse the supplied argument as a `scruff.toml` configuration option:
 
     Unknown rule selector: `F481`
 
@@ -934,7 +934,7 @@ fn value_given_to_table_key_is_not_inline_table_2() {
 #[test]
 fn config_doubly_overridden_via_cli() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 line-length = 100
 
@@ -950,7 +950,7 @@ select=["E501"]
         // despite them both being specified after this flag on the command line:
         .args(["--line-length", "90"])
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .args(["--config", "line-length=110"])
         .arg("-")
         .pass_stdin(test_code), @r"
@@ -967,12 +967,12 @@ select=["E501"]
 
 #[test]
 fn complex_config_setting_overridden_via_cli() -> Result<()> {
-    let fixture = CliTest::with_file("ruff.toml", "lint.select = ['N801']")?;
+    let fixture = CliTest::with_file("scruff.toml", "lint.select = ['N801']")?;
     let test_code = "class violates_n801: pass";
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .args(["--config", "lint.per-file-ignores = {'generated.py' = ['N801']}"])
         .args(["--stdin-filename", "generated.py"])
         .arg("-")
@@ -1010,7 +1010,7 @@ fn deprecated_config_option_overridden_via_cli() {
 fn extension() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 include = ["*.ipy"]
 "#,
@@ -1059,7 +1059,7 @@ include = ["*.ipy"]
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .args(["--extension", "ipy:ipynb"])
         .arg("."), @r"
     success: false
@@ -1096,7 +1096,7 @@ print("Hello world!")
 #[test]
 fn file_noqa_external() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 external = ["AAA"]
@@ -1106,7 +1106,7 @@ external = ["AAA"]
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 # flake8: noqa: AAA101, BBB102
@@ -1131,7 +1131,7 @@ fn required_version_exact_mismatch() -> Result<()> {
     let version = env!("CARGO_PKG_VERSION");
 
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 required-version = "0.1.0"
 "#,
@@ -1143,7 +1143,7 @@ required-version = "0.1.0"
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 import os
@@ -1166,7 +1166,7 @@ fn required_version_exact_match() -> Result<()> {
     let version = env!("CARGO_PKG_VERSION");
 
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         &format!(
             r#"
 required-version = "{version}"
@@ -1180,7 +1180,7 @@ required-version = "{version}"
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 import os
@@ -1204,7 +1204,7 @@ fn required_version_bound_mismatch() -> Result<()> {
     let version = env!("CARGO_PKG_VERSION");
 
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         &format!(
             r#"
 required-version = ">{version}"
@@ -1218,7 +1218,7 @@ required-version = ">{version}"
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 import os
@@ -1239,7 +1239,7 @@ import os
 #[test]
 fn required_version_bound_match() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 required-version = ">=0.1.0"
 "#,
@@ -1248,7 +1248,7 @@ required-version = ">=0.1.0"
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 import os
@@ -1270,7 +1270,7 @@ import os
 #[test]
 fn config_expand() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["F"]
@@ -1308,7 +1308,7 @@ def func():
 fn negated_per_file_ignores() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.per-file-ignores]
 "!selected.py" = ["RUF"]
@@ -1320,7 +1320,7 @@ fn negated_per_file_ignores() -> Result<()> {
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("--select")
         .arg("RUF901")
         , @r"
@@ -1340,7 +1340,7 @@ fn negated_per_file_ignores() -> Result<()> {
 fn negated_per_file_ignores_absolute() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.per-file-ignores]
 "!src/**.py" = ["RUF"]
@@ -1352,7 +1352,7 @@ fn negated_per_file_ignores_absolute() -> Result<()> {
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("--select")
         .arg("RUF901")
         , @r"
@@ -1373,7 +1373,7 @@ fn negated_per_file_ignores_absolute() -> Result<()> {
 fn negated_per_file_ignores_overlap() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.per-file-ignores]
 "*.py" = ["RUF"]
@@ -1386,7 +1386,7 @@ fn negated_per_file_ignores_overlap() -> Result<()> {
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("--select")
         .arg("RUF901")
         , @r"
@@ -1403,7 +1403,7 @@ fn negated_per_file_ignores_overlap() -> Result<()> {
 #[test]
 fn unused_interaction() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["F"]
@@ -1413,7 +1413,7 @@ select = ["F"]
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .args(["--stdin-filename", "test.py"])
         .arg("--fix")
         .arg("-")
@@ -1444,7 +1444,7 @@ def function():
 fn add_noqa() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["RUF015"]
@@ -1461,7 +1461,7 @@ def first_square():
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .arg("noqa.py")
         .args(["--add-noqa"])
         .arg("-")
@@ -1491,7 +1491,7 @@ def first_square():
 fn add_noqa_multiple_codes() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["ANN001", "ANN201", "ARG001", "D103"]
@@ -1508,7 +1508,7 @@ def unused(x):
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .arg("noqa.py")
         .arg("--preview")
         .args(["--add-noqa"])
@@ -1539,7 +1539,7 @@ def unused(x):
 fn add_noqa_multiline_diagnostic() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["I"]
@@ -1557,7 +1557,7 @@ import a
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .arg("noqa.py")
         .args(["--add-noqa"])
         .arg("-")
@@ -1588,7 +1588,7 @@ import a
 fn add_noqa_existing_noqa() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["ANN001", "ANN201", "ARG001", "D103"]
@@ -1605,7 +1605,7 @@ def unused(x):  # noqa: ANN001, ARG001, D103
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .arg("noqa.py")
         .arg("--preview")
         .args(["--add-noqa"])
@@ -1636,7 +1636,7 @@ def unused(x):  # noqa: ANN001, ARG001, D103
 fn add_noqa_multiline_comment() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["UP031"]
@@ -1658,7 +1658,7 @@ print(
 
     assert_cmd_snapshot!(fixture
         .check_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .arg("noqa.py")
         .arg("--preview")
         .args(["--add-noqa"])
@@ -1694,7 +1694,7 @@ print(
 fn add_noqa_exclude() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 exclude = ["excluded.py"]
@@ -1977,7 +1977,7 @@ select = ["UP006"]
 
 /// ```
 /// tmp
-/// ├── pyproject.toml #<--- no `[tool.ruff]`
+/// ├── pyproject.toml #<--- no `[tool.scruff]`
 /// └── test.py
 /// ```
 #[test]
@@ -2009,7 +2009,7 @@ requires-python = ">= 3.11"
 
 /// ```
 /// tmp
-/// ├── pyproject.toml #<--- no `[tool.ruff]`
+/// ├── pyproject.toml #<--- no `[tool.scruff]`
 /// └── test.py
 /// ```
 #[test]
@@ -2042,7 +2042,7 @@ requires-python = ">= 3.11"
 
 /// ```
 /// tmp
-/// ├── pyproject.toml #<--- no `[tool.ruff]`
+/// ├── pyproject.toml #<--- no `[tool.scruff]`
 /// └── test.py
 /// ```
 #[test]
@@ -2075,7 +2075,7 @@ requires-python = ">= 3.11"
 
 /// ```
 /// tmp
-/// ├── pyproject.toml #<--- no `[tool.ruff]`
+/// ├── pyproject.toml #<--- no `[tool.scruff]`
 /// └── test.py
 /// ```
 #[test]
@@ -2112,7 +2112,7 @@ requires-python = ">= 3.11"
 
 /// ```
 /// tmp
-/// ├── pyproject.toml #<-- no [tool.ruff]
+/// ├── pyproject.toml #<-- no [tool.scruff]
 /// ├── ruff.toml #<-- no `target-version`
 /// └── test.py
 /// ```
@@ -2120,7 +2120,7 @@ requires-python = ">= 3.11"
 fn requires_python_ruff_toml_no_target_fallback() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"[lint]
 select = ["UP007"]
 "#,
@@ -2152,7 +2152,7 @@ from typing import Union;foo: Union[int, str] = 1
 
 /// ```
 /// tmp
-/// ├── pyproject.toml #<-- no [tool.ruff]
+/// ├── pyproject.toml #<-- no [tool.scruff]
 /// ├── ruff.toml #<-- no `target-version`
 /// └── test.py
 /// ```
@@ -2160,7 +2160,7 @@ from typing import Union;foo: Union[int, str] = 1
 fn requires_python_ruff_toml_no_target_fallback_check() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"[lint]
 select = ["UP007"]
 "#,
@@ -2198,9 +2198,9 @@ from typing import Union;foo: Union[int, str] = 1"#,
 /// ```
 /// tmp
 /// ├── foo
-/// │  ├── pyproject.toml #<-- no [tool.ruff], no `requires-python`
+/// │  ├── pyproject.toml #<-- no [tool.scruff], no `requires-python`
 /// │  └── test.py
-/// └── pyproject.toml #<-- no [tool.ruff], has `requires-python`
+/// └── pyproject.toml #<-- no [tool.scruff], has `requires-python`
 /// ```
 #[test]
 fn requires_python_pyproject_toml_above() -> Result<()> {
@@ -2239,9 +2239,9 @@ from typing import Union;foo: Union[int, str] = 1
 /// ```
 /// tmp
 /// ├── foo
-/// │  ├── pyproject.toml #<-- has [tool.ruff], no `requires-python`
+/// │  ├── pyproject.toml #<-- has [tool.scruff], no `requires-python`
 /// │  └── test.py
-/// └── pyproject.toml #<-- no [tool.ruff], has `requires-python`
+/// └── pyproject.toml #<-- no [tool.scruff], has `requires-python`
 /// ```
 #[test]
 fn requires_python_pyproject_toml_above_with_tool() -> Result<()> {
@@ -2256,7 +2256,7 @@ requires-python = ">= 3.11"
     fixture.write_file(
         "foo/pyproject.toml",
         r#"
-[tool.ruff]
+[tool.scruff]
 target-version = "py310"
 "#,
     )?;
@@ -2281,7 +2281,7 @@ from typing import Union;foo: Union[int, str] = 1
 /// ```
 /// tmp
 /// ├── foo
-/// │  ├── pyproject.toml #<-- no [tool.ruff]
+/// │  ├── pyproject.toml #<-- no [tool.scruff]
 /// │  └── test.py
 /// └── ruff.toml #<-- no `target-version`
 /// ```
@@ -2289,7 +2289,7 @@ from typing import Union;foo: Union[int, str] = 1
 fn requires_python_ruff_toml_above() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint]
 select = ["UP007"]
@@ -2339,7 +2339,7 @@ from typing import Union;foo: Union[int, str] = 1
 fn requires_python_extend_from_shared_config() -> Result<()> {
     let fixture = CliTest::new()?;
     fixture.write_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend = "./shared/base_config.toml"
 [lint]
@@ -2483,7 +2483,7 @@ fn nested_implicit_namespace_package() -> Result<()> {
 #[test]
 fn flake8_import_convention_invalid_aliases_config_alias_name() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.flake8-import-conventions.aliases]
 "module.name" = "invalid.alias"
@@ -2493,7 +2493,7 @@ fn flake8_import_convention_invalid_aliases_config_alias_name() -> Result<()> {
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin("")
         , @r#"
@@ -2517,7 +2517,7 @@ fn flake8_import_convention_invalid_aliases_config_alias_name() -> Result<()> {
 #[test]
 fn flake8_import_convention_invalid_aliases_config_extend_alias_name() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.flake8-import-conventions.extend-aliases]
 "module.name" = "__debug__"
@@ -2527,7 +2527,7 @@ fn flake8_import_convention_invalid_aliases_config_extend_alias_name() -> Result
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin("")
         , @r#"
@@ -2551,7 +2551,7 @@ fn flake8_import_convention_invalid_aliases_config_extend_alias_name() -> Result
 #[test]
 fn flake8_import_convention_invalid_aliases_config_module_name() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.flake8-import-conventions.aliases]
 "module..invalid" = "alias"
@@ -2561,7 +2561,7 @@ fn flake8_import_convention_invalid_aliases_config_module_name() -> Result<()> {
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin("")
         , @r#"
@@ -2585,7 +2585,7 @@ fn flake8_import_convention_invalid_aliases_config_module_name() -> Result<()> {
 #[test]
 fn flake8_import_convention_nfkc_normalization() -> Result<()> {
     let fixture = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 [lint.flake8-import-conventions.aliases]
 "test.module" = "_﹏𝘥𝘦𝘣𝘶𝘨﹏﹏"
@@ -2595,7 +2595,7 @@ fn flake8_import_convention_nfkc_normalization() -> Result<()> {
     assert_cmd_snapshot!(fixture
         .check_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin("")
         , @r###"
@@ -2860,7 +2860,7 @@ fn create_a005_module_structure(fixture: &CliTest) -> Result<()> {
     fixture.write_file("foobar/collections/abc/__init__.py", "")?;
     fixture.write_file("urlparse/__init__.py", "")?;
     // also create a ruff.toml to mark the project root
-    fixture.write_file("ruff.toml", "")?;
+    fixture.write_file("scruff.toml", "")?;
 
     Ok(())
 }

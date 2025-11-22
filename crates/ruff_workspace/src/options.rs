@@ -59,7 +59,7 @@ pub struct Options {
     )]
     pub cache_dir: Option<String>,
 
-    /// A path to a local `pyproject.toml` or `ruff.toml` file to merge into this
+    /// A path to a local `pyproject.toml` or `scruff.toml` file to merge into this
     /// configuration. User home directory and environment variables will be
     /// expanded.
     ///
@@ -235,7 +235,7 @@ pub struct Options {
     /// respect these exclusions unequivocally.
     ///
     /// This is useful for [`pre-commit`](https://pre-commit.com/), which explicitly passes all
-    /// changed files to the [`ruff-pre-commit`](https://github.com/astral-sh/ruff-pre-commit)
+    /// changed files to the [`ruff-pre-commit`](https://github.com/Demonstrandum/scruffpre-commit)
     /// plugin, regardless of whether they're marked as excluded by Ruff's own
     /// settings.
     #[option(
@@ -371,7 +371,7 @@ pub struct Options {
     ///
     /// When omitted, the `src` directory will typically default to including both:
     ///
-    /// 1. The directory containing the nearest `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file (the "project root").
+    /// 1. The directory containing the nearest `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file (the "project root").
     /// 2. The `"src"` subdirectory of the project root.
     ///
     /// These defaults ensure that Ruff supports both flat layouts and `src` layouts out-of-the-box.

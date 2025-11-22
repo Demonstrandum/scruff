@@ -290,7 +290,7 @@ Like isort, Ruff's import sorting is compatible with Black.
 
 ## How does Ruff determine which of my imports are first-party, third-party, etc.?
 
-Ruff accepts a `src` option that in your `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file,
+Ruff accepts a `src` option that in your `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file,
 specifies the directories that Ruff should consider when determining whether an import is
 first-party.
 
@@ -326,7 +326,7 @@ the same name, you can add the following:
     known-third-party = ["wandb"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint.isort]
@@ -336,8 +336,8 @@ the same name, you can add the following:
 
 If the `src` field is omitted, Ruff will default to using the "project root", along with a `"src"`
 subdirectory, as the first-party sources, to support both flat and nested project layouts.
-The "project root" is typically the directory containing your `pyproject.toml`, `ruff.toml`, or
-`.ruff.toml` file, unless a configuration file is provided on the command-line via the `--config`
+The "project root" is typically the directory containing your `pyproject.toml`, `scruff.toml`, or
+`.scruff.toml` file, unless a configuration file is provided on the command-line via the `--config`
 option, in which case, the current working directory is used as the project root.
 
 In this case, Ruff would check the `"src"` directory by default, but we can configure it as an
@@ -346,13 +346,13 @@ explicit, exclusive first-party source like so:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     # Ruff supports a top-level `src` option in lieu of isort's `src_paths` setting.
     # All paths are relative to the project root, which is the directory containing the pyproject.toml.
     src = ["src"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     # Ruff supports a top-level `src` option in lieu of isort's `src_paths` setting.
@@ -360,8 +360,8 @@ explicit, exclusive first-party source like so:
     src = ["src"]
     ```
 
-If your `pyproject.toml`, `ruff.toml`, or `.ruff.toml` extends another configuration file, Ruff
-will still use the directory containing your `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file as
+If your `pyproject.toml`, `scruff.toml`, or `.scruff.toml` extends another configuration file, Ruff
+will still use the directory containing your `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file as
 the project root (as opposed to the directory of the file pointed to via the `extends` option).
 
 For example, if you add a configuration file to the `tests` directory in the above example, you'll
@@ -370,12 +370,12 @@ want to explicitly set the `src` option in the extended configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     extend = "../pyproject.toml"
     src = ["../src"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     extend = "../pyproject.toml"
@@ -397,7 +397,7 @@ like so:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     src = ["src", "tests"]
 
     [tool.ruff.lint]
@@ -415,7 +415,7 @@ like so:
     known-first-party = ["my_module1", "my_module2"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     src = ["src", "tests"]
@@ -469,7 +469,7 @@ setting following to your configuration file:
     convention = "google"  # Accepts: "google", "numpy", or "pep257".
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint.pydocstyle]
@@ -493,7 +493,7 @@ explicitly enable the `D` rule code prefix, since the `D` rules are not enabled 
     convention = "google"
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -526,7 +526,7 @@ then selectively enable or disable any additional rules on top of it:
     convention = "google"
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -604,21 +604,21 @@ Run `ruff check /path/to/code.py --show-settings` to view the resolved settings 
 
 ## I want to use Ruff, but I don't want to use `pyproject.toml`. What are my options?
 
-In lieu of a `pyproject.toml` file, you can use a `ruff.toml` file for configuration. The two
-files are functionally equivalent and have an identical schema, with the exception that a `ruff.toml`
-file can omit the `[tool.ruff]` section header. For example:
+In lieu of a `pyproject.toml` file, you can use a `scruff.toml` file for configuration. The two
+files are functionally equivalent and have an identical schema, with the exception that a `scruff.toml`
+file can omit the `[tool.scruff]` section header. For example:
 
 === "pyproject.toml"
 
 ```toml
-[tool.ruff]
+[tool.scruff]
 line-length = 88
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
 ```toml
 line-length = 88
@@ -631,7 +631,7 @@ Ruff doesn't currently support INI files, like `setup.cfg` or `tox.ini`.
 
 ## How can I change Ruff's default configuration?
 
-When no configuration file is found, Ruff will look for a user-specific `ruff.toml` file as a
+When no configuration file is found, Ruff will look for a user-specific `scruff.toml` file as a
 last resort. This behavior is similar to Flake8's `~/.config/flake8`.
 
 On macOS and Linux, Ruff expects that file to be located at `~/.config/ruff/ruff.toml`,
@@ -684,6 +684,6 @@ cell in parallel, which can lead to unexpected behavior. For example, if a user 
 run `source.organizeImports` code action on save for a Notebook, Ruff will attempt to fix the
 imports for the entire notebook corresponding to each cell. This leads to the client making the same
 changes to the notebook multiple times, which can lead to unexpected behavior
-([astral-sh/ruff-vscode#680](https://github.com/astral-sh/ruff-vscode/issues/680),
-[astral-sh/ruff-vscode#640](https://github.com/astral-sh/ruff-vscode/issues/640),
-[astral-sh/ruff-vscode#391](https://github.com/astral-sh/ruff-vscode/issues/391)).
+([Demonstrandum/scruffvscode#680](https://github.com/Demonstrandum/scruffvscode/issues/680),
+[Demonstrandum/scruffvscode#640](https://github.com/Demonstrandum/scruffvscode/issues/640),
+[Demonstrandum/scruffvscode#391](https://github.com/Demonstrandum/scruffvscode/issues/391)).

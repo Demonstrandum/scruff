@@ -34,7 +34,7 @@ fn version_basics() {
 #[test]
 fn config_option_allowed_but_ignored() -> Result<()> {
     let tempdir = TempDir::new()?;
-    let ruff_dot_toml = tempdir.path().join("ruff.toml");
+    let ruff_dot_toml = tempdir.path().join("scruff.toml");
     fs::File::create(&ruff_dot_toml)?;
     insta::with_settings!({filters => VERSION_FILTER.to_vec()}, {
         assert_cmd_snapshot!(

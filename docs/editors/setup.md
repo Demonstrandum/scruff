@@ -3,7 +3,7 @@
 We have specific setup instructions depending on your editor of choice. If you don't see your editor on this
 list and would like a setup guide, please open an issue.
 
-If you're transferring your configuration from [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp),
+If you're transferring your configuration from [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp),
 regardless of editor, there are several settings which have changed or are no longer available. See
 the [migration guide](./migration.md) for more.
 
@@ -16,7 +16,7 @@ the [migration guide](./migration.md) for more.
 !!! tip
 
     Regardless of the editor, it is recommended to disable the older language server
-    ([`ruff-lsp`](https://github.com/astral-sh/ruff-lsp)) to prevent any conflicts.
+    ([`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp)) to prevent any conflicts.
 
 ## VS Code
 
@@ -26,7 +26,7 @@ recommended to have the Ruff extension version `2024.32.0` or later to get the b
 the Ruff Language Server.
 
 For more documentation on the Ruff extension, refer to the
-[README](https://github.com/astral-sh/ruff-vscode/blob/main/README.md) of the extension repository.
+[README](https://github.com/Demonstrandum/scruffvscode/blob/main/README.md) of the extension repository.
 
 ## Neovim
 
@@ -334,7 +334,7 @@ hx -v path/to/file.py
   "servers": {
     "python": {
       "command": ["ruff", "server"],
-      "url": "https://github.com/astral-sh/ruff",
+      "url": "https://github.com/Demonstrandum/scruff,
       "highlightingModeRegex": "^Python$",
       "settings": {}
     }
@@ -389,10 +389,7 @@ Ruff should then appear as a runnable action:
 
 ![Ruff as a runnable action](https://user-images.githubusercontent.com/1309177/193156026-732b0aaf-3dd9-4549-9b4d-2de6d2168a33.png)
 
-### Via third-party plugin
 
-Ruff is also available as the [Ruff](https://plugins.jetbrains.com/plugin/20574-ruff) plugin on the
-IntelliJ Marketplace (maintained by [@koxudaxi](https://github.com/koxudaxi)).
 
 ## Emacs
 

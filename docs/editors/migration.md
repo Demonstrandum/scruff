@@ -151,5 +151,5 @@ The following options can be set directly in the editor settings:
 The remaining options can be set using the [`configuration`](settings.md#configuration) setting.
 
 [language server protocol]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
-[ruff-lsp]: https://github.com/astral-sh/ruff-lsp
-[vs code extension]: https://github.com/astral-sh/ruff-vscode
+[ruff-lsp]: https://github.com/Demonstrandum/scrufflsp
+[vs code extension]: https://github.com/Demonstrandum/scruffvscode

@@ -252,8 +252,8 @@ fn string_detection_from_config() -> Result<()> {
 
     let root = ChildPath::new(tempdir.path());
 
-    // Configure string import detection with a lower min-dots via ruff.toml
-    root.child("ruff.toml").write_str(indoc::indoc! {r#"
+    // Configure string import detection with a lower min-dots via scruff.toml
+    root.child("scruff.toml").write_str(indoc::indoc! {r#"
         [analyze]
         detect-string-imports = true
         string-imports-min-dots = 1
@@ -305,7 +305,7 @@ fn globs() -> Result<()> {
 
     let root = ChildPath::new(tempdir.path());
 
-    root.child("ruff.toml").write_str(indoc::indoc! {r#"
+    root.child("scruff.toml").write_str(indoc::indoc! {r#"
         [analyze]
         include-dependencies = { "ruff/a.py" = ["ruff/b.py"], "ruff/b.py" = ["ruff/*.py"], "ruff/c.py" = ["*.json"] }
     "#})?;
@@ -351,7 +351,7 @@ fn exclude() -> Result<()> {
     let tempdir = TempDir::new()?;
     let root = ChildPath::new(tempdir.path());
 
-    root.child("ruff.toml").write_str(indoc::indoc! {r#"
+    root.child("scruff.toml").write_str(indoc::indoc! {r#"
         [analyze]
         exclude = ["ruff/c.py"]
     "#})?;

@@ -138,13 +138,13 @@ fn config_override_rejected_if_invalid_toml() -> Result<()> {
 
 #[test]
 fn too_many_config_files() -> Result<()> {
-    let test = CliTest::with_files([("ruff.toml", ""), ("ruff2.toml", "")])?;
+    let test = CliTest::with_files([("scruff.toml", ""), ("ruff2.toml", "")])?;
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("--config")
-        .arg("ruff2.toml")
+        .arg("scruff2.toml")
         .arg("."), @r"
     success: false
     exit_code: 2
@@ -154,7 +154,7 @@ fn too_many_config_files() -> Result<()> {
     ruff failed
       Cause: You cannot specify more than one configuration file on the command line.
 
-      tip: remove either `--config=ruff.toml` or `--config=ruff2.toml`.
+      tip: remove either `--config=scruff.toml` or `--config=scruff2.toml`.
            For more information, try `--help`.
     ");
     Ok(())
@@ -162,12 +162,12 @@ fn too_many_config_files() -> Result<()> {
 
 #[test]
 fn config_file_and_isolated() -> Result<()> {
-    let test = CliTest::with_file("ruff.toml", "")?;
+    let test = CliTest::with_file("scruff.toml", "")?;
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--isolated")
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("."), @r"
     success: false
     exit_code: 2
@@ -175,7 +175,7 @@ fn config_file_and_isolated() -> Result<()> {
 
     ----- stderr -----
     ruff failed
-      Cause: The argument `--config=ruff.toml` cannot be used with `--isolated`
+      Cause: The argument `--config=scruff.toml` cannot be used with `--isolated`
 
       tip: You cannot specify a configuration file and also specify `--isolated`,
            as `--isolated` causes ruff to ignore all configuration files.
@@ -186,7 +186,7 @@ fn config_file_and_isolated() -> Result<()> {
 
 #[test]
 fn config_override_via_cli() -> Result<()> {
-    let test = CliTest::with_file("ruff.toml", "line-length = 70")?;
+    let test = CliTest::with_file("scruff.toml", "line-length = 70")?;
 
     let fixture = r#"
 def foo():
@@ -195,7 +195,7 @@ def foo():
     "#;
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         // This overrides the long line length set in the config file
         .args(["--config", "line-length=80"])
         .arg("-")
@@ -215,7 +215,7 @@ def foo():
 
 #[test]
 fn config_doubly_overridden_via_cli() -> Result<()> {
-    let test = CliTest::with_file("ruff.toml", "line-length = 70")?;
+    let test = CliTest::with_file("scruff.toml", "line-length = 70")?;
 
     let fixture = r#"
 def foo():
@@ -224,7 +224,7 @@ def foo():
     "#;
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         // This overrides the long line length set in the config file...
         .args(["--config", "line-length=80"])
         // ...but this overrides them both:
@@ -245,7 +245,7 @@ def foo():
 #[test]
 fn format_options() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 indent-width = 8
 line-length = 84
@@ -260,7 +260,7 @@ line-ending = "cr-lf"
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 def foo(arg1, arg2,):
@@ -292,7 +292,7 @@ if condition:
 #[test]
 fn docstring_options() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r"
 [format]
 docstring-code-format = true
@@ -302,7 +302,7 @@ docstring-code-line-length = 20
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r"
 def f(x):
@@ -405,7 +405,7 @@ fn mixed_line_endings() -> Result<()> {
 fn exclude() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 extend-exclude = ["out"]
 
@@ -442,7 +442,7 @@ OTHER = "OTHER"
     ])?;
 
     assert_cmd_snapshot!(test.format_command()
-        .args(["--check", "--config", "ruff.toml"])
+        .args(["--check", "--config", "scruff.toml"])
         // Explicitly pass test.py, should be formatted regardless of it being excluded by format.exclude
         .arg("test.py")
         // Format all other files in the directory, should respect the `exclude` and `format.exclude` options
@@ -624,21 +624,21 @@ fn output_format_notebook() -> Result<()> {
     1 | import numpy
       - maths = (numpy.arange(100)**2).sum()
       - stats= numpy.asarray([1,2,3,4]).median()
-    2 + 
+    2 +
     3 + maths = (numpy.arange(100) ** 2).sum()
     4 + stats = numpy.asarray([1, 2, 3, 4]).median()
      ::: cell 3
     1 | # A cell with IPython escape command
     2 | def some_function(foo, bar):
     3 |     pass
-    4 + 
-    5 + 
+    4 +
+    5 +
     6 | %matplotlib inline
       ::: cell 4
     1  | foo = %pwd
        - def some_function(foo,bar,):
-    2  + 
-    3  + 
+    2  +
+    3  +
     4  + def some_function(
     5  +     foo,
     6  +     bar,
@@ -730,7 +730,7 @@ if __name__ == "__main__":
 fn force_exclude() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 extend-exclude = ["out"]
 
@@ -767,7 +767,7 @@ OTHER = "OTHER"
     ])?;
 
     assert_cmd_snapshot!(test.format_command()
-        .args(["--force-exclude", "--check", "--config", "ruff.toml"])
+        .args(["--force-exclude", "--check", "--config", "scruff.toml"])
         // Explicitly pass test.py, should not be formatted because of --force-exclude
         .arg("test.py")
         // Format all other files in the directory, should respect the `exclude` and `format.exclude` options
@@ -786,7 +786,7 @@ OTHER = "OTHER"
 #[test]
 fn exclude_stdin() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 ignore = ["Q000", "Q001", "Q002", "Q003"]
@@ -797,7 +797,7 @@ exclude = ["generated.py"]
     )?;
 
     assert_cmd_snapshot!(test.format_command()
-        .args(["--config", "ruff.toml", "--stdin-filename", "generated.py", "-"])
+        .args(["--config", "scruff.toml", "--stdin-filename", "generated.py", "-"])
         .pass_stdin(r#"
 from test import say_hy
 
@@ -813,7 +813,7 @@ if __name__ == '__main__':
         say_hy("dear Ruff contributor")
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
       - 'ignore' -> 'lint.ignore'
     "#);
@@ -823,7 +823,7 @@ if __name__ == '__main__':
 #[test]
 fn force_exclude_stdin() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 extend-select = ["B", "Q"]
 ignore = ["Q000", "Q001", "Q002", "Q003"]
@@ -834,7 +834,7 @@ exclude = ["generated.py"]
     )?;
 
     assert_cmd_snapshot!(test.format_command()
-        .args(["--config", "ruff.toml", "--stdin-filename", "generated.py", "--force-exclude", "-"])
+        .args(["--config", "scruff.toml", "--stdin-filename", "generated.py", "--force-exclude", "-"])
         .pass_stdin(r#"
 from test import say_hy
 
@@ -851,7 +851,7 @@ if __name__ == '__main__':
         say_hy("dear Ruff contributor")
 
     ----- stderr -----
-    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `ruff.toml`:
+    warning: The top-level linter settings are deprecated in favour of their counterparts in the `lint` section. Please update the following options in `scruff.toml`:
       - 'extend-select' -> 'lint.extend-select'
       - 'ignore' -> 'lint.ignore'
     "#);
@@ -862,7 +862,7 @@ if __name__ == '__main__':
 fn format_option_inheritance() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 extend = "base.toml"
 
@@ -884,7 +884,7 @@ indent-style = "tab"
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 def foo(arg1, arg2,):
@@ -918,7 +918,7 @@ if condition:
 #[test]
 fn deprecated_options() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r"
 tab-size = 2
 ",
@@ -926,7 +926,7 @@ tab-size = 2
 
     assert_cmd_snapshot!(test.format_command()
             .arg("--config")
-            .arg("ruff.toml")
+            .arg("scruff.toml")
             .arg("-")
             .pass_stdin(r"
 if True:
@@ -942,7 +942,7 @@ if True:
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 1, column 1
       |
-    1 | 
+    1 |
       | ^
     unknown field `tab-size`
     ");
@@ -954,7 +954,7 @@ if True:
 #[test]
 fn legacy_format_option() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 format = "json"
 "#,
@@ -962,7 +962,7 @@ format = "json"
 
     assert_cmd_snapshot!(test.command()
             .args(["check", "--select", "F401", "--no-cache", "--config"])
-            .arg("ruff.toml")
+            .arg("scruff.toml")
             .arg("-")
             .pass_stdin(r"
     import os
@@ -988,7 +988,7 @@ format = "json"
 fn conflicting_options() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 indent-width = 2
 
@@ -1026,7 +1026,7 @@ def say_hy(name: str):
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("test.py"), @r#"
     success: true
     exit_code: 0
@@ -1052,7 +1052,7 @@ def say_hy(name: str):
 #[test]
 fn conflicting_options_stdin() -> Result<()> {
     let test = CliTest::with_file(
-        "ruff.toml",
+        "scruff.toml",
         r#"
 indent-width = 2
 
@@ -1080,7 +1080,7 @@ indent-style = "tab"
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("-")
         .pass_stdin(r#"
 def say_hy(name: str):
@@ -1110,7 +1110,7 @@ def say_hy(name: str):
 fn valid_linter_options() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 [lint]
 select = ["ALL"]
@@ -1143,7 +1143,7 @@ def say_hy(name: str):
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("test.py"), @r"
     success: true
     exit_code: 0
@@ -1159,7 +1159,7 @@ def say_hy(name: str):
 fn valid_linter_options_preserve() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 [lint]
 select = ["Q"]
@@ -1183,7 +1183,7 @@ def say_hy(name: str):
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("test.py"), @r"
     success: true
     exit_code: 0
@@ -1199,7 +1199,7 @@ def say_hy(name: str):
 fn all_rules_default_options() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 [lint]
 select = ["ALL"]
@@ -1215,7 +1215,7 @@ def say_hy(name: str):
 
     assert_cmd_snapshot!(test.format_command()
         .arg("--config")
-        .arg("ruff.toml")
+        .arg("scruff.toml")
         .arg("test.py"), @r"
     success: true
     exit_code: 0
@@ -1812,7 +1812,7 @@ fn test_notebook_trailing_semicolon() -> Result<()> {
 fn syntax_error_in_notebooks() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 include = ["*.ipy"]
 "#,
@@ -1871,7 +1871,7 @@ include = ["*.ipy"]
     ])?;
 
     assert_cmd_snapshot!(test.format_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .args(["--extension", "ipy:ipynb"])
         .arg("."), @r"
     success: false
@@ -1888,7 +1888,7 @@ include = ["*.ipy"]
 fn extension() -> Result<()> {
     let test = CliTest::with_files([
         (
-            "ruff.toml",
+            "scruff.toml",
             r#"
 include = ["*.ipy"]
 "#,
@@ -1936,7 +1936,7 @@ include = ["*.ipy"]
     ])?;
 
     assert_cmd_snapshot!(test.format_command()
-        .args(["--config", "ruff.toml"])
+        .args(["--config", "scruff.toml"])
         .args(["--extension", "ipy:ipynb"])
         .arg("."), @r"
     success: true

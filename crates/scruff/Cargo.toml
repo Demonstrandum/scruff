@@ -10,7 +10,7 @@ documentation = { workspace = true }
 repository = { workspace = true }
 license = { workspace = true }
 readme = "../../README.md"
-default-run = "ruff"
+default-run = "scruff"
 
 [dependencies]
 ruff_cache = { workspace = true }

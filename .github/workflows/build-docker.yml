@@ -5,7 +5,7 @@
 #
 # TODO(charlie): Ideally, the publish step would happen as a publish job within `cargo-dist`, but
 # sharing the built image as an artifact between jobs is challenging.
-name: "[ruff] Build Docker image"
+name: "[scruff] Build Docker image"
 
 on:
   workflow_call:
@@ -18,11 +18,11 @@ on:
       - .github/workflows/build-docker.yml
 
 env:
-  RUFF_BASE_IMG: ghcr.io/${{ github.repository_owner }}/ruff
+  RUFF_BASE_IMG: ghcr.io/${{ github.repository_owner }}/scruff
 
 jobs:
   docker-build:
-    name: Build Docker image (ghcr.io/astral-sh/ruff) for ${{ matrix.platform }}
+    name: Build Docker image (ghcr.io/demonstrandum/scruff) for ${{ matrix.platform }}
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -104,7 +104,7 @@ jobs:
           retention-days: 1
 
   docker-publish:
-    name: Publish Docker image (ghcr.io/astral-sh/ruff)
+    name: Publish Docker image (ghcr.io/Demonstrandum/scruff
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -247,7 +247,7 @@ jobs:
   # show the ruff base image first since GitHub always shows the last updated image digests
   # This works by annotating the original digests (previously non-annotated) which triggers an update to ghcr.io
   docker-republish:
-    name: Annotate Docker image (ghcr.io/astral-sh/ruff)
+    name: Annotate Docker image (ghcr.io/Demonstrandum/scruff
     runs-on: ubuntu-latest
     environment:
       name: release

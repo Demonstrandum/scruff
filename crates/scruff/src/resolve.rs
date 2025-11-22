@@ -125,7 +125,7 @@ pub fn resolve(
     let mut config = config_arguments.transform(Configuration::default());
     if config.target_version.is_none() {
         // If we have arrived here we know that there was no `pyproject.toml`
-        // containing a `[tool.ruff]` section found in an ancestral directory.
+        // containing a `[tool.scruff]` section found in an ancestral directory.
         // (This is an implicit requirement in the function
         // `pyproject::find_settings_toml`.)
         // However, there may be a `pyproject.toml` with a `requires-python`

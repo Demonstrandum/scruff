@@ -1,9 +1,9 @@
-//! This is the library for the [Ruff] Python linter.
+//! This is the library for the [Scruff] Python linter.
 //!
 //! **The API is currently completely unstable**
 //! and subject to change drastically.
 //!
-//! [Ruff]: https://github.com/astral-sh/ruff
+//! [Scruff]: https://github.com/astral-sh/ruff
 
 pub use locator::Locator;
 pub use noqa::generate_noqa_edits;

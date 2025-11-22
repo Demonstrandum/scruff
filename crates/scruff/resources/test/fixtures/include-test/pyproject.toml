@@ -1,0 +1,2 @@
+[tool.scruff]
+include = ["a.py", "subdirectory/c.py"]

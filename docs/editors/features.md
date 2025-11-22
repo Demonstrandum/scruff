@@ -14,7 +14,7 @@ alt="Editing a file in Helix"
 ## Dynamic Configuration
 
 The server dynamically refreshes the diagnostics when a configuration file is changed in the
-workspace, whether it's a `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file.
+workspace, whether it's a `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file.
 
 The server relies on the file watching capabilities of the editor to detect changes to these files.
 If an editor does not support file watching, the server will not be able to detect
@@ -96,7 +96,7 @@ capabilities available to Python files.
 
 !!! note
 
-    Unlike [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) and similar to the Ruff's CLI, the
+    Unlike [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) and similar to the Ruff's CLI, the
     native language server requires user to explicitly include the Jupyter Notebook files in the set
     of files to lint and format. Refer to the [Jupyter Notebook discovery](https://docs.astral.sh/ruff/configuration/#jupyter-notebook-discovery)
     section on how to do this.

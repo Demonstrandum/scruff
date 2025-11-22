@@ -1,4 +1,4 @@
-[tool.ruff]
+[tool.scruff]
 src = [".", "python_modules/*"]
 exclude = ["examples/excluded"]
 

@@ -59,7 +59,7 @@ impl std::fmt::Display for RuffSettings {
 
 impl RuffSettings {
     /// Constructs [`RuffSettings`] by attempting to resolve settings from a user-provided
-    /// configuration file, such as `pyproject.toml` or `ruff.toml`, within the
+    /// configuration file, such as `pyproject.toml` or `scruff.toml`, within the
     /// user's workspace.
     ///
     /// In the absence of a valid configuration file, it gracefully falls back to

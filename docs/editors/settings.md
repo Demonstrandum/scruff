@@ -1,7 +1,7 @@
 # Settings
 
 The Ruff Language Server provides a set of configuration options to customize its behavior
-along with the ability to use an existing `pyproject.toml` or `ruff.toml` file to configure the
+along with the ability to use an existing `pyproject.toml` or `scruff.toml` file to configure the
 linter and formatter. This is done by providing these settings while initializing the server.
 VS Code provides a UI to configure these settings, while other editors may require manual
 configuration. The [setup](./setup.md) section provides instructions on where to place these settings
@@ -14,7 +14,7 @@ as per the editor.
 The `configuration` setting allows you to configure editor-specific Ruff behavior. This can be done
 in one of the following ways:
 
-1. **Configuration file path:** Specify the path to a `ruff.toml` or `pyproject.toml` file that
+1. **Configuration file path:** Specify the path to a `scruff.toml` or `pyproject.toml` file that
     contains the configuration. User home directory and environment variables will be expanded.
 1. **Inline JSON configuration:** Directly provide the configuration as a JSON object.
 
@@ -23,7 +23,7 @@ in one of the following ways:
     The **Inline JSON configuration** option was introduced in Ruff `0.9.8`.
 
 The default behavior, if `configuration` is unset, is to load the settings from the project's
-configuration (a `ruff.toml` or `pyproject.toml` in the project's directory), consistent with when
+configuration (a `scruff.toml` or `pyproject.toml` in the project's directory), consistent with when
 running Ruff on the command-line.
 
 The [`configurationPreference`](#configurationpreference) setting controls the precedence if both an
@@ -39,7 +39,7 @@ lowest):
 1. [**`ruff.configuration`**](#configuration): Settings provided via the
     [`configuration`](#configuration) field (either a path to a configuration file or an inline
     configuration object)
-1. **Configuration file:** Settings defined in a `ruff.toml` or `pyproject.toml` file in the
+1. **Configuration file:** Settings defined in a `scruff.toml` or `pyproject.toml` file in the
     project's directory (if present)
 
 For example, if the line length is specified in all three sources, Ruff will use the value from the
@@ -175,7 +175,7 @@ _Using inline configuration:_
 ### `configurationPreference`
 
 The strategy to use when resolving settings across VS Code and the filesystem. By default, editor
-configuration is prioritized over `ruff.toml` and `pyproject.toml` files.
+configuration is prioritized over `scruff.toml` and `pyproject.toml` files.
 
 - `"editorFirst"`: Editor settings take priority over configuration files present in the workspace.
 - `"filesystemFirst"`: Configuration files present in the workspace takes priority over editor
@@ -1052,7 +1052,7 @@ Whether to enable the Ruff extension. Modifying this setting requires restarting
 
 !!! warning "Deprecated"
 
-    This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is
+    This setting is only used by [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) which is
     deprecated in favor of the native language server. Refer to the [migration
     guide](migration.md) for more information.
 
@@ -1076,7 +1076,7 @@ Additional arguments to pass to the Ruff formatter.
 
 !!! warning "Deprecated"
 
-    This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is
+    This setting is only used by [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) which is
     deprecated in favor of the native language server. Refer to the [migration
     guide](migration.md) for more information.
 
@@ -1142,7 +1142,7 @@ This setting depends on the [`ruff.nativeServer`](#nativeserver) setting:
 
 !!! warning "Deprecated"
 
-    This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is
+    This setting is only used by [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) which is
     deprecated in favor of the native language server. Refer to the [migration
     guide](migration.md) for more information.
 
@@ -1166,7 +1166,7 @@ Additional arguments to pass to the Ruff linter.
 
 !!! warning "Deprecated"
 
-    This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is
+    This setting is only used by [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) which is
     deprecated in favor of the native language server. Refer to the [migration
     guide](migration.md) for more information.
 
@@ -1188,19 +1188,19 @@ Run Ruff on every keystroke (`onType`) or on save (`onSave`).
 
 ### `nativeServer`
 
-Whether to use the native language server, [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) or
+Whether to use the native language server, [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) or
 automatically decide between the two based on the Ruff version and extension settings.
 
 - `"on"`: Use the native language server. A warning will be displayed if deprecated settings are
     detected.
-- `"off"`: Use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp). A warning will be displayed if
+- `"off"`: Use [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp). A warning will be displayed if
     settings specific to the native server are detected.
 - `"auto"`: Automatically select between the native language server and
-    [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) based on the following conditions:
+    [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) based on the following conditions:
     1. If the Ruff version is >= `0.5.3`, use the native language server unless any deprecated
         settings are detected. In that case, show a warning and use
-        [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) instead.
-    1. If the Ruff version is < `0.5.3`, use [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp). A
+        [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) instead.
+    1. If the Ruff version is < `0.5.3`, use [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp). A
         warning will be displayed if settings specific to the native server are detected.
 - `true`: Same as `on`
 - `false`: Same as `off`
@@ -1240,7 +1240,7 @@ The first executable in the list which is exists is used. This setting takes pre
 
 !!! warning "Deprecated"
 
-    This setting is only used by [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) which is
+    This setting is only used by [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) which is
     deprecated in favor of the native language server. Refer to the [migration
     guide](migration.md) for more information.
 

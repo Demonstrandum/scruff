@@ -40,7 +40,7 @@ impl Pyproject {
     }
 }
 
-/// Parse a `ruff.toml` file.
+/// Parse a `scruff.toml` file.
 fn parse_ruff_toml<P: AsRef<Path>>(path: P) -> Result<Options> {
     let path = path.as_ref();
     let contents = std::fs::read_to_string(path)
@@ -56,24 +56,24 @@ fn parse_pyproject_toml<P: AsRef<Path>>(path: P) -> Result<Pyproject> {
     toml::from_str(&contents).with_context(|| format!("Failed to parse {}", path.display()))
 }
 
-/// Return `true` if a `pyproject.toml` contains a `[tool.ruff]` section.
+/// Return `true` if a `pyproject.toml` contains a `[tool.scruff]` section.
 pub fn ruff_enabled<P: AsRef<Path>>(path: P) -> Result<bool> {
     let pyproject = parse_pyproject_toml(path)?;
     Ok(pyproject.tool.and_then(|tool| tool.ruff).is_some())
 }
 
-/// Return the path to the `pyproject.toml` or `ruff.toml` file in a given
+/// Return the path to the `pyproject.toml` or `scruff.toml` file in a given
 /// directory.
 pub fn settings_toml<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>> {
     let path = path.as_ref();
-    // Check for `.ruff.toml`.
-    let ruff_toml = path.join(".ruff.toml");
+    // Check for `.scruff.toml`.
+    let ruff_toml = path.join(".scruff.toml");
     if ruff_toml.is_file() {
         return Ok(Some(ruff_toml));
     }
 
-    // Check for `ruff.toml`.
-    let ruff_toml = path.join("ruff.toml");
+    // Check for `scruff.toml`.
+    let ruff_toml = path.join("scruff.toml");
     if ruff_toml.is_file() {
         return Ok(Some(ruff_toml));
     }
@@ -87,7 +87,7 @@ pub fn settings_toml<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>> {
     Ok(None)
 }
 
-/// Find the path to the `pyproject.toml` or `ruff.toml` file, if such a file
+/// Find the path to the `pyproject.toml` or `scruff.toml` file, if such a file
 /// exists.
 pub fn find_settings_toml<P: AsRef<Path>>(path: P) -> Result<Option<PathBuf>> {
     for directory in path.as_ref().ancestors() {
@@ -109,7 +109,7 @@ pub fn find_fallback_target_version<P: AsRef<Path>>(path: P) -> Option<PythonVer
     None
 }
 
-/// Find the path to the user-specific `pyproject.toml` or `ruff.toml`, if it
+/// Find the path to the user-specific `pyproject.toml` or `scruff.toml`, if it
 /// exists.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn find_user_settings_toml() -> Option<PathBuf> {
@@ -118,8 +118,8 @@ pub fn find_user_settings_toml() -> Option<PathBuf> {
     let strategy = etcetera::base_strategy::choose_base_strategy().ok()?;
     let config_dir = strategy.config_dir().join("ruff");
 
-    // Search for a user-specific `.ruff.toml`, then a `ruff.toml`, then a `pyproject.toml`.
-    for filename in [".ruff.toml", "ruff.toml", "pyproject.toml"] {
+    // Search for a user-specific `.scruff.toml`, then a `scruff.toml`, then a `pyproject.toml`.
+    for filename in [".scruff.toml", "scruff.toml", "pyproject.toml"] {
         let path = config_dir.join(filename);
         if path.is_file() {
             return Some(path);
@@ -134,7 +134,7 @@ pub fn find_user_settings_toml() -> Option<PathBuf> {
     None
 }
 
-/// Load `Options` from a `pyproject.toml` or `ruff.toml` file.
+/// Load `Options` from a `pyproject.toml` or `scruff.toml` file.
 pub(super) fn load_options<P: AsRef<Path>>(
     path: P,
     version_strategy: &TargetVersionStrategy,
@@ -158,7 +158,7 @@ pub(super) fn load_options<P: AsRef<Path>>(
         let mut ruff = parse_ruff_toml(path);
         if let Ok(ref mut ruff) = ruff {
             if ruff.target_version.is_none() {
-                debug!("No `target-version` found in `ruff.toml`");
+                debug!("No `target-version` found in `scruff.toml`");
                 match version_strategy {
                     TargetVersionStrategy::UseDefault => {}
                     TargetVersionStrategy::RequiresPythonFallback => {
@@ -280,7 +280,7 @@ mod tests {
         let pyproject: Pyproject = toml::from_str(
             r"
 [tool.black]
-[tool.ruff]
+[tool.scruff]
 ",
         )?;
         assert_eq!(
@@ -293,7 +293,7 @@ mod tests {
         let pyproject: Pyproject = toml::from_str(
             r"
 [tool.black]
-[tool.ruff]
+[tool.scruff]
 line-length = 79
 ",
         )?;
@@ -310,7 +310,7 @@ line-length = 79
         let pyproject: Pyproject = toml::from_str(
             r#"
 [tool.black]
-[tool.ruff]
+[tool.scruff]
 exclude = ["foo.py"]
 "#,
         )?;
@@ -425,7 +425,7 @@ strict-checking = false
             toml::from_str::<Pyproject>(
                 r"
 [tool.black]
-[tool.ruff]
+[tool.scruff]
 line_length = 79
 ",
             )
@@ -447,7 +447,7 @@ select = ["E123"]
             toml::from_str::<Pyproject>(
                 r"
 [tool.black]
-[tool.ruff]
+[tool.scruff]
 line-length = 79
 other-attribute = 1
 ",
@@ -457,7 +457,7 @@ other-attribute = 1
 
         let invalid_line_length = toml::from_str::<Pyproject>(
             r"
-[tool.ruff]
+[tool.scruff]
 line-length = 500
 ",
         )
@@ -471,7 +471,7 @@ line-length = 500
         // Test value at u16::MAX boundary (65535) - should show range error
         let invalid_line_length_65535 = toml::from_str::<Pyproject>(
             r"
-[tool.ruff]
+[tool.scruff]
 line-length = 65535
 ",
         )
@@ -485,7 +485,7 @@ line-length = 65535
         // Test value exceeding u16::MAX (65536) - should show clear error
         let invalid_line_length_65536 = toml::from_str::<Pyproject>(
             r"
-[tool.ruff]
+[tool.scruff]
 line-length = 65536
 ",
         )
@@ -499,7 +499,7 @@ line-length = 65536
         // Test value far exceeding u16::MAX (99_999) - should show clear error
         let invalid_line_length_99999 = toml::from_str::<Pyproject>(
             r"
-[tool.ruff]
+[tool.scruff]
 line-length = 99_999
 ",
         )
@@ -513,7 +513,7 @@ line-length = 99_999
         // Test negative value - should show clear error
         let invalid_line_length_negative = toml::from_str::<Pyproject>(
             r"
-[tool.ruff]
+[tool.scruff]
 line-length = -5
 ",
         )
@@ -534,7 +534,7 @@ line-length = -5
         fs::write(
             ruff_toml,
             r#"
-[tool.ruff]
+[tool.scruff]
 line-length = 88
 extend-exclude = [
   "excluded_file.py",
@@ -554,7 +554,7 @@ per-file-ignores = { "__init__.py" = ["F401"] }
             .tool
             .context("Expected to find [tool] field")?
             .ruff
-            .context("Expected to find [tool.ruff] field")?;
+            .context("Expected to find [tool.scruff] field")?;
         assert_eq!(
             config,
             Options {

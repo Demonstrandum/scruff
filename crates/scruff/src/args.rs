@@ -40,9 +40,9 @@ use toml;
 pub struct GlobalConfigArgs {
     #[clap(flatten)]
     log_level_args: LogLevelArgs,
-    /// Either a path to a TOML configuration file (`pyproject.toml` or `ruff.toml`),
+    /// Either a path to a TOML configuration file (`pyproject.toml` or `scruff.toml`),
     /// or a TOML `<KEY> = <VALUE>` pair
-    /// (such as you might find in a `ruff.toml` configuration file)
+    /// (such as you might find in a `scruff.toml` configuration file)
     /// overriding a specific configuration option.
     /// Overrides of individual settings using this option always take precedence
     /// over all configuration files, including configuration files that were also
@@ -63,7 +63,7 @@ pub struct GlobalConfigArgs {
     // as well as configuration files.
     // Specifying a configuration file conflicts with `--isolated`;
     // specifying a configuration override does not.
-    // If a user specifies `ruff check --isolated --config=ruff.toml`,
+    // If a user specifies `ruff check --isolated --config=scruff.toml`,
     // we emit an error later on, after the initial parsing by clap.
     #[arg(long, help_heading = "Global options", global = true)]
     pub isolated: bool,
@@ -90,9 +90,9 @@ const STYLES: Styles = Styles::styled()
 #[derive(Debug, Parser)]
 #[command(
     author,
-    name = "ruff",
-    about = "Ruff: An extremely fast Python linter and code formatter.",
-    after_help = "For help with a specific command, see: `ruff help <command>`."
+    name = "scruff",
+    about = "Scruff: An extremely fast Python linter and code formatter.",
+    after_help = "For help with a specific command, see: `scruff help <command>`."
 )]
 #[command(version)]
 #[command(styles = STYLES)]
@@ -647,7 +647,7 @@ pub struct ConfigArguments {
     pub(crate) isolated: bool,
     /// The logging level to be used, derived from command-line arguments passed
     pub(crate) log_level: LogLevel,
-    /// Path to a pyproject.toml or ruff.toml configuration file (etc.).
+    /// Path to a pyproject.toml or scruff.toml configuration file (etc.).
     /// Either 0 or 1 configuration file paths may be provided on the command line.
     config_file: Option<PathBuf>,
     /// Overrides provided via the `--config "KEY=VALUE"` option.
@@ -891,7 +891,7 @@ impl InvalidConfigFlagReason {
         match self {
             Self::InvalidToml(_) => "The supplied argument is not valid TOML",
             Self::ValidTomlButInvalidRuffSchema(_) => {
-                "Could not parse the supplied argument as a `ruff.toml` configuration option"
+                "Could not parse the supplied argument as a `scruff.toml` configuration option"
             }
             Self::ExtendPassedViaConfigFlag => "Cannot include `extend` in a --config flag value",
         }
@@ -908,7 +908,7 @@ impl InvalidConfigFlagReason {
 /// For example:
 ///
 /// ```sh
-/// ruff check --config "path/to/ruff.toml" --config "extend-select=['E501', 'F841']" --config "lint.per-file-ignores = {'some_file.py' = ['F841']}"
+/// ruff check --config "path/to/scruff.toml" --config "extend-select=['E501', 'F841']" --config "lint.per-file-ignores = {'some_file.py' = ['F841']}"
 /// ```
 #[derive(Clone, Debug)]
 pub enum SingleConfigArgument {

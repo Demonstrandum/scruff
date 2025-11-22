@@ -392,7 +392,7 @@ Commit each step of this process separately for easier review.
 
     - Often labels will be missing from pull requests they will need to be manually organized into the proper section
     - Changes should be edited to be user-facing descriptions, avoiding internal details
-    - Square brackets (eg, `[ruff]` project name) will be automatically escaped by `pre-commit`
+    - Square brackets (eg, `[scruff]` project name) will be automatically escaped by `pre-commit`
 
     Additionally, for minor releases:
 
@@ -441,8 +441,8 @@ Commit each step of this process separately for easier review.
     1. Run `uv run --only-dev --no-sync scripts/update_schemastore.py --proto <https|ssh>`
     1. Once run successfully, you should follow the link in the output to create a PR.
 
-1. If needed, update the [`ruff-lsp`](https://github.com/astral-sh/ruff-lsp) and
-    [`ruff-vscode`](https://github.com/astral-sh/ruff-vscode) repositories and follow
+1. If needed, update the [`ruff-lsp`](https://github.com/Demonstrandum/scrufflsp) and
+    [`ruff-vscode`](https://github.com/Demonstrandum/scruffvscode) repositories and follow
     the release instructions in those repositories. `ruff-lsp` should always be updated
     before `ruff-vscode`.
 
@@ -905,7 +905,7 @@ diagnostics, then our current compilation pipeline proceeds as follows:
 
 To understand Ruff's import categorization system, we first need to define two concepts:
 
-- "Project root": The directory containing the `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file,
+- "Project root": The directory containing the `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file,
     discovered by identifying the "closest" such directory for each Python file. (If you're running
     via `ruff --config /path/to/pyproject.toml`, then the current working directory is used as the
     "project root".)
@@ -951,7 +951,7 @@ the directory containing that `pyproject.toml` file as the project root. For exa
 `./my_project/pyproject.toml` contains:
 
 ```toml
-[tool.ruff]
+[tool.scruff]
 extend = "/path/to/pyproject.toml"
 ```
 

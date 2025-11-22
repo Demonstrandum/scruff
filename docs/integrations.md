@@ -25,7 +25,7 @@ jobs:
         run: ruff check --output-format=github .
 ```
 
-Ruff can also be used as a GitHub Action via [`ruff-action`](https://github.com/astral-sh/ruff-action).
+Ruff can also be used as a GitHub Action via [`ruff-action`](https://github.com/Demonstrandum/scruffaction).
 
 By default, `ruff-action` runs as a pass-fail test to ensure that a given repository doesn't contain
 any lint rule violations as per its [configuration](configuration.md).
@@ -46,13 +46,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v3
+      - uses: Demonstrandum/scruffaction@v3
 ```
 
 Alternatively, you can include `ruff-action` as a step in any other workflow file:
 
 ```yaml
-      - uses: astral-sh/ruff-action@v3
+      - uses: Demonstrandum/scruffaction@v3
 ```
 
 `ruff-action` accepts optional configuration parameters via `with:`, including:
@@ -64,7 +64,7 @@ Alternatively, you can include `ruff-action` as a step in any other workflow fil
 For example, to run `ruff check --select B ./src` using Ruff version `0.8.0`:
 
 ```yaml
-- uses: astral-sh/ruff-action@v3
+- uses: Demonstrandum/scruffaction@v3
   with:
     version: 0.8.0
     args: check --select B
@@ -80,7 +80,7 @@ You can add the following configuration to `.gitlab-ci.yml` to run a `ruff forma
   stage: build
   interruptible: true
   image:
-    name: ghcr.io/astral-sh/ruff:0.14.6-alpine
+    name: ghcr.io/Demonstrandum/scruff0.14.6-alpine
   before_script:
     - cd $CI_PROJECT_DIR
     - ruff --version
@@ -101,10 +101,10 @@ Ruff Format:
 
 ## pre-commit
 
-Ruff can be used as a [pre-commit](https://pre-commit.com) hook via [`ruff-pre-commit`](https://github.com/astral-sh/ruff-pre-commit):
+Ruff can be used as a [pre-commit](https://pre-commit.com) hook via [`ruff-pre-commit`](https://github.com/Demonstrandum/scruffpre-commit):
 
 ```yaml
-- repo: https://github.com/astral-sh/ruff-pre-commit
+- repo: https://github.com/Demonstrandum/scruffpre-commit
   # Ruff version.
   rev: v0.14.6
   hooks:
@@ -117,7 +117,7 @@ Ruff can be used as a [pre-commit](https://pre-commit.com) hook via [`ruff-pre-c
 To enable lint fixes, add the `--fix` argument to the lint hook:
 
 ```yaml
-- repo: https://github.com/astral-sh/ruff-pre-commit
+- repo: https://github.com/Demonstrandum/scruffpre-commit
   # Ruff version.
   rev: v0.14.6
   hooks:
@@ -131,7 +131,7 @@ To enable lint fixes, add the `--fix` argument to the lint hook:
 To avoid running on Jupyter Notebooks, remove `jupyter` from the list of allowed filetypes:
 
 ```yaml
-- repo: https://github.com/astral-sh/ruff-pre-commit
+- repo: https://github.com/Demonstrandum/scruffpre-commit
   # Ruff version.
   rev: v0.14.6
   hooks:
@@ -184,4 +184,3 @@ In addition, ruff publishes the following images:
 
 As with the distroless image, each image is published with ruff version tags as
 `ruff:{major}.{minor}.{patch}-{base}` and `ruff:{major}.{minor}-{base}`, e.g., `ruff:0.6.6-alpine`.
-
