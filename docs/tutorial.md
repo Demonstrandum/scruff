@@ -135,7 +135,7 @@ To configure Ruff, we'll add the following to the configuration file in our proj
      # Set the maximum line length to 79.
      line-length = 79
 
-     [tool.ruff.lint]
+     [tool.scruff.lint]
      # Add the `line-too-long` rule to the enforced rule set. By default, Ruff omits rules that
      # overlap with the use of a formatter, like Black, but we can override this behavior by
      # explicitly adding the rule.
@@ -177,7 +177,7 @@ specifically, we'll want to make note of the minimum supported Python version:
      # Set the maximum line length to 79.
      line-length = 79
 
-     [tool.ruff.lint]
+     [tool.scruff.lint]
      # Add the `line-too-long` rule to the enforced rule set.
      extend-select = ["E501"]
      ```
@@ -219,7 +219,7 @@ rules, we can set our configuration file to the following:
      [project]
      requires-python = ">=3.10"
 
-     [tool.ruff.lint]
+     [tool.scruff.lint]
      extend-select = [
        "UP",  # pyupgrade
      ]
@@ -255,13 +255,13 @@ all functions have docstrings:
      [project]
      requires-python = ">=3.10"
 
-     [tool.ruff.lint]
+     [tool.scruff.lint]
      extend-select = [
        "UP",  # pyupgrade
        "D",   # pydocstyle
      ]
 
-     [tool.ruff.lint.pydocstyle]
+     [tool.scruff.lint.pydocstyle]
      convention = "google"
      ```
 

@@ -3097,7 +3097,7 @@ pub struct PydocstyleOptions {
     /// documentation for every function parameter:
     ///
     /// ```toml
-    /// [tool.ruff.lint]
+    /// [tool.scruff.lint]
     /// # Enable all `pydocstyle` rules, limiting to those that adhere to the
     /// # Google convention via `convention = "google"`, below.
     /// select = ["D"]
@@ -3106,7 +3106,7 @@ pub struct PydocstyleOptions {
     /// # documentation for every function parameter.
     /// ignore = ["D417"]
     ///
-    /// [tool.ruff.lint.pydocstyle]
+    /// [tool.scruff.lint.pydocstyle]
     /// convention = "google"
     /// ```
     ///
@@ -3115,11 +3115,11 @@ pub struct PydocstyleOptions {
     /// `D400` instead of `D4` or `D40`):
     ///
     /// ```toml
-    /// [tool.ruff.lint]
+    /// [tool.scruff.lint]
     /// # Enable D400 on top of the Google convention.
     /// extend-select = ["D400"]
     ///
-    /// [tool.ruff.lint.pydocstyle]
+    /// [tool.scruff.lint.pydocstyle]
     /// convention = "google"
     /// ```
     #[option(

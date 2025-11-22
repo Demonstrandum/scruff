@@ -2346,7 +2346,7 @@ fn cookiecutter_globbing() -> Result<()> {
     let test = CliTest::with_files([
         (
             "{{cookiecutter.repo_name}}/pyproject.toml",
-            r#"tool.ruff.lint.per-file-ignores = { "tests/*" = ["F811"] }"#,
+            r#"tool.scruff.lint.per-file-ignores = { "tests/*" = ["F811"] }"#,
         ),
         (
             "{{cookiecutter.repo_name}}/tests/maintest.py",

@@ -1826,7 +1826,7 @@ fn requires_python() -> Result<()> {
         r#"[project]
 requires-python = ">= 3.11"
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["UP006"]
 "#,
     )?;
@@ -1853,7 +1853,7 @@ select = ["UP006"]
         r#"[project]
 requires-python = ">= 3.8"
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["UP006"]
 "#,
     )?;
@@ -1884,7 +1884,7 @@ fn requires_python_patch() -> Result<()> {
         r#"[project]
 requires-python = ">= 3.11.4"
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["UP006"]
 "#,
     )?;
@@ -1917,7 +1917,7 @@ fn requires_python_equals() -> Result<()> {
         r#"[project]
 requires-python = "== 3.11"
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["UP006"]
 "#,
     )?;
@@ -1950,7 +1950,7 @@ fn requires_python_equals_patch() -> Result<()> {
         r#"[project]
 requires-python = "== 3.11.4"
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["UP006"]
 "#,
     )?;
@@ -3168,7 +3168,7 @@ fn cookiecutter_globbing() -> Result<()> {
 
     fixture.write_file(
         "{{cookiecutter.repo_name}}/pyproject.toml",
-        r#"tool.ruff.lint.per-file-ignores = { "tests/*" = ["F811"] }"#,
+        r#"tool.scruff.lint.per-file-ignores = { "tests/*" = ["F811"] }"#,
     )?;
 
     // F811 example from the docs to ensure the glob still works

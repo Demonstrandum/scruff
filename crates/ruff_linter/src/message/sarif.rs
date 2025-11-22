@@ -48,7 +48,7 @@ impl Emitter for SarifEmitter {
                 "tool": {
                     "driver": {
                         "name": "ruff",
-                        "informationUri": "https://github.com/Demonstrandum/scruff,
+                        "informationUri": "https://github.com/Demonstrandum/scruff",
                         "rules": rules,
                         "version": VERSION.to_string(),
                     }

@@ -17,7 +17,7 @@ Preview mode can be configured separately for linting and formatting. To enable 
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     preview = true
     ```
 
@@ -40,7 +40,7 @@ To enable preview style formatting without enabling any preview lint rules:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.format]
+    [tool.scruff.format]
     preview = true
     ```
 
@@ -65,7 +65,7 @@ hypothetical rule, `HYP001`. If `HYP001` were in preview, it would _not_ be enab
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     extend-select = ["HYP001"]
     ```
 
@@ -88,7 +88,7 @@ It also would _not_ be enabled by selecting the `HYP` category, like so:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     extend-select = ["HYP"]
     ```
 
@@ -111,7 +111,7 @@ Similarly, it would _not_ be enabled via the `ALL` selector:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = ["ALL"]
     ```
 
@@ -133,7 +133,7 @@ However, it _would_ be enabled in any of the above cases if you enabled preview 
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     extend-select = ["HYP"]
     preview = true
     ```
@@ -163,7 +163,7 @@ setting in your configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     preview = true
     explicit-preview-rules = true
     ```

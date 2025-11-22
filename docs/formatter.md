@@ -110,7 +110,7 @@ following to your configuration file:
     [tool.scruff]
     line-length = 100
 
-    [tool.ruff.format]
+    [tool.scruff.format]
     quote-style = "single"
     indent-style = "tab"
     docstring-code-format = true
@@ -169,7 +169,7 @@ with a fixed line length limit:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.format]
+    [tool.scruff.format]
     docstring-code-format = true
     docstring-code-line-length = 20
     ```

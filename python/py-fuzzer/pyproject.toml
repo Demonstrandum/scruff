@@ -40,11 +40,11 @@ unused-ignore-comment = "error"
 fix = true
 preview = true
 
-[tool.ruff.format]
+[tool.scruff.format]
 docstring-code-format = true
 skip-magic-trailing-comma = true
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = [
     "ARG",
     "E",
@@ -75,6 +75,6 @@ unfixable = [
     "RUF017", # Ruff's fix is faster, but I prefer using itertools.chain_from_iterable
 ]
 
-[tool.ruff.lint.isort]
+[tool.scruff.lint.isort]
 combine-as-imports = true
 split-on-trailing-comma = false

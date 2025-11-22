@@ -115,7 +115,7 @@ export default function SettingsEditor({
       onMount={handleMount}
       wrapperProps={visible ? {} : { style: { display: "none" } }}
       language="json"
-      path="ruff.json"
+      path="scruff.json"
       value={source}
       theme={theme === "light" ? "Ayu-Light" : "Ayu-Dark"}
       onChange={handleChange}
@@ -126,17 +126,17 @@ export default function SettingsEditor({
 function stripToolRuff(settings: object) {
   const { tool, ...nonToolSettings } = settings as any;
 
-  // Flatten out `tool.ruff.x` to just `x`
+  // Flatten out `tool.scruff.x` to just `x`
   if (typeof tool === "object" && !Array.isArray(tool)) {
-    if (tool.ruff != null) {
-      return { ...nonToolSettings, ...tool.ruff };
+    if (tool.scruff != null) {
+      return { ...nonToolSettings, ...tool.scruff };
     }
   }
 
   return Object.fromEntries(
     Object.entries(settings).flatMap(([key, value]) => {
-      if (key.startsWith("tool.ruff")) {
-        const strippedKey = key.substring("tool.ruff".length);
+      if (key.startsWith("tool.scruff")) {
+        const strippedKey = key.substring("tool.scruff".length);
 
         if (strippedKey === "") {
           return Object.entries(value);
@@ -156,14 +156,14 @@ function prefixWithRuffToml(settings: object) {
 
   for (const [key, value] of Object.entries(settings)) {
     if (typeof value === "object" && !Array.isArray(value)) {
-      subTableEntries.push([`tool.ruff.${key}`, value]);
+      subTableEntries.push([`tool.scruff.${key}`, value]);
     } else {
       ruffTableEntries.push([key, value]);
     }
   }
 
   return {
-    ["tool.ruff"]: Object.fromEntries(ruffTableEntries),
+    ["tool.scruff"]: Object.fromEntries(ruffTableEntries),
     ...Object.fromEntries(subTableEntries),
   };
 }

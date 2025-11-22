@@ -26,7 +26,7 @@ requires-python = ">=3.7"
 [tool.scruff]
 line-length = 100
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 ignore = [
   # Conflicts with the formatter
   "COM812", "ISC001"

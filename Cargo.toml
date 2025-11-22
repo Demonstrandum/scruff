@@ -8,7 +8,7 @@ edition = "2024"
 rust-version = "1.89"
 homepage = "https://docs.astral.sh/ruff"
 documentation = "https://docs.astral.sh/ruff"
-repository = "https://github.com/Demonstrandum/scruff
+repository = "https://github.com/Demonstrandum/scruff"
 authors = ["Charlie Marsh <charlie.r.marsh@gmail.com>"]
 license = "MIT"
 

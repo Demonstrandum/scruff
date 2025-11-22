@@ -189,7 +189,7 @@ fn format_example(header: &str, content: &str) -> String {
 
 /// Format the TOML header for the example usage for a given option.
 ///
-/// For example: `[tool.ruff.format]` or `[tool.ruff.lint.isort]`.
+/// For example: `[tool.scruff.format]` or `[tool.scruff.lint.isort]`.
 fn format_header(
     scope: Option<&str>,
     example: &str,

@@ -19,7 +19,7 @@ from tempfile import TemporaryDirectory
 from typing import NamedTuple, assert_never
 
 # The remote URL for the `ruff` repository.
-RUFF_REPO = "https://github.com/Demonstrandum/scruff
+RUFF_REPO = "https://github.com/Demonstrandum/scruff"
 
 # The path to the root of the `ruff` repository.
 RUFF_ROOT = Path(__file__).parent.parent

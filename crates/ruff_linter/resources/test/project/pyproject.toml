@@ -2,6 +2,6 @@
 src = [".", "python_modules/*"]
 exclude = ["examples/excluded"]
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 extend-select = ["I001"]
 extend-ignore = ["F841"]

@@ -42,7 +42,7 @@ impl Violation for UndefinedName {
         } = self;
         let tip = minor_version_builtin_added.map(|version_added| {
             format!(
-                r#"Consider specifying `requires-python = ">= 3.{version_added}"` or `tool.ruff.target-version = "py3{version_added}"` in your `pyproject.toml` file."#
+                r#"Consider specifying `requires-python = ">= 3.{version_added}"` or `tool.scruff.target-version = "py3{version_added}"` in your `pyproject.toml` file."#
             )
         });
 

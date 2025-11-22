@@ -322,7 +322,7 @@ the same name, you can add the following:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint.isort]
+    [tool.scruff.lint.isort]
     known-third-party = ["wandb"]
     ```
 
@@ -400,7 +400,7 @@ like so:
     [tool.scruff]
     src = ["src", "tests"]
 
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = [
         # Pyflakes
         "F",
@@ -411,7 +411,7 @@ like so:
         "I001"
     ]
 
-    [tool.ruff.lint.isort]
+    [tool.scruff.lint.isort]
     known-first-party = ["my_module1", "my_module2"]
     ```
 
@@ -465,7 +465,7 @@ setting following to your configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint.pydocstyle]
+    [tool.scruff.lint.pydocstyle]
     convention = "google"  # Accepts: "google", "numpy", or "pep257".
     ```
 
@@ -486,10 +486,10 @@ explicitly enable the `D` rule code prefix, since the `D` rules are not enabled 
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = ["D"]
 
-    [tool.ruff.lint.pydocstyle]
+    [tool.scruff.lint.pydocstyle]
     convention = "google"
     ```
 
@@ -510,7 +510,7 @@ then selectively enable or disable any additional rules on top of it:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = [
         "D",
         # Augment the convention by requiring an imperative mood for all docstrings.
@@ -522,7 +522,7 @@ then selectively enable or disable any additional rules on top of it:
         "D417",
     ]
 
-    [tool.ruff.lint.pydocstyle]
+    [tool.scruff.lint.pydocstyle]
     convention = "google"
     ```
 
@@ -614,7 +614,7 @@ file can omit the `[tool.scruff]` section header. For example:
 [tool.scruff]
 line-length = 88
 
-[tool.ruff.lint.pydocstyle]
+[tool.scruff.lint.pydocstyle]
 convention = "google"
 ```
 

@@ -68,7 +68,7 @@ exit_code: 1
       ],
       "tool": {
         "driver": {
-          "informationUri": "https://github.com/Demonstrandum/scruff,
+          "informationUri": "https://github.com/Demonstrandum/scruff",
           "name": "ruff",
           "rules": [],
           "version": "[VERSION]"

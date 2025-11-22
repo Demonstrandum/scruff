@@ -334,7 +334,7 @@ hx -v path/to/file.py
   "servers": {
     "python": {
       "command": ["ruff", "server"],
-      "url": "https://github.com/Demonstrandum/scruff,
+      "url": "https://github.com/Demonstrandum/scruff",
       "highlightingModeRegex": "^Python$",
       "settings": {}
     }

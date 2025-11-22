@@ -14,7 +14,7 @@ use crate::options::Options;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 struct Tools {
-    ruff: Option<Options>,
+    scruff: Option<Options>,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -33,7 +33,7 @@ impl Pyproject {
     pub const fn new(options: Options) -> Self {
         Self {
             tool: Some(Tools {
-                ruff: Some(options),
+                scruff: Some(options),
             }),
             project: None,
         }
@@ -59,7 +59,7 @@ fn parse_pyproject_toml<P: AsRef<Path>>(path: P) -> Result<Pyproject> {
 /// Return `true` if a `pyproject.toml` contains a `[tool.scruff]` section.
 pub fn ruff_enabled<P: AsRef<Path>>(path: P) -> Result<bool> {
     let pyproject = parse_pyproject_toml(path)?;
-    Ok(pyproject.tool.and_then(|tool| tool.ruff).is_some())
+    Ok(pyproject.tool.and_then(|tool| tool.scruff).is_some())
 }
 
 /// Return the path to the `pyproject.toml` or `scruff.toml` file in a given
@@ -144,7 +144,7 @@ pub(super) fn load_options<P: AsRef<Path>>(
         let pyproject = parse_pyproject_toml(path)?;
         let mut ruff = pyproject
             .tool
-            .and_then(|tool| tool.ruff)
+            .and_then(|tool| tool.scruff)
             .unwrap_or_default();
         if ruff.target_version.is_none() {
             if let Some(project) = pyproject.project {
@@ -275,7 +275,7 @@ mod tests {
 [tool.black]
 ",
         )?;
-        assert_eq!(pyproject.tool, Some(Tools { ruff: None }));
+        assert_eq!(pyproject.tool, Some(Tools { scruff: None }));
 
         let pyproject: Pyproject = toml::from_str(
             r"
@@ -286,7 +286,7 @@ mod tests {
         assert_eq!(
             pyproject.tool,
             Some(Tools {
-                ruff: Some(Options::default())
+                scruff: Some(Options::default())
             })
         );
 
@@ -300,7 +300,7 @@ line-length = 79
         assert_eq!(
             pyproject.tool,
             Some(Tools {
-                ruff: Some(Options {
+                scruff: Some(Options {
                     line_length: Some(LineLength::try_from(79).unwrap()),
                     ..Options::default()
                 })
@@ -317,7 +317,7 @@ exclude = ["foo.py"]
         assert_eq!(
             pyproject.tool,
             Some(Tools {
-                ruff: Some(Options {
+                scruff: Some(Options {
                     exclude: Some(vec!["foo.py".to_string()]),
                     ..Options::default()
                 })
@@ -327,14 +327,14 @@ exclude = ["foo.py"]
         let pyproject: Pyproject = toml::from_str(
             r#"
 [tool.black]
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["E501"]
 "#,
         )?;
         assert_eq!(
             pyproject.tool,
             Some(Tools {
-                ruff: Some(Options {
+                scruff: Some(Options {
                     lint: Some(LintOptions {
                         common: LintCommonOptions {
                             select: Some(vec![codes::Pycodestyle::E501.into()]),
@@ -350,7 +350,7 @@ select = ["E501"]
         let pyproject: Pyproject = toml::from_str(
             r#"
 [tool.black]
-[tool.ruff.lint]
+[tool.scruff.lint]
 extend-select = ["RUF100"]
 ignore = ["E501"]
 "#,
@@ -358,7 +358,7 @@ ignore = ["E501"]
         assert_eq!(
             pyproject.tool,
             Some(Tools {
-                ruff: Some(Options {
+                scruff: Some(Options {
                     lint: Some(LintOptions {
                         common: LintCommonOptions {
                             extend_select: Some(vec![codes::Ruff::_100.into()]),
@@ -374,7 +374,7 @@ ignore = ["E501"]
 
         let pyproject: Pyproject = toml::from_str(
             r#"
-[tool.ruff.lint.flake8-builtins]
+[tool.scruff.lint.flake8-builtins]
 builtins-allowed-modules = ["asyncio"]
 builtins-ignorelist = ["argparse", 'typing']
 builtins-strict-checking = true
@@ -399,7 +399,7 @@ strict-checking = false
         assert_eq!(
             pyproject.tool,
             Some(Tools {
-                ruff: Some(Options {
+                scruff: Some(Options {
                     lint: Some(LintOptions {
                         common: LintCommonOptions {
                             flake8_builtins: Some(expected.clone()),
@@ -436,7 +436,7 @@ line_length = 79
             toml::from_str::<Pyproject>(
                 r#"
 [tool.black]
-[tool.ruff.lint]
+[tool.scruff.lint]
 select = ["E123"]
 "#,
             )
@@ -542,7 +542,7 @@ extend-exclude = [
   "with_excluded_file/other_excluded_file.py",
 ]
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 per-file-ignores = { "__init__.py" = ["F401"] }
 "#,
         )?;
@@ -553,7 +553,7 @@ per-file-ignores = { "__init__.py" = ["F401"] }
         let config = pyproject
             .tool
             .context("Expected to find [tool] field")?
-            .ruff
+            .scruff
             .context("Expected to find [tool.scruff] field")?;
         assert_eq!(
             config,

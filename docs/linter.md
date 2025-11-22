@@ -37,7 +37,7 @@ configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = ["E", "F"]
     ignore = ["F401"]
     ```
@@ -71,7 +71,7 @@ pedantic) might look like the following:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = [
         # pycodestyle
         "E",
@@ -123,7 +123,7 @@ For example, given the following configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = ["E", "F"]
     ignore = ["F401"]
     ```
@@ -216,7 +216,7 @@ For example, the following configuration would promote unsafe fixes for `F601` t
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     extend-safe-fixes = ["F601"]
     extend-unsafe-fixes = ["UP034"]
     ```
@@ -245,7 +245,7 @@ For example, the following configuration would enable fixes for all rules except
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     fixable = ["ALL"]
     unfixable = ["F401"]
     ```
@@ -263,7 +263,7 @@ Conversely, the following configuration would only enable fixes for `F401`:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     fixable = ["F401"]
     ```
 

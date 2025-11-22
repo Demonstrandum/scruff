@@ -50,7 +50,7 @@ If left unspecified, Ruff's default configuration is equivalent to:
     # Assume Python 3.9
     target-version = "py39"
 
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
     # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
     # McCabe complexity (`C901`) by default.
@@ -64,7 +64,7 @@ If left unspecified, Ruff's default configuration is equivalent to:
     # Allow unused variables when underscore-prefixed.
     dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-    [tool.ruff.format]
+    [tool.scruff.format]
     # Like Black, use double quotes for strings.
     quote-style = "double"
 
@@ -179,7 +179,7 @@ As an example, the following would configure Ruff to:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     # 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
     select = ["E4", "E7", "E9", "F", "B"]
 
@@ -190,11 +190,11 @@ As an example, the following would configure Ruff to:
     unfixable = ["B"]
 
     # 4. Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
-    [tool.ruff.lint.per-file-ignores]
+    [tool.scruff.lint.per-file-ignores]
     "__init__.py" = ["E402"]
     "**/{tests,docs,tools}/*" = ["E402"]
 
-    [tool.ruff.format]
+    [tool.scruff.format]
     # 5. Use single quotes in `ruff format`.
     quote-style = "single"
     ```
@@ -227,11 +227,11 @@ Linter plugin configurations are expressed as subsections, e.g.:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     # Add "Q" to the list of enabled codes.
     select = ["E4", "E7", "E9", "F", "Q"]
 
-    [tool.ruff.lint.flake8-quotes]
+    [tool.scruff.lint.flake8-quotes]
     docstring-quotes = "double"
     ```
 
@@ -248,7 +248,7 @@ Linter plugin configurations are expressed as subsections, e.g.:
 
 Ruff respects `pyproject.toml`, `scruff.toml`, and `.scruff.toml` files. All three implement an
 equivalent schema (though in the `scruff.toml` and `.scruff.toml` versions, the `[tool.scruff]` header and
-`tool.ruff` section prefix is omitted).
+`tool.scruff` section prefix is omitted).
 
 For a complete enumeration of the available configuration options, see [_Settings_](settings.md).
 
@@ -331,7 +331,7 @@ formatting `.pyi` files, but would continue to include them in linting:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.format]
+    [tool.scruff.format]
     exclude = ["*.pyi"]
     ```
 
@@ -386,7 +386,7 @@ Notebook files and not format them:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.format]
+    [tool.scruff.format]
     exclude = ["*.ipynb"]
     ```
 
@@ -402,7 +402,7 @@ And, conversely, the following would only format Jupyter Notebook files and not 
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     exclude = ["*.ipynb"]
     ```
 
@@ -435,7 +435,7 @@ using the [`per-file-ignores`](settings.md#per-file-ignores) setting:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint.per-file-ignores]
+    [tool.scruff.lint.per-file-ignores]
     "*.ipynb" = ["T20"]
     ```
 

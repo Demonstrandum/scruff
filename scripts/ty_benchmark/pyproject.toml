@@ -15,7 +15,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/benchmark"]
 
-[tool.ruff.lint]
+[tool.scruff.lint]
 ignore = [
     "E501", # We use ruff format
 ]
