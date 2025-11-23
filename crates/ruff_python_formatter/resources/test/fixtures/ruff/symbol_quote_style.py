@@ -1,0 +1,48 @@
+# Test file for symbol quote style functionality
+
+# Simple symbols that should get single quotes
+name = "identifier"
+config_value = "setting.value"
+key_name = "user_data"
+endpoint = "api.endpoint"
+url = "https://api.example.com"
+
+# Non-symbols that should get double quotes
+message = "Hello, world!"
+sentence = "This is a complete sentence."
+text_with_spaces = "text with spaces"
+complex_string = "String with punctuation, and symbols!"
+
+# Mixed cases
+simple = "x"
+greeting = "Hi there"
+path_like = "path/to/file"
+identifier_with_numbers = "item123"
+symbol_like = "CONFIG_VALUE"
+
+# Edge cases
+empty = ""
+only_underscore = "_"
+only_dash = "-"
+only_dot = "."
+mixed_symbols = "a-b_c.d:e"
+
+# F-strings and raw strings should respect the quote choice for their content
+f_string_symbol = f"value_{name}"
+f_string_text = f"Hello {name}, how are you?"
+raw_symbol = r"regex_pattern"
+raw_text = r"This is a raw string with text"
+
+# Triple quoted strings should use double quotes per PEP 8
+docstring = """
+This is a docstring and should use double quotes.
+Even if it contains symbols like: config_value, api_key.
+"""
+
+# Complex expressions with string literals
+config = {
+    "api_key": "prod_key",  # symbol: symbol
+    "message": "Welcome to our app!",  # symbol: text
+    "timeout": "30",  # symbol: symbol
+    "greeting": "Hello, valued customer",  # symbol: text
+}

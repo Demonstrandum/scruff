@@ -543,7 +543,7 @@ fn too_many_config_files() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: You cannot specify more than one configuration file on the command line.
 
       tip: remove either `--config=ruff.toml` or `--config=ruff2.toml`.
@@ -594,7 +594,7 @@ extend = "ruff3.toml"
         ----- stdout -----
 
         ----- stderr -----
-        ruff failed
+        scruff failed
           Cause: Failed to load extended configuration `[TMP]/ruff3.toml` (`[TMP]/ruff.toml` extends `[TMP]/ruff2.toml` extends `[TMP]/ruff3.toml`)
           Cause: Failed to read [TMP]/ruff3.toml
           Cause: No such file or directory (os error 2)
@@ -633,7 +633,7 @@ extend = "scruff.toml"
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Circular configuration detected: `[TMP]/ruff.toml` extends `[TMP]/ruff2.toml` extends `[TMP]/ruff3.toml` extends `[TMP]/ruff.toml`
     ");
 
@@ -665,7 +665,7 @@ select = [E501]
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load extended configuration `[TMP]/ruff2.toml` (`[TMP]/ruff.toml` extends `[TMP]/ruff2.toml`)
       Cause: Failed to parse [TMP]/ruff2.toml
       Cause: TOML parse error at line 3, column 11
@@ -694,7 +694,7 @@ fn config_file_and_isolated() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: The argument `--config=ruff.toml` cannot be used with `--isolated`
 
       tip: You cannot specify a configuration file and also specify `--isolated`,
@@ -1153,7 +1153,7 @@ import os
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Required version `==0.1.0` does not match the running version `[VERSION]`
     ");
     });
@@ -1228,7 +1228,7 @@ import os
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Required version `>[VERSION]` does not match the running version `[VERSION]`
     ");
     });
@@ -1811,7 +1811,7 @@ fn add_noqa_with_newline_in_reason() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: --add-noqa <reason> cannot contain newline characters
     "###);
 
@@ -2502,7 +2502,7 @@ fn flake8_import_convention_invalid_aliases_config_alias_name() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 3, column 17
@@ -2536,7 +2536,7 @@ fn flake8_import_convention_invalid_aliases_config_extend_alias_name() -> Result
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 3, column 17
@@ -2570,7 +2570,7 @@ fn flake8_import_convention_invalid_aliases_config_module_name() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 3, column 1
@@ -2604,7 +2604,7 @@ fn flake8_import_convention_nfkc_normalization() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Invalid alias for module 'test.module': alias normalizes to '__debug__', which is not allowed.
     "###);
     Ok(())
@@ -3716,7 +3716,7 @@ fn supported_file_extensions_preview_enabled() -> Result<()> {
 fn mode_minimal() -> Result<()> {
     let test = CliTest::new()?;
     test.write_file(
-        "scruff.toml", 
+        "scruff.toml",
         r#"
 mode = "minimal"
 "#,
@@ -3767,7 +3767,7 @@ mode = "strict"
     // Same test code should catch more issues in strict mode
     let test_code = r#"
 import os, sys  # E401: multiple imports on one line
-import unused_import  # F401: unused import  
+import unused_import  # F401: unused import
 x=1+1  # E225: missing whitespace around operator
 def f( ):  # E201: whitespace after '('
     pass

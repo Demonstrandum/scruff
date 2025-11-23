@@ -73,7 +73,7 @@ fn report_error(err: &anyhow::Error) -> ExitCode {
 
         // This communicates that this isn't a linter error but ruff itself hard-errored for
         // some reason (e.g. failed to resolve the configuration)
-        writeln!(stderr, "{}", "ruff failed".red().bold()).ok();
+        writeln!(stderr, "{}", "scruff failed".red().bold()).ok();
         // Currently we generally only see one error, but e.g. with io errors when resolving
         // the configuration it is help to chain errors ("resolving configuration failed" ->
         // "failed to read file: subdir/pyproject.toml")

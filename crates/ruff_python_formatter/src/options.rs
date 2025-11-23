@@ -2,6 +2,8 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
+use regex;
+
 use ruff_formatter::printer::{LineEnding, PrinterOptions, SourceMapGeneration};
 use ruff_formatter::{FormatOptions, IndentStyle, IndentWidth, LineWidth};
 use ruff_macros::CacheKey;
@@ -41,6 +43,11 @@ pub struct PyFormatOptions {
 
     /// The preferred quote style to use (single vs double quotes).
     quote_style: QuoteStyle,
+
+    /// Regular expression to identify symbols when using QuoteStyle::Symbol.
+    /// Symbols will use single quotes, non-symbols use double quotes.
+    #[cfg_attr(feature = "serde", serde(skip))]
+    quote_symbol_regex: Option<regex::Regex>,
 
     /// Whether to expand lists or elements if they have a trailing comma such as `(a, b,)`.
     magic_trailing_comma: MagicTrailingComma,
@@ -85,6 +92,7 @@ impl Default for PyFormatOptions {
             line_width: default_line_width(),
             indent_width: default_indent_width(),
             quote_style: QuoteStyle::default(),
+            quote_symbol_regex: None,
             line_ending: LineEnding::default(),
             magic_trailing_comma: MagicTrailingComma::default(),
             source_map_generation: SourceMapGeneration::default(),
@@ -118,6 +126,10 @@ impl PyFormatOptions {
 
     pub const fn quote_style(&self) -> QuoteStyle {
         self.quote_style
+    }
+
+    pub const fn quote_symbol_regex(&self) -> Option<&regex::Regex> {
+        self.quote_symbol_regex.as_ref()
     }
 
     pub const fn source_type(&self) -> PySourceType {
@@ -159,6 +171,12 @@ impl PyFormatOptions {
     #[must_use]
     pub fn with_quote_style(mut self, style: QuoteStyle) -> Self {
         self.quote_style = style;
+        self
+    }
+
+    #[must_use]
+    pub fn with_quote_symbol_regex(mut self, regex: Option<regex::Regex>) -> Self {
+        self.quote_symbol_regex = regex;
         self
     }
 
@@ -245,6 +263,8 @@ pub enum QuoteStyle {
     Single,
     #[default]
     Double,
+    /// Use single quotes for symbols/identifiers (matching a regex) and double quotes for other strings
+    Symbol,
     Preserve,
 }
 
@@ -258,6 +278,7 @@ impl QuoteStyle {
         match self {
             QuoteStyle::Single => "single",
             QuoteStyle::Double => "double",
+            QuoteStyle::Symbol => "symbol",
             QuoteStyle::Preserve => "preserve",
         }
     }
@@ -276,6 +297,7 @@ impl FromStr for QuoteStyle {
         match s {
             "\"" | "double" | "Double" => Ok(Self::Double),
             "'" | "single" | "Single" => Ok(Self::Single),
+            "symbol" | "Symbol" => Ok(Self::Symbol),
             "preserve" | "Preserve" => Ok(Self::Preserve),
             // TODO: replace this error with a diagnostic
             _ => Err("Value not supported for QuoteStyle"),

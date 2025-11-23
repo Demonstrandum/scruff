@@ -645,7 +645,7 @@ fn venv() -> Result<()> {
         ----- stdout -----
 
         ----- stderr -----
-        ruff failed
+        scruff failed
           Cause: Invalid `--python` argument `none`: does not point to a Python executable or a directory on disk
           Cause: No such file or directory (os error 2)
         ");

@@ -170,8 +170,47 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
             } else {
                 QuoteStyle::Double
             }
+        } else if preferred_quote_style == QuoteStyle::Symbol {
+            // For symbol mode, determine quotes based on string content
+            self.quote_style_for_symbol_mode(string)
         } else {
             preferred_quote_style
+        }
+    }
+
+    /// Determines the appropriate quote style for a string when using Symbol mode.
+    /// Returns Single for symbols (content matching the symbol regex), Double for other strings.
+    fn quote_style_for_symbol_mode(&self, string: StringLikePart) -> QuoteStyle {
+        // Get the raw string content (without quotes)
+        let raw_content = &self.context.source()[string.content_range()];
+        
+        // Get the symbol regex from options, use default if not provided
+        let symbol_regex = self.context.options().quote_symbol_regex();
+        
+        match symbol_regex {
+            Some(regex) => {
+                if regex.is_match(raw_content) {
+                    QuoteStyle::Single  // Use single quotes for symbols
+                } else {
+                    QuoteStyle::Double  // Use double quotes for non-symbols
+                }
+            }
+            None => {
+                // Fallback to default symbol pattern if no regex is provided
+                self.is_default_symbol(raw_content)
+            }
+        }
+    }
+
+    /// Default symbol detection: letters, numbers, underscores, hyphens, dots, colons
+    fn is_default_symbol(&self, content: &str) -> QuoteStyle {
+        let is_symbol = !content.is_empty() && 
+            content.chars().all(|c| c.is_alphanumeric() || matches!(c, '_' | '-' | '.' | ':'));
+        
+        if is_symbol {
+            QuoteStyle::Single
+        } else {
+            QuoteStyle::Double
         }
     }
 

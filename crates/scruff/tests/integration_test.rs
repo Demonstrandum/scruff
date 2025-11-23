@@ -1356,7 +1356,7 @@ fn removed_direct() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Rule `RUF931` was removed and cannot be selected.
     ");
 }
@@ -1374,7 +1374,7 @@ fn removed_direct_multiple() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: The following rules have been removed and cannot be selected:
         - RUF930
         - RUF931
@@ -1581,7 +1581,7 @@ fn deprecated_direct_preview_enabled() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Selection of deprecated rule `RUF920` is not allowed when preview is enabled.
     ");
 }
@@ -1615,7 +1615,7 @@ fn deprecated_multiple_direct_preview_enabled() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Selection of deprecated rules is not allowed when preview is enabled. Remove selection of:
     	- RUF920
     	- RUF921
@@ -1743,7 +1743,7 @@ fn missing_argfile_reports_error() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to read CLI arguments from files
       Cause: failed to open file `!.txt`
       Cause: No such file or directory (os error 2)

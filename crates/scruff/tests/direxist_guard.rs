@@ -24,7 +24,7 @@ fn check_in_deleted_directory_errors() {
             ----- stdout -----
 
             ----- stderr -----
-            ruff failed
+            scruff failed
               Cause: Working directory does not exist
             "###);
 }

@@ -1,0 +1,14 @@
+[project]
+name = "scruff-example-tali-mode"
+version = "0.1.0"
+description = "Scruff example: tali mode"
+requires-python = ">=3.12"
+dependencies = ["scruff"]
+
+[tool.scruff]
+mode = "tali"
+
+[tool.uv.sources]
+scruff = { path = "../../" }
+
+

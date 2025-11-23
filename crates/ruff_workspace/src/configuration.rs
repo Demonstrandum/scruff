@@ -118,17 +118,21 @@ impl RuleSelection {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum Mode {
+    /// Default ruff behavior (same as no mode specified)
+    Default,
     /// Conservative defaults focusing only on critical errors
     Minimal,
     /// Comprehensive linting with additional rule categories  
     Strict,
     /// Black-compatible formatting with style-focused rules
     Black,
+    /// Tali mode with symbol quote style for identifiers
+    Tali,
 }
 
 impl Default for Mode {
     fn default() -> Self {
-        Self::Minimal
+        Self::Default
     }
 }
 
@@ -141,6 +145,7 @@ impl Mode {
         use ruff_linter::codes::RuleCodePrefix;
 
         match self {
+            Mode::Default => DEFAULT_SELECTORS.to_vec(),
             Mode::Minimal => vec![
                 // Only Pyflakes for undefined variables, unused imports, syntax errors
                 RuleSelector::Linter(Linter::Pyflakes),
@@ -191,42 +196,70 @@ impl Mode {
                 // Quote consistency
                 RuleSelector::Linter(Linter::Flake8Quotes),
             ],
+            Mode::Tali => vec![
+                // Pyflakes for error detection
+                RuleSelector::Linter(Linter::Pyflakes),
+                // Critical import errors
+                RuleSelector::Prefix {
+                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E4),
+                    redirected_from: None,
+                },
+                // Syntax errors
+                RuleSelector::Prefix {
+                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E9),
+                    redirected_from: None,
+                },
+                // Import sorting for clean code
+                RuleSelector::Linter(Linter::Isort),
+            ],
         }
     }
 
     /// Get the line length for this mode
     pub fn line_length(&self) -> Option<LineLength> {
         match self {
-            Mode::Minimal | Mode::Strict => None, // Use default (88)
+            Mode::Default | Mode::Minimal | Mode::Strict => None, // Use default (88)
             Mode::Black => Some(LineLength::try_from(88).unwrap()), // Black standard
+            Mode::Tali => None, // Use default (88)
         }
     }
 
     /// Get target version for this mode
     pub fn target_version(&self) -> Option<ast::PythonVersion> {
         match self {
-            Mode::Minimal | Mode::Black => None, // Use default
+            Mode::Default | Mode::Minimal | Mode::Black => None, // Use default
             Mode::Strict => Some(ast::PythonVersion::PY38), // Conservative for strict mode
+            Mode::Tali => None, // Use default
         }
     }
 
     /// Whether to enable preview rules
     pub fn preview(&self) -> Option<PreviewMode> {
         match self {
-            Mode::Minimal | Mode::Black => None, // Stable only
+            Mode::Default | Mode::Minimal | Mode::Black => None, // Stable only
             Mode::Strict => Some(PreviewMode::Enabled), // Include preview rules
+            Mode::Tali => None, // Stable only
         }
     }
 
     /// Get formatter settings for this mode
     pub fn format_settings(&self) -> (Option<LineLength>, Option<IndentWidth>) {
         match self {
-            Mode::Minimal => (None, None), // Use defaults
+            Mode::Default | Mode::Minimal => (None, None), // Use defaults
             Mode::Strict => (None, None), // Use defaults  
             Mode::Black => (
                 Some(LineLength::try_from(88).unwrap()),
                 Some(IndentWidth::try_from(std::num::NonZeroU8::new(4).unwrap()).unwrap()),
             ),
+            Mode::Tali => (None, None), // Use defaults
+        }
+    }
+
+    /// Get the quote style for this mode
+    pub fn quote_style(&self) -> Option<QuoteStyle> {
+        match self {
+            Mode::Default | Mode::Minimal | Mode::Strict | Mode::Black => None, // Use defaults
+            Mode::Tali => Some(QuoteStyle::Symbol), // Use symbol quote style
         }
     }
 }
@@ -309,7 +342,9 @@ impl Configuration {
         let format = config.format;
         let format_defaults = FormatterSettings::default();
 
-        let quote_style = format.quote_style.unwrap_or(format_defaults.quote_style);
+        let quote_style = format.quote_style
+            .or(mode.quote_style())
+            .unwrap_or(format_defaults.quote_style);
         let format_preview = match format.preview.unwrap_or(global_preview) {
             PreviewMode::Disabled => ruff_python_formatter::PreviewMode::Disabled,
             PreviewMode::Enabled => ruff_python_formatter::PreviewMode::Enabled,
@@ -339,6 +374,9 @@ impl Configuration {
                     ruff_formatter::IndentWidth::from(NonZeroU8::from(tab_size))
                 }),
             quote_style,
+            quote_symbol_regex: format.quote_symbol_regex.and_then(|pattern| {
+                regex::Regex::new(&pattern).ok()
+            }),
             magic_trailing_comma: format
                 .magic_trailing_comma
                 .unwrap_or(format_defaults.magic_trailing_comma),
@@ -1363,6 +1401,7 @@ pub struct FormatConfiguration {
 
     pub indent_style: Option<IndentStyle>,
     pub quote_style: Option<QuoteStyle>,
+    pub quote_symbol_regex: Option<String>,
     pub magic_trailing_comma: Option<MagicTrailingComma>,
     pub line_ending: Option<LineEnding>,
     pub docstring_code_format: Option<DocstringCode>,
@@ -1387,6 +1426,7 @@ impl FormatConfiguration {
             preview: options.preview.map(PreviewMode::from),
             indent_style: options.indent_style,
             quote_style: options.quote_style,
+            quote_symbol_regex: options.quote_symbol_regex,
             magic_trailing_comma: options.skip_magic_trailing_comma.map(|skip| {
                 if skip {
                     MagicTrailingComma::Ignore
@@ -1414,6 +1454,7 @@ impl FormatConfiguration {
             extension: self.extension.or(config.extension),
             indent_style: self.indent_style.or(config.indent_style),
             quote_style: self.quote_style.or(config.quote_style),
+            quote_symbol_regex: self.quote_symbol_regex.or(config.quote_symbol_regex),
             magic_trailing_comma: self.magic_trailing_comma.or(config.magic_trailing_comma),
             line_ending: self.line_ending.or(config.line_ending),
             docstring_code_format: self.docstring_code_format.or(config.docstring_code_format),
@@ -2376,6 +2417,92 @@ mod tests {
     }
 
     #[test]
+    fn mode_tali() -> Result<()> {
+        use crate::configuration::Mode;
+        use ruff_python_formatter::QuoteStyle;
+        
+        let mode = Mode::Tali;
+        let selectors = mode.rule_selectors();
+        
+        // Should include Pyflakes and essential rules  
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pyflakes))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Isort))));
+        
+        // Should not include all pycodestyle (only specific prefixes)
+        assert!(!selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pycodestyle))));
+        
+        // Should use symbol quote style by default
+        assert_eq!(mode.quote_style(), Some(QuoteStyle::Symbol));
+        
+        // Should use default line length
+        assert_eq!(mode.line_length(), None);
+        
+        // Should not enable preview rules
+        assert_eq!(mode.preview(), None);
+        
+        Ok(())
+    }
+
+    #[test]
+    fn mode_default() -> Result<()> {
+        use crate::configuration::Mode;
+        
+        let mode = Mode::Default;
+        let selectors = mode.rule_selectors();
+        
+        // Should match exactly the DEFAULT_SELECTORS
+        let default_selectors: Vec<RuleSelector> = DEFAULT_SELECTORS.to_vec();
+        assert_eq!(selectors, default_selectors);
+        
+        // Should use all default settings
+        assert_eq!(mode.line_length(), None);
+        assert_eq!(mode.target_version(), None);
+        assert_eq!(mode.preview(), None);
+        assert_eq!(mode.quote_style(), None);
+        assert_eq!(mode.format_settings(), (None, None));
+        
+        Ok(())
+    }
+
+    #[test]
+    fn mode_default_equivalent_to_no_mode() -> Result<()> {
+        use std::path::Path;
+        
+        // Test that mode="default" produces the same configuration as no mode at all
+        let project_root = Path::new("/tmp");
+        
+        // Configuration with mode = "default"
+        let config_with_mode = Configuration {
+            mode: Some(Mode::Default),
+            ..Configuration::default()
+        };
+        
+        // Configuration with no mode specified
+        let config_no_mode = Configuration {
+            mode: None,
+            ..Configuration::default()
+        };
+        
+        // Both should resolve to identical settings
+        let settings_with_mode = config_with_mode.clone().into_settings(project_root)?;
+        let settings_no_mode = config_no_mode.into_settings(project_root)?;
+        
+        // Compare the rule sets
+        assert_eq!(settings_with_mode.linter.rules, settings_no_mode.linter.rules);
+        
+        // Compare formatter settings
+        assert_eq!(settings_with_mode.formatter.quote_style, settings_no_mode.formatter.quote_style);
+        assert_eq!(settings_with_mode.formatter.line_width, settings_no_mode.formatter.line_width);
+        assert_eq!(settings_with_mode.formatter.indent_style, settings_no_mode.formatter.indent_style);
+        
+        // Compare other key settings
+        assert_eq!(settings_with_mode.linter.preview, settings_no_mode.linter.preview);
+        assert_eq!(settings_with_mode.linter.unresolved_target_version, settings_no_mode.linter.unresolved_target_version);
+        
+        Ok(())
+    }
+
+    #[test]
     fn mode_configuration_integration() -> Result<()> {        
         // Test that the enum parsing works for each mode
         // This is a simple test of serde deserialization
@@ -2383,6 +2510,9 @@ mod tests {
         struct TestConfig {
             mode: Mode,
         }
+        
+        let config: TestConfig = toml::from_str("mode = \"default\"").unwrap();
+        assert_eq!(config.mode, Mode::Default);
         
         let config: TestConfig = toml::from_str("mode = \"strict\"").unwrap();
         assert_eq!(config.mode, Mode::Strict);
@@ -2392,6 +2522,9 @@ mod tests {
         
         let config: TestConfig = toml::from_str("mode = \"black\"").unwrap();
         assert_eq!(config.mode, Mode::Black);
+        
+        let config: TestConfig = toml::from_str("mode = \"tali\"").unwrap();
+        assert_eq!(config.mode, Mode::Tali);
         
         Ok(())
     }

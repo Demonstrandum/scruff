@@ -1,0 +1,5 @@
+uv.lock
+*.pyc
+__pycache__
+*dist-*
+*.whl

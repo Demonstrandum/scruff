@@ -18,6 +18,8 @@ use ruff_source_file::find_newline;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
+use regex;
+
 #[derive(Debug, CacheKey)]
 pub struct Settings {
     #[cache_key(ignore)]
@@ -189,6 +191,7 @@ pub struct FormatterSettings {
     pub indent_width: IndentWidth,
 
     pub quote_style: QuoteStyle,
+    pub quote_symbol_regex: Option<regex::Regex>,
 
     pub magic_trailing_comma: MagicTrailingComma,
 
@@ -235,6 +238,7 @@ impl FormatterSettings {
             .with_indent_style(self.indent_style)
             .with_indent_width(self.indent_width)
             .with_quote_style(self.quote_style)
+            .with_quote_symbol_regex(self.quote_symbol_regex.clone())
             .with_magic_trailing_comma(self.magic_trailing_comma)
             .with_preview(self.preview)
             .with_line_ending(line_ending)
@@ -270,6 +274,7 @@ impl Default for FormatterSettings {
             indent_style: default_options.indent_style(),
             indent_width: default_options.indent_width(),
             quote_style: default_options.quote_style(),
+            quote_symbol_regex: None,
             magic_trailing_comma: default_options.magic_trailing_comma(),
             docstring_code_format: default_options.docstring_code(),
             docstring_code_line_width: default_options.docstring_code_line_width(),

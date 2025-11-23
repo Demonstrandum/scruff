@@ -1,0 +1,15 @@
+[project]
+name = "scruff-example-quote-style-symbol"
+version = "0.1.0"
+description = "Scruff example: quote-style = symbol"
+requires-python = ">=3.12"
+dependencies = ["scruff"]
+
+[tool.scruff.format]
+quote-style = "symbol"
+quote-symbol-regex = '^[a-zA-Z0-9_\-\|]+$'
+
+[tool.uv.sources]
+scruff = { path = "../../" }
+
+

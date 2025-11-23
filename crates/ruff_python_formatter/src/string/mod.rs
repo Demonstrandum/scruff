@@ -64,6 +64,7 @@ impl TryFrom<QuoteStyle> for Quote {
         match style {
             QuoteStyle::Single => Ok(Quote::Single),
             QuoteStyle::Double => Ok(Quote::Double),
+            QuoteStyle::Symbol => Err(()), // Requires runtime analysis
             QuoteStyle::Preserve => Err(()),
         }
     }

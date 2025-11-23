@@ -3618,13 +3618,29 @@ pub struct FormatOptions {
     /// The quote style `preserve` leaves the quotes of all strings unchanged.
     #[option(
         default = r#""double""#,
-        value_type = r#""double" | "single" | "preserve""#,
+        value_type = r#""double" | "single" | "symbol" | "preserve""#,
         example = r#"
             # Prefer single quotes over double quotes.
             quote-style = "single"
         "#
     )]
     pub quote_style: Option<QuoteStyle>,
+
+    /// A regular expression to identify strings that should be treated as symbols/identifiers
+    /// when using `quote-style = "symbol"`. Symbols will use single quotes while other strings
+    /// use double quotes.
+    ///
+    /// The default pattern matches typical identifiers: letters, numbers, underscores, hyphens,
+    /// dots, and colons.
+    #[option(
+        default = r#"r"^[a-zA-Z0-9_\-.:]*$""#,
+        value_type = r#"<regex>"#,
+        example = r#"
+            # Treat simple identifiers as symbols
+            quote-symbol-regex = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
+        "#
+    )]
+    pub quote_symbol_regex: Option<String>,
 
     /// Ruff uses existing trailing commas as an indication that short lines should be left separate.
     /// If this option is set to `true`, the magic trailing comma is ignored.
