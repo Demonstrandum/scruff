@@ -81,14 +81,14 @@ dependencies = [
     { name = "pysource-codegen" },
     { name = "pysource-minimize" },
     { name = "rich-argparse" },
-    { name = "ruff" },
+    { name = "scruff" },
     { name = "termcolor" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
-    { name = "ruff" },
+    { name = "scruff" },
 ]
 
 [package.metadata]
@@ -96,14 +96,14 @@ requires-dist = [
     { name = "pysource-codegen", specifier = ">=0.6.0" },
     { name = "pysource-minimize", specifier = ">=0.8.0" },
     { name = "rich-argparse", specifier = ">=1.7.0" },
-    { name = "ruff", specifier = ">=0.11.9" },
+    { name = "scruff", specifier = ">=0.11.9" },
     { name = "termcolor", specifier = ">=3.1.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy" },
-    { name = "ruff" },
+    { name = "scruff" },
 ]
 
 [[package]]
@@ -162,8 +162,8 @@ wheels = [
 ]
 
 [[package]]
-name = "ruff"
-version = "0.14.1"
+name = "scruff"
+version = "0.14.6"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/9e/58/6ca66896635352812de66f71cdf9ff86b3a4f79071ca5730088c0cd0fc8d/ruff-0.14.1.tar.gz", hash = "sha256:1dd86253060c4772867c61791588627320abcb6ed1577a90ef432ee319729b69", size = 5513429, upload-time = "2025-10-16T18:05:41.766Z" }
 wheels = [

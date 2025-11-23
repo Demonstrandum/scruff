@@ -30,7 +30,7 @@ def main() -> None:
     out_dir = Path("ecosystem_all_results")
     github_search_json = Path("github_search.jsonl")
     # Somehow it doesn't like plain ruff
-    ruff = Path.cwd().joinpath("ruff")
+    ruff = Path.cwd().joinpath("scruff")
 
     out_dir.mkdir(parents=True, exist_ok=True)
 

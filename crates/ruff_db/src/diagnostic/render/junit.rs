@@ -29,15 +29,15 @@ impl<'a> JunitRenderer<'a> {
         f: &mut std::fmt::Formatter,
         diagnostics: &[Diagnostic],
     ) -> std::fmt::Result {
-        let mut report = Report::new("ruff");
+        let mut report = Report::new("scruff");
 
         if diagnostics.is_empty() {
-            let mut test_suite = TestSuite::new("ruff");
+            let mut test_suite = TestSuite::new("scruff");
             test_suite
                 .extra
-                .insert(XmlString::new("package"), XmlString::new("org.ruff"));
+                .insert(XmlString::new("package"), XmlString::new("org.scruff"));
             let mut case = TestCase::new("No errors found", TestCaseStatus::success());
-            case.set_classname("ruff");
+            case.set_classname("scruff");
             test_suite.add_test_case(case);
             report.add_test_suite(test_suite);
         } else {

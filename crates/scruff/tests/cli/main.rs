@@ -19,7 +19,7 @@ mod analyze_graph;
 mod format;
 mod lint;
 
-const BIN_NAME: &str = "ruff";
+const BIN_NAME: &str = "scruff";
 
 /// Creates a regex filter for replacing temporary directory paths in snapshots
 pub(crate) fn tempdir_filter(path: impl AsRef<str>) -> String {

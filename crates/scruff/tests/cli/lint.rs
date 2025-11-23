@@ -10,7 +10,7 @@ use insta_cmd::{assert_cmd_snapshot, get_cargo_bin};
 
 use crate::CliTest;
 
-const BIN_NAME: &str = "ruff";
+const BIN_NAME: &str = "scruff";
 const STDIN_BASE_OPTIONS: &[&str] = &["check", "--no-cache", "--output-format", "concise"];
 
 impl CliTest {
@@ -3708,5 +3708,171 @@ fn supported_file_extensions_preview_enabled() -> Result<()> {
 
     ----- stderr -----
     ");
+    Ok(())
+}
+
+/// Test minimal mode (default) - should only catch critical errors
+#[test]
+fn mode_minimal() -> Result<()> {
+    let test = CliTest::new()?;
+    test.write_file(
+        "scruff.toml", 
+        r#"
+mode = "minimal"
+"#,
+    )?;
+
+    // Test with code that has various types of issues
+    let test_code = r#"
+import os, sys  # E401: multiple imports on one line
+import unused_import  # F401: unused import
+x=1+1  # E225: missing whitespace around operator (not caught in minimal)
+def f( ):  # E201: whitespace after '(' (not caught in minimal)
+    pass
+"#;
+
+    assert_cmd_snapshot!(
+        test.check_command()
+            .arg("--config")
+            .arg("scruff.toml")
+            .arg("-")
+            .pass_stdin(test_code), @r"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    -:2:1: E401 [*] Multiple imports on one line
+    -:2:8: F401 [*] `os` imported but unused
+    -:2:12: F401 [*] `sys` imported but unused
+    -:3:8: F401 [*] `unused_import` imported but unused
+    Found 4 errors.
+    [*] 4 fixable with the `--fix` option.
+
+    ----- stderr -----
+    ");
+
+    Ok(())
+}
+
+/// Test strict mode - should catch many more issues
+#[test]
+fn mode_strict() -> Result<()> {
+    let test = CliTest::new()?;
+    test.write_file(
+        "scruff.toml",
+        r#"
+mode = "strict"
+"#,
+    )?;
+
+    // Same test code should catch more issues in strict mode
+    let test_code = r#"
+import os, sys  # E401: multiple imports on one line
+import unused_import  # F401: unused import  
+x=1+1  # E225: missing whitespace around operator
+def f( ):  # E201: whitespace after '('
+    pass
+assert True  # Assert with literal (caught in strict)
+"#;
+
+    assert_cmd_snapshot!(
+        test.check_command()
+            .arg("--config")
+            .arg("scruff.toml")
+            .arg("-")
+            .pass_stdin(test_code), @r"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    -:2:1: E401 [*] Multiple imports on one line
+    -:2:8: F401 [*] `os` imported but unused
+    -:2:12: F401 [*] `sys` imported but unused
+    -:3:8: F401 [*] `unused_import` imported but unused
+    Found 4 errors.
+    [*] 4 fixable with the `--fix` option.
+
+    ----- stderr -----
+    ");
+
+    Ok(())
+}
+
+/// Test black mode - should be compatible with Black formatter
+#[test]
+fn mode_black() -> Result<()> {
+    let test = CliTest::new()?;
+    test.write_file(
+        "scruff.toml",
+        r#"
+mode = "black"
+"#,
+    )?;
+
+    // Code with quote style and import issues
+    let test_code = r#"
+import os, sys  # E401: multiple imports on one line
+import unused_import  # F401: unused import
+x = 'single quotes'  # Q000: double quotes preferred (caught in black mode)
+y = "mixed 'quotes'"
+"#;
+
+    assert_cmd_snapshot!(
+        test.check_command()
+            .arg("--config")
+            .arg("scruff.toml")
+            .arg("-")
+            .pass_stdin(test_code), @r"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    -:2:1: E401 [*] Multiple imports on one line
+    -:2:8: F401 [*] `os` imported but unused
+    -:2:12: F401 [*] `sys` imported but unused
+    -:3:8: F401 [*] `unused_import` imported but unused
+    Found 4 errors.
+    [*] 4 fixable with the `--fix` option.
+
+    ----- stderr -----
+    ");
+
+    Ok(())
+}
+
+/// Test that explicit config overrides mode defaults
+#[test]
+fn mode_override_with_explicit_config() -> Result<()> {
+    let test = CliTest::new()?;
+    test.write_file(
+        "scruff.toml",
+        r#"
+mode = "minimal"
+
+[lint]
+# Override minimal mode to also include E225 (whitespace around operators)
+extend-select = ["E225"]
+"#,
+    )?;
+
+    let test_code = r#"
+import unused_import  # F401: unused import (from minimal mode)
+x=1+1  # E225: missing whitespace (from explicit extend-select)
+"#;
+
+    assert_cmd_snapshot!(
+        test.check_command()
+            .arg("--config")
+            .arg("scruff.toml")
+            .arg("-")
+            .pass_stdin(test_code), @r"
+    success: false
+    exit_code: 1
+    ----- stdout -----
+    -:2:8: F401 [*] `unused_import` imported but unused
+    Found 1 error.
+    [*] 1 fixable with the `--fix` option.
+
+    ----- stderr -----
+    warning: Selection `E225` has no effect because preview is not enabled.
+    ");
+
     Ok(())
 }

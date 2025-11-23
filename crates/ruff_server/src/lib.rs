@@ -21,8 +21,8 @@ mod server;
 mod session;
 mod workspace;
 
-pub(crate) const SERVER_NAME: &str = "ruff";
-pub(crate) const DIAGNOSTIC_NAME: &str = "Ruff";
+pub(crate) const SERVER_NAME: &str = "scruff";
+pub(crate) const DIAGNOSTIC_NAME: &str = "Scruff";
 
 pub(crate) const SOURCE_FIX_ALL_RUFF: CodeActionKind = CodeActionKind::new("source.fixAll.ruff");
 pub(crate) const SOURCE_ORGANIZE_IMPORTS_RUFF: CodeActionKind =

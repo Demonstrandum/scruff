@@ -132,7 +132,7 @@ impl<'a> RdjsonDiagnostics<'a> {
     fn new(diagnostics: &'a [Diagnostic], resolver: &'a dyn FileResolver) -> Self {
         Self {
             source: RdjsonSource {
-                name: "ruff",
+                name: "scruff",
                 url: env!("CARGO_PKG_HOMEPAGE"),
             },
             severity: "WARNING",

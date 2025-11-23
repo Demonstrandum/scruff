@@ -245,7 +245,7 @@ def main() -> None:
                 "cargo",
                 "run",
                 "-p",
-                "ruff",
+                "scruff",
                 "--",
                 "rule",
                 "--all",

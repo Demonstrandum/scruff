@@ -30,6 +30,7 @@ use ruff_linter::rules::{
 use ruff_linter::settings::types::{
     IdentifierPattern, OutputFormat, PythonVersion, RequiredVersion,
 };
+use crate::configuration::Mode;
 use ruff_linter::{RuleSelector, warn_user_once};
 use ruff_macros::{CombineOptions, OptionsMetadata};
 use ruff_options_metadata::{OptionsMetadata, Visit};
@@ -84,6 +85,19 @@ pub struct Options {
         "#
     )]
     pub extend: Option<String>,
+
+    /// The linting mode to use: `"minimal"` (default) for critical errors only,
+    /// `"strict"` for comprehensive linting, or `"black"` for Black-compatible
+    /// formatting with style-focused rules.
+    #[option(
+        default = r#""minimal""#,
+        value_type = r#""minimal" | "strict" | "black""#,
+        example = r#"
+            # Use strict mode for comprehensive linting.
+            mode = "strict"
+        "#
+    )]
+    pub mode: Option<Mode>,
 
     /// The style in which violation messages should be formatted: `"full"` (default)
     /// (shows source), `"concise"`, `"grouped"` (group messages by file), `"json"`

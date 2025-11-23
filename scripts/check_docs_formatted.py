@@ -142,7 +142,7 @@ def format_str(code: str, extension: Literal["py", "pyi"]) -> str:
     # Run ruff to format the tmp file
     try:
         completed_process = subprocess.run(
-            ["ruff", "format", "--stdin-filename", f"file.{extension}", "-"],
+            ["scruff", "format", "--stdin-filename", f"file.{extension}", "-"],
             check=True,
             capture_output=True,
             text=True,
@@ -329,7 +329,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 1
 
     ruff_config_output = subprocess.check_output(
-        ["ruff", "config", "--output-format", "json"], encoding="utf-8"
+        ["scruff", "config", "--output-format", "json"], encoding="utf-8"
     )
     all_config_names = json.loads(ruff_config_output)
 

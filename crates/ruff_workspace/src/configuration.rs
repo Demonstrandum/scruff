@@ -114,8 +114,127 @@ impl RuleSelection {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub enum Mode {
+    /// Conservative defaults focusing only on critical errors
+    Minimal,
+    /// Comprehensive linting with additional rule categories  
+    Strict,
+    /// Black-compatible formatting with style-focused rules
+    Black,
+}
+
+impl Default for Mode {
+    fn default() -> Self {
+        Self::Minimal
+    }
+}
+
+impl Mode {
+    /// Get the rule selectors for this mode
+    pub fn rule_selectors(&self) -> Vec<RuleSelector> {
+        use ruff_linter::codes;
+        use ruff_linter::registry::Linter;
+        use ruff_linter::rule_selector::RuleSelector;
+        use ruff_linter::codes::RuleCodePrefix;
+
+        match self {
+            Mode::Minimal => vec![
+                // Only Pyflakes for undefined variables, unused imports, syntax errors
+                RuleSelector::Linter(Linter::Pyflakes),
+                // Critical import errors
+                RuleSelector::Prefix {
+                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E4),
+                    redirected_from: None,
+                },
+                // Syntax and I/O errors
+                RuleSelector::Prefix {
+                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E9),
+                    redirected_from: None,
+                },
+            ],
+            Mode::Strict => vec![
+                // All Pyflakes rules
+                RuleSelector::Linter(Linter::Pyflakes),
+                // All Pycodestyle errors and warnings
+                RuleSelector::Linter(Linter::Pycodestyle),
+                // McCabe complexity
+                RuleSelector::Linter(Linter::McCabe),
+                // Import sorting
+                RuleSelector::Linter(Linter::Isort),
+                // Common security issues
+                RuleSelector::Linter(Linter::Flake8Bandit),
+                // Bugbear for additional bug detection
+                RuleSelector::Linter(Linter::Flake8Bugbear),
+                // Simplify for code simplification
+                RuleSelector::Linter(Linter::Flake8Simplify),
+                // Comprehensions
+                RuleSelector::Linter(Linter::Flake8Comprehensions),
+            ],
+            Mode::Black => vec![
+                // Pyflakes for error detection
+                RuleSelector::Linter(Linter::Pyflakes),
+                // Only import-related pycodestyle rules (Black handles the rest)
+                RuleSelector::Prefix {
+                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E4),
+                    redirected_from: None,
+                },
+                // Syntax errors
+                RuleSelector::Prefix {
+                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E9),
+                    redirected_from: None,
+                },
+                // Import sorting (compatible with Black)
+                RuleSelector::Linter(Linter::Isort),
+                // Quote consistency
+                RuleSelector::Linter(Linter::Flake8Quotes),
+            ],
+        }
+    }
+
+    /// Get the line length for this mode
+    pub fn line_length(&self) -> Option<LineLength> {
+        match self {
+            Mode::Minimal | Mode::Strict => None, // Use default (88)
+            Mode::Black => Some(LineLength::try_from(88).unwrap()), // Black standard
+        }
+    }
+
+    /// Get target version for this mode
+    pub fn target_version(&self) -> Option<ast::PythonVersion> {
+        match self {
+            Mode::Minimal | Mode::Black => None, // Use default
+            Mode::Strict => Some(ast::PythonVersion::PY38), // Conservative for strict mode
+        }
+    }
+
+    /// Whether to enable preview rules
+    pub fn preview(&self) -> Option<PreviewMode> {
+        match self {
+            Mode::Minimal | Mode::Black => None, // Stable only
+            Mode::Strict => Some(PreviewMode::Enabled), // Include preview rules
+        }
+    }
+
+    /// Get formatter settings for this mode
+    pub fn format_settings(&self) -> (Option<LineLength>, Option<IndentWidth>) {
+        match self {
+            Mode::Minimal => (None, None), // Use defaults
+            Mode::Strict => (None, None), // Use defaults  
+            Mode::Black => (
+                Some(LineLength::try_from(88).unwrap()),
+                Some(IndentWidth::try_from(std::num::NonZeroU8::new(4).unwrap()).unwrap()),
+            ),
+        }
+    }
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct Configuration {
+    // Mode selection
+    pub mode: Option<Mode>,
     // Global options
     pub cache_dir: Option<PathBuf>,
     pub extend: Option<PathBuf>,
@@ -164,11 +283,30 @@ impl Configuration {
             }
         }
 
-        let linter_target_version = TargetVersion(self.target_version);
-        let target_version = self.target_version.unwrap_or_default();
-        let global_preview = self.preview.unwrap_or_default();
+        // Apply mode-specific defaults
+        let mode = self.mode.clone().unwrap_or_default();
+        let mut config = self;
+        
+        // Apply mode overrides if not explicitly set
+        if config.target_version.is_none() {
+            config.target_version = mode.target_version();
+        }
+        if config.preview.is_none() {
+            config.preview = mode.preview();
+        }
+        let (mode_line_length, mode_indent_width) = mode.format_settings();
+        if config.line_length.is_none() {
+            config.line_length = mode_line_length;
+        }
+        if config.indent_width.is_none() {
+            config.indent_width = mode_indent_width;
+        }
 
-        let format = self.format;
+        let linter_target_version = TargetVersion(config.target_version);
+        let target_version = config.target_version.unwrap_or_default();
+        let global_preview = config.preview.unwrap_or_default();
+
+        let format = config.format;
         let format_defaults = FormatterSettings::default();
 
         let quote_style = format.quote_style.unwrap_or(format_defaults.quote_style);
@@ -178,24 +316,24 @@ impl Configuration {
         };
 
         let per_file_target_version = CompiledPerFileTargetVersionList::resolve(
-            self.per_file_target_version.unwrap_or_default(),
+            config.per_file_target_version.unwrap_or_default(),
         )
         .context("failed to resolve `per-file-target-version` table")?;
 
         let formatter = FormatterSettings {
             exclude: FilePatternSet::try_from_iter(format.exclude.unwrap_or_default())?,
-            extension: self.extension.clone().unwrap_or_default(),
+            extension: config.extension.clone().unwrap_or_default(),
             preview: format_preview,
             unresolved_target_version: target_version,
             per_file_target_version: per_file_target_version.clone(),
-            line_width: self
+            line_width: config
                 .line_length
                 .map_or(format_defaults.line_width, |length| {
                     ruff_formatter::LineWidth::from(NonZeroU16::from(length))
                 }),
             line_ending: format.line_ending.unwrap_or(format_defaults.line_ending),
             indent_style: format.indent_style.unwrap_or(format_defaults.indent_style),
-            indent_width: self
+            indent_width: config
                 .indent_width
                 .map_or(format_defaults.indent_width, |tab_size| {
                     ruff_formatter::IndentWidth::from(NonZeroU8::from(tab_size))
@@ -212,7 +350,7 @@ impl Configuration {
                 .unwrap_or(format_defaults.docstring_code_line_width),
         };
 
-        let analyze = self.analyze;
+        let analyze = config.analyze;
         let analyze_preview = analyze.preview.unwrap_or(global_preview);
         let analyze_defaults = AnalyzeSettings::default();
 
@@ -220,7 +358,7 @@ impl Configuration {
             exclude: FilePatternSet::try_from_iter(analyze.exclude.unwrap_or_default())?,
             preview: analyze_preview,
             target_version,
-            extension: self.extension.clone().unwrap_or_default(),
+            extension: config.extension.clone().unwrap_or_default(),
             string_imports: StringImports {
                 enabled: analyze
                     .detect_string_imports
@@ -237,10 +375,23 @@ impl Configuration {
                 .unwrap_or(analyze_defaults.type_checking_imports),
         };
 
-        let lint = self.lint;
+        let mut lint = config.lint;
         let lint_preview = lint.preview.unwrap_or(global_preview);
+        
+        // Apply mode-specific rule selectors if no explicit rule selections exist
+        if lint.rule_selections.is_empty() {
+            let mode_selectors = mode.rule_selectors();
+            lint.rule_selections = vec![RuleSelection {
+                select: Some(mode_selectors),
+                ignore: vec![],
+                extend_select: vec![],
+                fixable: None,
+                unfixable: vec![],
+                extend_fixable: vec![],
+            }];
+        }
 
-        let line_length = self.line_length.unwrap_or_default();
+        let line_length = config.line_length.unwrap_or_default();
 
         let rules = lint.as_rule_table(lint_preview)?;
 
@@ -261,39 +412,39 @@ impl Configuration {
         let future_annotations = lint.future_annotations.unwrap_or_default();
 
         Ok(Settings {
-            cache_dir: self
+            cache_dir: config
                 .cache_dir
                 .clone()
                 .unwrap_or_else(|| cache_dir(project_root)),
-            fix: self.fix.unwrap_or(false),
-            fix_only: self.fix_only.unwrap_or(false),
-            unsafe_fixes: self.unsafe_fixes.unwrap_or_default(),
-            output_format: self.output_format.unwrap_or_default(),
-            show_fixes: self.show_fixes.unwrap_or(false),
+            fix: config.fix.unwrap_or(false),
+            fix_only: config.fix_only.unwrap_or(false),
+            unsafe_fixes: config.unsafe_fixes.unwrap_or_default(),
+            output_format: config.output_format.unwrap_or_default(),
+            show_fixes: config.show_fixes.unwrap_or(false),
 
             file_resolver: FileResolverSettings {
                 exclude: FilePatternSet::try_from_iter(
-                    self.exclude.unwrap_or_else(|| EXCLUDE.to_vec()),
+                    config.exclude.unwrap_or_else(|| EXCLUDE.to_vec()),
                 )?,
-                extend_exclude: FilePatternSet::try_from_iter(self.extend_exclude)?,
-                extend_include: FilePatternSet::try_from_iter(self.extend_include)?,
-                force_exclude: self.force_exclude.unwrap_or(false),
+                extend_exclude: FilePatternSet::try_from_iter(config.extend_exclude)?,
+                extend_include: FilePatternSet::try_from_iter(config.extend_include)?,
+                force_exclude: config.force_exclude.unwrap_or(false),
                 include: match global_preview {
                     PreviewMode::Disabled => FilePatternSet::try_from_iter(
-                        self.include.unwrap_or_else(|| INCLUDE.to_vec()),
+                        config.include.unwrap_or_else(|| INCLUDE.to_vec()),
                     )?,
                     PreviewMode::Enabled => FilePatternSet::try_from_iter(
-                        self.include.unwrap_or_else(|| INCLUDE_PREVIEW.to_vec()),
+                        config.include.unwrap_or_else(|| INCLUDE_PREVIEW.to_vec()),
                     )?,
                 },
-                respect_gitignore: self.respect_gitignore.unwrap_or(true),
+                respect_gitignore: config.respect_gitignore.unwrap_or(true),
                 project_root: project_root.to_path_buf(),
             },
 
             linter: LinterSettings {
                 rules,
                 exclude: FilePatternSet::try_from_iter(lint.exclude.unwrap_or_default())?,
-                extension: self.extension.unwrap_or_default(),
+                extension: config.extension.unwrap_or_default(),
                 preview: lint_preview,
                 unresolved_target_version: linter_target_version,
                 per_file_target_version,
@@ -302,15 +453,15 @@ impl Configuration {
                     .allowed_confusables
                     .map(FxHashSet::from_iter)
                     .unwrap_or_default(),
-                builtins: self.builtins.unwrap_or_default(),
+                builtins: config.builtins.unwrap_or_default(),
                 dummy_variable_rgx: lint
                     .dummy_variable_rgx
                     .unwrap_or_else(|| DUMMY_VARIABLE_RGX.clone()),
                 external: lint.external.unwrap_or_default(),
                 ignore_init_module_imports: lint.ignore_init_module_imports.unwrap_or(true),
                 line_length,
-                tab_size: self.indent_width.unwrap_or_default(),
-                namespace_packages: self.namespace_packages.unwrap_or_default(),
+                tab_size: config.indent_width.unwrap_or_default(),
+                namespace_packages: config.namespace_packages.unwrap_or_default(),
                 per_file_ignores: CompiledPerFileIgnoreList::resolve(
                     lint.per_file_ignores
                         .unwrap_or_default()
@@ -326,7 +477,7 @@ impl Configuration {
                         require_explicit: false,
                     },
                 ),
-                src: self
+                src: config
                     .src
                     .unwrap_or_else(|| vec![project_root.to_path_buf(), project_root.join("src")]),
                 explicit_preview_rules: lint.explicit_preview_rules.unwrap_or_default(),
@@ -476,6 +627,7 @@ impl Configuration {
         };
 
         Ok(Self {
+            mode: options.mode,
             builtins: options.builtins,
             cache_dir: options
                 .cache_dir
@@ -587,6 +739,7 @@ impl Configuration {
     #[must_use]
     pub fn combine(self, config: Self) -> Self {
         Self {
+            mode: self.mode.or(config.mode),
             builtins: self.builtins.or(config.builtins),
             cache_dir: self.cache_dir.or(config.cache_dir),
             exclude: self.exclude.or(config.exclude),
@@ -1668,7 +1821,7 @@ mod tests {
     use ruff_linter::rule_selector::PreviewOptions;
     use ruff_linter::settings::types::PreviewMode;
 
-    use crate::configuration::{LintConfiguration, RuleSelection};
+    use crate::configuration::{LintConfiguration, RuleSelection, Mode};
     use crate::options::PydocstyleOptions;
 
     const PREVIEW_RULES: &[Rule] = &[
@@ -2156,6 +2309,90 @@ mod tests {
             true,
         )?;
 
+        Ok(())
+    }
+
+    #[test]
+    fn mode_minimal() -> Result<()> {
+        use crate::configuration::Mode;
+        
+        let mode = Mode::Minimal;
+        let selectors = mode.rule_selectors();
+        
+        // Should include Pyflakes and critical pycodestyle rules
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pyflakes))));
+        assert!(selectors.len() == 3); // Pyflakes, E4xx, E9xx
+        
+        // Should use default settings
+        assert_eq!(mode.line_length(), None);
+        assert_eq!(mode.target_version(), None);
+        assert_eq!(mode.preview(), None);
+        
+        Ok(())
+    }
+
+    #[test] 
+    fn mode_strict() -> Result<()> {
+        use crate::configuration::Mode;
+        
+        let mode = Mode::Strict;
+        let selectors = mode.rule_selectors();
+        
+        // Should include many linters
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pyflakes))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pycodestyle))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::McCabe))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Isort))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Flake8Bandit))));
+        assert!(selectors.len() > 5); // Many more rules than minimal
+        
+        // Should enable preview rules and use conservative Python version
+        assert_eq!(mode.preview(), Some(PreviewMode::Enabled));
+        assert_eq!(mode.target_version(), Some(ruff_python_ast::PythonVersion::PY38));
+        
+        Ok(())
+    }
+
+    #[test]
+    fn mode_black() -> Result<()> {
+        use crate::configuration::Mode;
+        use ruff_linter::line_width::LineLength;
+        
+        let mode = Mode::Black;
+        let selectors = mode.rule_selectors();
+        
+        // Should include Pyflakes and Black-compatible rules  
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pyflakes))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Isort))));
+        assert!(selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Flake8Quotes))));
+        
+        // Should not include all pycodestyle (only specific prefixes)
+        assert!(!selectors.iter().any(|s| matches!(s, RuleSelector::Linter(Linter::Pycodestyle))));
+        
+        // Should set Black standard line length
+        assert_eq!(mode.line_length(), Some(LineLength::try_from(88).unwrap()));
+        
+        Ok(())
+    }
+
+    #[test]
+    fn mode_configuration_integration() -> Result<()> {        
+        // Test that the enum parsing works for each mode
+        // This is a simple test of serde deserialization
+        #[derive(serde::Deserialize)]
+        struct TestConfig {
+            mode: Mode,
+        }
+        
+        let config: TestConfig = toml::from_str("mode = \"strict\"").unwrap();
+        assert_eq!(config.mode, Mode::Strict);
+        
+        let config: TestConfig = toml::from_str("mode = \"minimal\"").unwrap();
+        assert_eq!(config.mode, Mode::Minimal);
+        
+        let config: TestConfig = toml::from_str("mode = \"black\"").unwrap();
+        assert_eq!(config.mode, Mode::Black);
+        
         Ok(())
     }
 }

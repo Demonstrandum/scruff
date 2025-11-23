@@ -80,7 +80,7 @@ def ruff_contains_bug(code: str, *, ruff_executable: Path) -> bool:
 def contains_bug(code: str, *, executable: Executable, executable_path: Path) -> bool:
     """Return `True` if the code triggers an error."""
     match executable:
-        case Executable.RUFF:
+        case Executable.SCRUFF:
             return ruff_contains_bug(code, ruff_executable=executable_path)
         case Executable.TY:
             return ty_contains_bug(code, ty_executable=executable_path)
@@ -134,7 +134,7 @@ class FuzzResult:
 
         if self.maybe_bug:
             match self.executable:
-                case Executable.RUFF:
+                case Executable.SCRUFF:
                     panic_message = f"The following code triggers a {new}parser bug:"
                 case Executable.TY:
                     panic_message = f"The following code triggers a {new}ty panic:"
@@ -290,7 +290,7 @@ def parse_seed_argument(arg: str) -> int | range:
 
 
 class Executable(enum.StrEnum):
-    RUFF = "ruff"
+    SCRUFF = "scruff"
     TY = "ty"
 
 

@@ -17,7 +17,7 @@ export default function Header({
 }: {
   edit: number | null;
   theme: Theme;
-  tool: "ruff" | "ty";
+  tool: "scruff" | "ty";
   version: string | null;
   onChangeTheme: (theme: Theme) => void;
   onReset?(): void;
@@ -77,9 +77,9 @@ function Divider() {
   );
 }
 
-function Logo({ name, className }: { name: "ruff" | "ty"; className: string }) {
+function Logo({ name, className }: { name: "scruff" | "ty"; className: string }) {
   switch (name) {
-    case "ruff":
+    case "scruff":
       return (
         <a href="https://docs.astral.sh/ruff">
           <svg

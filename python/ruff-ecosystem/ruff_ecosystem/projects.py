@@ -108,7 +108,7 @@ class ConfigOverrides(Serializable):
             base = []
         else:
             path = pyproject_toml
-            base = ["tool", "ruff"]
+            base = ["tool", "scruff"]
 
         overrides = {
             **ALWAYS_CONFIG_OVERRIDES,

@@ -116,7 +116,7 @@ pub fn find_user_settings_toml() -> Option<PathBuf> {
     use etcetera::BaseStrategy;
 
     let strategy = etcetera::base_strategy::choose_base_strategy().ok()?;
-    let config_dir = strategy.config_dir().join("ruff");
+    let config_dir = strategy.config_dir().join("scruff");
 
     // Search for a user-specific `.scruff.toml`, then a `scruff.toml`, then a `pyproject.toml`.
     for filename in [".scruff.toml", "scruff.toml", "pyproject.toml"] {

@@ -150,9 +150,9 @@ async def compare_format(
     )
     match format_comparison:
         case FormatComparison.ruff_then_ruff:
-            coro = format_then_format(Formatter.ruff, *args)
+            coro = format_then_format(Formatter.scruff, *args)
         case FormatComparison.ruff_and_ruff:
-            coro = format_and_format(Formatter.ruff, *args)
+            coro = format_and_format(Formatter.scruff, *args)
         case FormatComparison.black_then_ruff:
             coro = format_then_format(Formatter.black, *args)
         case FormatComparison.black_and_ruff:
@@ -183,7 +183,7 @@ async def format_then_format(
         )
         # Then get the diff from stdout
         diff = await format(
-            formatter=Formatter.ruff,
+            formatter=Formatter.scruff,
             executable=ruff_comparison_executable.resolve(),
             path=cloned_repo.path,
             name=cloned_repo.fullname,
@@ -221,7 +221,7 @@ async def format_and_format(
     with config_overrides.patch_config(cloned_repo.path, options.preview):
         # Then run format again
         await format(
-            formatter=Formatter.ruff,
+            formatter=Formatter.scruff,
             executable=ruff_comparison_executable.resolve(),
             path=cloned_repo.path,
             name=cloned_repo.fullname,
@@ -246,7 +246,7 @@ async def format(
     """Run the given ruff binary against the specified path."""
     args = (
         options.to_ruff_args()
-        if formatter == Formatter.ruff
+        if formatter == Formatter.scruff
         else options.to_black_args()
     )
     logger.debug(f"Formatting {name} with {executable} " + " ".join(args))
@@ -299,4 +299,4 @@ class FormatComparison(Enum):
 
 class Formatter(Enum):
     black = "black"
-    ruff = "ruff"
+    scruff = "scruff"

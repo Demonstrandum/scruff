@@ -156,7 +156,7 @@ require("conform").setup({
 
 ```lua
 require("lint").linters_by_ft = {
-  python = { "ruff" },
+  python = { "scruff" },
 }
 ```
 
@@ -169,18 +169,18 @@ require("lint").linters_by_ft = {
 
 ```lua
 -- Linters
-vim.g.ale_linters = { python = { "ruff" } }
+vim.g.ale_linters = { python = { "scruff" } }
 -- Fixers
-vim.g.ale_fixers = { python = { "ruff", "ruff_format" } }
+vim.g.ale_fixers = { python = { "scruff", "ruff_format" } }
 ```
 
 <i>Vim (using Vimscript):</i>
 
 ```vim
 " Linters
-let g:ale_linters = { "python": ["ruff"] }
+let g:ale_linters = { "python": ["scruff"] }
 " Fixers
-let g:ale_fixers = { "python": ["ruff", "ruff_format"] }
+let g:ale_fixers = { "python": ["scruff", "ruff_format"] }
 ```
 
 For the fixers, <code>ruff</code> will run <code>ruff check --fix</code> (to fix all auto-fixable
@@ -251,7 +251,7 @@ Helix and add the language server as follows:
 
 ```toml
 [language-server.ruff]
-command = "ruff"
+command = "scruff"
 args = ["server"]
 ```
 
@@ -261,7 +261,7 @@ language server registered to use with Python, add this to `languages.toml`:
 ```toml
 [[language]]
 name = "python"
-language-servers = ["ruff"]
+language-servers = ["scruff"]
 ```
 
 Otherwise, if you already have `language-servers` defined, you can simply add `"ruff"` to the list. For example,
@@ -283,7 +283,7 @@ If you want to, as an example, turn on auto-formatting, add `auto-format = true`
 ```toml
 [[language]]
 name = "python"
-language-servers = ["ruff", "pylsp"]
+language-servers = ["scruff", "pylsp"]
 auto-format = true
 ```
 
@@ -308,7 +308,7 @@ By default, the log level for Ruff is set to `info`. To change the log level, yo
 
 ```toml
 [language-server.ruff]
-command = "ruff"
+command = "scruff"
 args = ["server"]
 
 [language-server.ruff.config.settings]
@@ -333,7 +333,7 @@ hx -v path/to/file.py
 {
   "servers": {
     "python": {
-      "command": ["ruff", "server"],
+      "command": ["scruff", "server"],
       "url": "https://github.com/Demonstrandum/scruff",
       "highlightingModeRegex": "^Python$",
       "settings": {}

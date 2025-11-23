@@ -13,7 +13,7 @@ use insta_cmd::{assert_cmd_snapshot, get_cargo_bin};
 use tempfile::TempDir;
 
 fn command() -> Command {
-    let mut command = Command::new(get_cargo_bin("ruff"));
+    let mut command = Command::new(get_cargo_bin("scruff"));
     command.arg("analyze");
     command.arg("graph");
     command.arg("--preview");
