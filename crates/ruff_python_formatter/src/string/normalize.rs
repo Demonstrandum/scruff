@@ -181,15 +181,36 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
     /// Determines the appropriate quote style for a string when using Symbol mode.
     /// Returns Single for symbols (content matching the symbol regex), Double for other strings.
     fn quote_style_for_symbol_mode(&self, string: StringLikePart) -> QuoteStyle {
-        // Get the raw string content (without quotes)
-        let raw_content = &self.context.source()[string.content_range()];
+        // Extract the content to check for symbol patterns
+        let content_to_check = match string {
+            StringLikePart::FString(fstring) => {
+                // For f-strings, concatenate only the literal parts (ignore expressions in braces)
+                let mut literal_content = String::new();
+                for literal in fstring.elements.literals() {
+                    literal_content.push_str(&self.context.source()[literal.range()]);
+                }
+                literal_content
+            }
+            StringLikePart::TString(tstring) => {
+                // For t-strings, concatenate only the literal parts
+                let mut literal_content = String::new();
+                for literal in tstring.elements.literals() {
+                    literal_content.push_str(&self.context.source()[literal.range()]);
+                }
+                literal_content
+            }
+            _ => {
+                // For regular strings, use the content range (without quotes)
+                self.context.source()[string.content_range()].to_string()
+            }
+        };
         
         // Get the symbol regex from options, use default if not provided
         let symbol_regex = self.context.options().quote_symbol_regex();
         
         match symbol_regex {
             Some(regex) => {
-                if regex.is_match(raw_content) {
+                if regex.is_match(&content_to_check) {
                     QuoteStyle::Single  // Use single quotes for symbols
                 } else {
                     QuoteStyle::Double  // Use double quotes for non-symbols
@@ -197,7 +218,7 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
             }
             None => {
                 // Fallback to default symbol pattern if no regex is provided
-                self.is_default_symbol(raw_content)
+                self.is_default_symbol(&content_to_check)
             }
         }
     }

@@ -139,6 +139,7 @@ impl Default for Mode {
 impl Mode {
     /// Get the rule selectors for this mode
     pub fn rule_selectors(&self) -> Vec<RuleSelector> {
+        use std::str::FromStr;
         use ruff_linter::codes;
         use ruff_linter::registry::Linter;
         use ruff_linter::rule_selector::RuleSelector;
@@ -211,6 +212,8 @@ impl Mode {
                 },
                 // Import sorting for clean code
                 RuleSelector::Linter(Linter::Isort),
+                // Quote handling 
+                RuleSelector::Linter(Linter::Flake8Quotes),
             ],
         }
     }
