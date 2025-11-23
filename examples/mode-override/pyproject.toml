@@ -1,0 +1,23 @@
+[project]
+name = "scruff-example-mode-override"
+version = "0.1.0"
+description = "Scruff example: mode defaults vs explicit overrides"
+requires-python = ">=3.12"
+dependencies = ["scruff"]
+
+[tool.scruff]
+# Use tali mode as a base (normally uses symbol quotes + minimal rules)
+mode = "tali"
+
+[tool.scruff.lint]
+# Explicit rule selection overrides mode defaults
+# Tali mode normally uses minimal rules, but we override with just pyflakes
+select = ["F"]
+
+[tool.scruff.format]
+# Explicit quote style overrides mode defaults  
+# Tali mode normally uses symbol quotes, but we override with double quotes
+quote-style = "double"
+
+[tool.uv.sources]
+scruff = { path = "../../" }

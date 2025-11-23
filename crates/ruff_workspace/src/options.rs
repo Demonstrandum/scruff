@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use strum::IntoEnumIterator;
 use unicode_normalization::UnicodeNormalization;
 
+use crate::configuration::Mode;
 use crate::settings::LineEnding;
 use ruff_formatter::IndentStyle;
 use ruff_graph::Direction;
@@ -30,7 +31,6 @@ use ruff_linter::rules::{
 use ruff_linter::settings::types::{
     IdentifierPattern, OutputFormat, PythonVersion, RequiredVersion,
 };
-use crate::configuration::Mode;
 use ruff_linter::{RuleSelector, warn_user_once};
 use ruff_macros::{CombineOptions, OptionsMetadata};
 use ruff_options_metadata::{OptionsMetadata, Visit};
@@ -90,8 +90,8 @@ pub struct Options {
     /// `"strict"` for comprehensive linting, or `"black"` for Black-compatible
     /// formatting with style-focused rules.
     #[option(
-        default = r#""minimal""#,
-        value_type = r#""minimal" | "strict" | "black""#,
+        default = r#""default""#,
+        value_type = r#""default" | "minimal" | "strict" | "black" | "tali""#,
         example = r#"
             # Use strict mode for comprehensive linting.
             mode = "strict"
@@ -3633,11 +3633,11 @@ pub struct FormatOptions {
     /// The default pattern matches typical identifiers: letters, numbers, underscores, hyphens,
     /// dots, and colons.
     #[option(
-        default = r#"r"^[a-zA-Z0-9_\-.:]*$""#,
-        value_type = r#"<regex>"#,
+        default = r#""^[a-zA-Z0-9_\-.:]*$""#,
+        value_type = "str",
         example = r#"
             # Treat simple identifiers as symbols
-            quote-symbol-regex = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
+            quote-symbol-regex = '^[a-zA-Z_][a-zA-Z0-9_]*$'
         "#
     )]
     pub quote_symbol_regex: Option<String>,
