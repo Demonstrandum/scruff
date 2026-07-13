@@ -1,11 +1,11 @@
 #!/bin/sh
 
 cmd="uv run scruff check --diff"
-echo ';' $cmd
+echo ';' "$cmd"
 $cmd
 
 cmd="uv run scruff format --diff"
-echo ';' $cmd
+echo ';' "$cmd"
 $cmd
 
 
