@@ -189,46 +189,17 @@ pub enum Mode {
 }
 
 impl Mode {
-    fn rule_selectors(&self) -> Vec<RuleSelector> {
-        use ruff_linter::codes::{self, RuleCodePrefix};
-        use ruff_linter::registry::Linter;
-
-        let critical_pycodestyle = || {
-            [
-                RuleSelector::Prefix {
-                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E4),
-                    redirected_from: None,
-                },
-                RuleSelector::Prefix {
-                    prefix: RuleCodePrefix::Pycodestyle(codes::Pycodestyle::E9),
-                    redirected_from: None,
-                },
-            ]
+    fn rule_selectors(&self) -> Vec<UnresolvedRuleSelector> {
+        let selectors: &[&str] = match self {
+            Self::Default => &["E4", "E7", "E9", "F"],
+            Self::Minimal => &["F", "E4", "E9"],
+            Self::Strict => &["F", "E", "W", "C90", "I", "S", "B", "SIM", "C4"],
+            Self::Black | Self::Tali => &["F", "E4", "E9", "I", "Q"],
         };
-
-        match self {
-            Self::Default => DEFAULT_SELECTORS.to_vec(),
-            Self::Minimal => std::iter::once(RuleSelector::Linter(Linter::Pyflakes))
-                .chain(critical_pycodestyle())
-                .collect(),
-            Self::Strict => vec![
-                RuleSelector::Linter(Linter::Pyflakes),
-                RuleSelector::Linter(Linter::Pycodestyle),
-                RuleSelector::Linter(Linter::McCabe),
-                RuleSelector::Linter(Linter::Isort),
-                RuleSelector::Linter(Linter::Flake8Bandit),
-                RuleSelector::Linter(Linter::Flake8Bugbear),
-                RuleSelector::Linter(Linter::Flake8Simplify),
-                RuleSelector::Linter(Linter::Flake8Comprehensions),
-            ],
-            Self::Black | Self::Tali => std::iter::once(RuleSelector::Linter(Linter::Pyflakes))
-                .chain(critical_pycodestyle())
-                .chain([
-                    RuleSelector::Linter(Linter::Isort),
-                    RuleSelector::Linter(Linter::Flake8Quotes),
-                ])
-                .collect(),
-        }
+        selectors
+            .iter()
+            .map(|selector| UnresolvedRuleSelector::cli(*selector))
+            .collect()
     }
 
     const fn target_version(&self) -> Option<ast::PythonVersion> {
