@@ -66,13 +66,17 @@ LINK_REWRITES: dict[str, str] = {
     "https://docs.astral.sh/ruff/faq/#how-does-ruffs-linter-compare-to-flake8": (
         "faq.md#how-does-ruffs-linter-compare-to-flake8"
     ),
+    "https://docs.astral.sh/ruff/faq/#how-does-ruffs-import-sorting-compare-to-isort": (
+        "faq.md#how-does-ruffs-import-sorting-compare-to-isort"
+    ),
     "https://docs.astral.sh/ruff/faq/#how-does-ruffs-formatter-compare-to-black": (
         "faq.md#how-does-ruffs-formatter-compare-to-black"
     ),
     "https://docs.astral.sh/ruff/installation/": "installation.md",
     "https://docs.astral.sh/ruff/rules/": "rules.md",
     "https://docs.astral.sh/ruff/settings/": "settings.md",
-    "#whos-using-ruff": "https://github.com/Demonstrandum/scruffwhos-using-ruff",
+    "#whos-using-ruff": "https://github.com/Demonstrandum/scruff#whos-using-ruff",
+    "https://docs.astral.sh/ruff/preview/": "preview.md",
 }
 
 
@@ -245,7 +249,7 @@ def main() -> None:
                 "cargo",
                 "run",
                 "-p",
-                "scruff",
+                "ruff",
                 "--",
                 "rule",
                 "--all",

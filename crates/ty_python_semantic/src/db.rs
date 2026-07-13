@@ -1,42 +1,47 @@
+use crate::AnalysisSettings;
 use crate::lint::{LintRegistry, RuleSelection};
-use ruff_db::Db as SourceDb;
+use ruff_db::diagnostic::Diagnostic;
 use ruff_db::files::File;
+use ty_python_core::Db as PythonCoreDb;
 
 /// Database giving access to semantic information about a Python program.
 #[salsa::db]
-pub trait Db: SourceDb {
-    /// Returns `true` if the file should be checked.
-    fn should_check_file(&self, file: File) -> bool;
+pub trait Db: PythonCoreDb {
+    fn check_file(&self, file: File) -> Vec<Diagnostic>;
 
     /// Resolves the rule selection for a given file.
     fn rule_selection(&self, file: File) -> &RuleSelection;
 
     fn lint_registry(&self) -> &LintRegistry;
 
+    fn analysis_settings(&self, file: File) -> &AnalysisSettings;
+
     /// Whether ty is running with logging verbosity INFO or higher (`-v` or more).
     fn verbose(&self) -> bool;
+
+    fn dyn_clone(&self) -> Box<dyn Db>;
 }
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use super::*;
+
     use std::sync::{Arc, Mutex};
 
-    use crate::program::{Program, SearchPathSettings};
-    use crate::{
-        ProgramSettings, PythonPlatform, PythonVersionSource, PythonVersionWithSource,
-        default_lint_registry,
-    };
-
-    use super::Db;
-    use crate::lint::{LintRegistry, RuleSelection};
     use anyhow::Context;
+    use ty_python_core::platform::PythonPlatform;
+
+    use crate::{check_file_unwrap, default_lint_registry};
     use ruff_db::Db as SourceDb;
-    use ruff_db::files::{File, Files};
+    use ruff_db::files::Files;
     use ruff_db::system::{
         DbWithTestSystem, DbWithWritableSystem as _, System, SystemPath, SystemPathBuf, TestSystem,
     };
     use ruff_db::vendored::VendoredFileSystem;
     use ruff_python_ast::PythonVersion;
+    use ty_module_resolver::{Db as ModuleResolverDb, SearchPathSettings, SearchPaths};
+    use ty_python_core::program::{FallibleStrategy, Program, ProgramSettings};
+    use ty_site_packages::{PythonVersionSource, PythonVersionWithSource};
 
     type Events = Arc<Mutex<Vec<salsa::Event>>>;
 
@@ -49,6 +54,7 @@ pub(crate) mod tests {
         vendored: VendoredFileSystem,
         events: Events,
         rule_selection: Arc<RuleSelection>,
+        analysis_settings: Arc<AnalysisSettings>,
     }
 
     impl TestDb {
@@ -68,6 +74,7 @@ pub(crate) mod tests {
                 events,
                 files: Files::default(),
                 rule_selection: Arc::new(RuleSelection::from_registry(default_lint_registry())),
+                analysis_settings: AnalysisSettings::default().into(),
             }
         }
 
@@ -117,9 +124,20 @@ pub(crate) mod tests {
     }
 
     #[salsa::db]
-    impl Db for TestDb {
+    impl ty_python_core::Db for TestDb {
         fn should_check_file(&self, file: File) -> bool {
             !file.path(self).is_vendored_path()
+        }
+    }
+
+    #[salsa::db]
+    impl Db for TestDb {
+        fn check_file(&self, file: File) -> Vec<Diagnostic> {
+            if !self.should_check_file(file) {
+                return Vec::new();
+            }
+
+            check_file_unwrap(self, file)
         }
 
         fn rule_selection(&self, _file: File) -> &RuleSelection {
@@ -130,8 +148,23 @@ pub(crate) mod tests {
             default_lint_registry()
         }
 
+        fn analysis_settings(&self, _file: File) -> &AnalysisSettings {
+            &self.analysis_settings
+        }
+
         fn verbose(&self) -> bool {
             false
+        }
+
+        fn dyn_clone(&self) -> Box<dyn crate::Db> {
+            Box::new(self.clone())
+        }
+    }
+
+    #[salsa::db]
+    impl ModuleResolverDb for TestDb {
+        fn search_paths(&self) -> &SearchPaths {
+            Program::get(self).search_paths(self)
         }
     }
 
@@ -158,6 +191,11 @@ pub(crate) mod tests {
 
         pub(crate) fn with_python_version(mut self, version: PythonVersion) -> Self {
             self.python_version = version;
+            self
+        }
+
+        pub(crate) fn with_python_platform(mut self, platform: PythonPlatform) -> Self {
+            self.python_platform = platform;
             self
         }
 
@@ -188,7 +226,7 @@ pub(crate) mod tests {
                     },
                     python_platform: self.python_platform,
                     search_paths: SearchPathSettings::new(vec![src_root])
-                        .to_search_paths(db.system(), db.vendored())
+                        .to_search_paths(db.system(), db.vendored(), &FallibleStrategy)
                         .context("Invalid search path settings")?,
                 },
             );

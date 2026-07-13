@@ -1,5 +1,5 @@
 use ruff_macros::{ViolationMetadata, derive_message_formats};
-use ruff_python_ast::parenthesize::parenthesized_range;
+use ruff_python_ast::token::{TokenKind, parenthesized_range};
 use ruff_python_ast::{self as ast, Expr, Operator};
 use ruff_python_trivia::is_python_whitespace;
 use ruff_source_file::LineRanges;
@@ -32,6 +32,13 @@ use crate::{Edit, Fix, FixAvailability, Violation};
 ///     "dog"
 /// )
 /// ```
+///
+/// ## Options
+///
+/// Setting `lint.flake8-implicit-str-concat.allow-multiline = false` will disable this rule because
+/// it would leave no allowed way to write a multi-line string.
+///
+/// - `lint.flake8-implicit-str-concat.allow-multiline`
 #[derive(ViolationMetadata)]
 #[violation_metadata(stable_since = "v0.0.201")]
 pub(crate) struct ExplicitStringConcatenation;
@@ -88,13 +95,7 @@ pub(crate) fn explicit(checker: &Checker, expr: &Expr) {
                     checker.report_diagnostic(ExplicitStringConcatenation, expr.range());
 
                 let is_parenthesized = |expr: &Expr| {
-                    parenthesized_range(
-                        expr.into(),
-                        bin_op.into(),
-                        checker.comment_ranges(),
-                        checker.source(),
-                    )
-                    .is_some()
+                    parenthesized_range(expr.into(), bin_op.into(), checker.tokens()).is_some()
                 };
                 // If either `left` or `right` is parenthesized, generating
                 // a fix would be too involved. Just report the diagnostic.
@@ -104,18 +105,30 @@ pub(crate) fn explicit(checker: &Checker, expr: &Expr) {
                     return;
                 }
 
-                diagnostic.set_fix(generate_fix(checker, bin_op));
+                if let Some(fix) = generate_fix(checker, bin_op) {
+                    diagnostic.set_fix(fix);
+                }
             }
         }
     }
 }
 
-fn generate_fix(checker: &Checker, expr_bin_op: &ast::ExprBinOp) -> Fix {
+fn generate_fix(checker: &Checker, expr_bin_op: &ast::ExprBinOp) -> Option<Fix> {
     let ast::ExprBinOp { left, right, .. } = expr_bin_op;
 
     let between_operands_range = TextRange::new(left.end(), right.start());
-    let between_operands = checker.locator().slice(between_operands_range);
-    let (before_plus, after_plus) = between_operands.split_once('+').unwrap();
+    let plus_token = checker
+        .tokens()
+        .in_range(between_operands_range)
+        .iter()
+        .find(|token| token.kind() == TokenKind::Plus)?;
+
+    let before_plus = checker
+        .locator()
+        .slice(TextRange::new(left.end(), plus_token.start()));
+    let after_plus = checker
+        .locator()
+        .slice(TextRange::new(plus_token.end(), right.start()));
 
     let linebreak_before_operator =
         before_plus.contains_line_break(TextRange::at(TextSize::new(0), before_plus.text_len()));
@@ -128,8 +141,8 @@ fn generate_fix(checker: &Checker, expr_bin_op: &ast::ExprBinOp) -> Fix {
         before_plus.trim_end_matches(is_python_whitespace)
     };
 
-    Fix::safe_edit(Edit::range_replacement(
+    Some(Fix::safe_edit(Edit::range_replacement(
         format!("{before_plus}{after_plus}"),
         between_operands_range,
-    ))
+    )))
 }

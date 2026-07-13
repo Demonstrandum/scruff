@@ -43,7 +43,7 @@ def _(top_callable: Top[Callable[[Any], None]]):
     reveal_type(top_callable)  # revealed: (Never, /) -> None
 ```
 
-The invariant position is replaced with an unresolved type variable.
+The invariant position cannot simplify, and is represented with the `Top` special form.
 
 ```py
 def _(top_list: Top[list[Any]]):
@@ -70,8 +70,13 @@ def _(bottom_callable: Bottom[Callable[[Any, Unknown], None]]):
     reveal_type(bottom_callable)  # revealed: (object, object, /) -> None
 ```
 
-The invariant position is replaced in the same way as the top materialization, with an unresolved
-type variable.
+The invariant position is represented with the `Bottom` special form.
+
+There is an argument that `Bottom[list[Any]]` should simplify to `Never`, since it is the infinite
+intersection of all possible materializations of `list[Any]`, and (due to invariance) these
+materializations are disjoint types. But currently we do not make this simplification: there doesn't
+seem to be any compelling need for it, and allowing more gradual types to materialize to `Never` has
+undesirable implications for mutual assignability of seemingly-unrelated gradual types.
 
 ```py
 def _(bottom_list: Bottom[list[Any]]):
@@ -84,7 +89,8 @@ The top / bottom (and only) materialization of any fully static type is just its
 
 ```py
 from typing import Any, Literal
-from ty_extensions import TypeOf, Bottom, Top, is_equivalent_to, static_assert
+from ty_extensions import Bottom, Top, static_assert
+from ty_extensions._internal import TypeOf, is_equivalent_to
 from enum import Enum
 
 class Answer(Enum):
@@ -144,7 +150,8 @@ python-version = "3.12"
 
 ```py
 from typing import Any, Callable
-from ty_extensions import TypeOf, Unknown, Bottom, Top
+from ty_extensions import Unknown, Bottom, Top
+from ty_extensions._internal import TypeOf
 
 type C1 = Callable[[Any, Unknown], Any]
 
@@ -171,11 +178,103 @@ flipped to covariant, invariant remains invariant.
 type C3 = Callable[[Any, Callable[[Unknown], Any]], Callable[[Any, int], Any]]
 
 def _(top: Top[C3], bottom: Bottom[C3]) -> None:
-    # revealed: (Never, (object, /) -> Never, /) -> (Never, int, /) -> object
+    # revealed: (Never, (object, /) -> Never, /) -> ((Never, int, /) -> object)
     reveal_type(top)
 
-    # revealed: (object, (Never, /) -> object, /) -> (object, int, /) -> Never
+    # revealed: (object, (Never, /) -> object, /) -> ((object, int, /) -> Never)
     reveal_type(bottom)
+```
+
+## Callable with gradual parameters
+
+For callables with gradual parameters (the `...` form), the top materialization preserves the
+gradual form since we cannot know what parameters are required. The bottom materialization
+simplifies to the bottom parameters `(*args: object, **kwargs: object)` since this is the most
+specific type that is a subtype of all possible parameter materializations.
+
+```toml
+[environment]
+python-version = "3.12"
+```
+
+```py
+from typing import Any, Callable, Never, Protocol
+from ty_extensions import Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to, is_subtype_of
+
+type GradualCallable = Callable[..., Any]
+
+def _(top: Top[GradualCallable], bottom: Bottom[GradualCallable]) -> None:
+    # The top materialization keeps the gradual parameters wrapped
+    reveal_type(top)  # revealed: Top[(...) -> object]
+
+    # The bottom materialization simplifies to the fully static bottom callable
+    reveal_type(bottom)  # revealed: (*args: object, **kwargs: object) -> Never
+
+# The bottom materialization of a gradual callable is a subtype of (and supertype of)
+# a protocol with `__call__(self, *args: object, **kwargs: object) -> Never`
+class EquivalentToBottom(Protocol):
+    def __call__(self, *args: object, **kwargs: object) -> Never: ...
+
+static_assert(is_subtype_of(EquivalentToBottom, Bottom[Callable[..., Never]]))
+static_assert(is_subtype_of(Bottom[Callable[..., Never]], EquivalentToBottom))
+static_assert(is_equivalent_to(Bottom[Callable[..., Never]], EquivalentToBottom))
+
+# Top-materialized callables are not equivalent to non-top-materialized callables, even if their
+# signatures would otherwise be equivalent after materialization.
+static_assert(not is_equivalent_to(Top[Callable[..., object]], Callable[..., object]))
+```
+
+Gradual parameters can be top- and bottom-materialized even if the return type is not `Any`:
+
+```py
+type GradualParams = Callable[..., int]
+
+def _(top: Top[GradualParams], bottom: Bottom[GradualParams]) -> None:
+    reveal_type(top)  # revealed: Top[(...) -> int]
+
+    reveal_type(bottom)  # revealed: (*args: object, **kwargs: object) -> int
+```
+
+Materializing an overloaded callable materializes each overload separately.
+
+```py
+from typing import overload
+from ty_extensions._internal import RegularCallableTypeOf
+
+@overload
+def f(x: int) -> Any: ...
+@overload
+def f(*args: Any, **kwargs: Any) -> str: ...
+def f(*args: object, **kwargs: object) -> object:
+    pass
+
+def _(top: Top[RegularCallableTypeOf[f]], bottom: Bottom[RegularCallableTypeOf[f]]):
+    reveal_type(top)  # revealed: Overload[(x: int) -> object, Top[(...) -> str]]
+    reveal_type(bottom)  # revealed: Overload[(x: int) -> Never, (*args: object, **kwargs: object) -> str]
+```
+
+The top callable can be represented in a `ParamSpec`:
+
+```py
+def takes_paramspec[**P](f: Callable[P, None]) -> Callable[P, None]:
+    return f
+
+def _(top: Top[Callable[..., None]]):
+    revealed = takes_paramspec(top)
+    reveal_type(revealed)  # revealed: Top[(...) -> None]
+```
+
+The top callable is not a subtype of `(*object, **object) -> object`:
+
+```py
+type TopCallable = Top[Callable[..., Any]]
+
+@staticmethod
+def takes_objects(*args: object, **kwargs: object) -> object:
+    pass
+
+static_assert(not is_subtype_of(TopCallable, RegularCallableTypeOf[takes_objects]))
 ```
 
 ## Tuple
@@ -189,7 +288,8 @@ python-version = "3.12"
 
 ```py
 from typing import Any, Never
-from ty_extensions import Unknown, Bottom, Top, is_equivalent_to, static_assert
+from ty_extensions import Unknown, Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to
 
 static_assert(is_equivalent_to(Top[tuple[Any, int]], tuple[object, int]))
 static_assert(is_equivalent_to(Bottom[tuple[Any, int]], Never))
@@ -206,7 +306,7 @@ inherit the contravariant position.
 
 ```py
 from typing import Callable
-from ty_extensions import TypeOf
+from ty_extensions._internal import TypeOf
 
 type C = Callable[[tuple[Any, int], tuple[str, Unknown]], None]
 
@@ -251,7 +351,8 @@ python-version = "3.12"
 
 ```py
 from typing import Any
-from ty_extensions import Unknown, Bottom, Top, static_assert, is_equivalent_to
+from ty_extensions import Unknown, Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to
 
 static_assert(is_equivalent_to(Top[Any | int], object))
 static_assert(is_equivalent_to(Bottom[Any | int], int))
@@ -268,7 +369,7 @@ inherit the contravariant position.
 
 ```py
 from typing import Callable
-from ty_extensions import TypeOf
+from ty_extensions._internal import TypeOf
 
 def _(callable: Callable[[Any | int, str | Unknown], None]) -> None:
     static_assert(is_equivalent_to(Top[TypeOf[callable]], Callable[[int, str], None]))
@@ -300,49 +401,76 @@ def _(
 
 All positions in an intersection are covariant.
 
-```py
+```pyi
 from typing import Any
 from typing_extensions import Never
-from ty_extensions import Intersection, Unknown, Bottom, Top, static_assert, is_equivalent_to
+from ty_extensions import Unknown, Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to
 
-static_assert(is_equivalent_to(Top[Intersection[Any, int]], int))
-static_assert(is_equivalent_to(Bottom[Intersection[Any, int]], Never))
+static_assert(is_equivalent_to(Top[Any & int], int))
+static_assert(is_equivalent_to(Bottom[Any & int], Never))
 
 # Here, the top materialization of `Any | int` is `object` and the intersection of it with tuple
-static_assert(is_equivalent_to(Top[Intersection[Any | int, tuple[str, Unknown]]], tuple[str, object]))
-static_assert(is_equivalent_to(Bottom[Intersection[Any | int, tuple[str, Unknown]]], Never))
+static_assert(is_equivalent_to(Top[(Any | int) & tuple[str, Unknown]], tuple[str, object]))
+static_assert(is_equivalent_to(Bottom[(Any | int) & tuple[str, Unknown]], Never))
 
 class Foo: ...
 
-static_assert(is_equivalent_to(Bottom[Intersection[Any | Foo, tuple[str]]], Intersection[Foo, tuple[str]]))
+static_assert(is_equivalent_to(Bottom[(Any | Foo) & tuple[str]], Foo & tuple[str]))
+```
+
+## Intersections of invariant generics
+
+The intersection `list[Any] & list[int]` is eagerly simplified to `list[int]`. Therefore, this is
+just a fully-static type where bottom and top materialization are the same:
+
+```pyi
+from typing import Any
+from ty_extensions import Bottom, Top
 
 def _(
-    top: Top[Intersection[list[Any], list[int]]],
-    bottom: Bottom[Intersection[list[Any], list[int]]],
+    top: Top[list[Any] & list[int]],
+    bottom: Bottom[list[Any] & list[int]],
 ):
-    # Top[list[Any] & list[int]] = Top[list[Any]] & list[int] = list[int]
     reveal_type(top)  # revealed: list[int]
-    # Bottom[list[Any] & list[int]] = Bottom[list[Any]] & list[int] = Bottom[list[Any]]
+    reveal_type(bottom)  # revealed: list[int]
+```
+
+Unfortunately, we get a seemingly different result when we distribute `Top[..]` and `Bottom[..]`
+over the intersection first:
+
+```pyi
+def _(
+    top: Top[list[Any]] & Top[list[int]],
+    bottom: Bottom[list[Any]] & Bottom[list[int]],
+):
+    reveal_type(top)  # revealed: list[int]
     reveal_type(bottom)  # revealed: Bottom[list[Any]]
 ```
 
-## Negation (via `Not`)
+This is not a contradiction to what we have above if we view `Bottom[list[Any]]` as an empty
+"marker" type that adds no additional materializations. In other words, the gradual type
+`Bottom[list[Any]] | list[int] & Any` (i.e. the interval that is spanned by the types of the two
+bounds `bottom` and `top`) is equivalent to just `list[int]`.
+
+## Negation
 
 All positions in a negation are contravariant.
 
-```py
+```pyi
 from typing import Any
 from typing_extensions import Never
-from ty_extensions import Not, Unknown, Bottom, Top, static_assert, is_equivalent_to
+from ty_extensions import Unknown, Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to
 
 # ~Any is still Any, so the top materialization is object
-static_assert(is_equivalent_to(Top[Not[Any]], object))
-static_assert(is_equivalent_to(Bottom[Not[Any]], Never))
+static_assert(is_equivalent_to(Top[~Any], object))
+static_assert(is_equivalent_to(Bottom[~Any], Never))
 
 # tuple[Any, int] is in a contravariant position, so the
 # top materialization is Never and the negation of it
-static_assert(is_equivalent_to(Top[Not[tuple[Any, int]]], object))
-static_assert(is_equivalent_to(Bottom[Not[tuple[Any, int]]], Not[tuple[object, int]]))
+static_assert(is_equivalent_to(Top[~tuple[Any, int]], object))
+static_assert(is_equivalent_to(Bottom[~tuple[Any, int]], ~tuple[object, int]))
 ```
 
 ## `type`
@@ -355,7 +483,8 @@ python-version = "3.12"
 ```py
 from typing import Any
 from typing_extensions import Never
-from ty_extensions import Unknown, Bottom, Top, static_assert, is_equivalent_to
+from ty_extensions import Unknown, Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to
 
 static_assert(is_equivalent_to(Top[type[Any]], type))
 static_assert(is_equivalent_to(Bottom[type[Any]], Never))
@@ -381,7 +510,8 @@ python-version = "3.12"
 
 ```py
 from typing import Any, Never, TypeVar
-from ty_extensions import Unknown, Bottom, Top, static_assert, is_subtype_of
+from ty_extensions import Unknown, Bottom, Top, static_assert
+from ty_extensions._internal import is_subtype_of
 
 def bounded_by_gradual[T: Any](t: T) -> None:
     # Top materialization of `T: Any` is `T: object`
@@ -413,7 +543,8 @@ python-version = "3.12"
 
 ```py
 from typing import Any, Generic, TypeVar, Never
-from ty_extensions import Bottom, Top, static_assert, is_equivalent_to
+from ty_extensions import Bottom, Top, static_assert
+from ty_extensions._internal import is_equivalent_to
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
@@ -439,11 +570,34 @@ static_assert(is_equivalent_to(Top[GenericContravariant[Any]], GenericContravari
 static_assert(is_equivalent_to(Bottom[GenericContravariant[Any]], GenericContravariant[object]))
 ```
 
+When all invariant type parameters are fully static (e.g. type variables rather than gradual types
+like `Any`), `Top` simplifies away since there is no dynamic component to materialize:
+
+```py
+class Foo: ...
+
+T_bounded = TypeVar("T_bounded", bound=Foo)
+T_unbounded = TypeVar("T_unbounded")
+
+class InvariantBounded(Generic[T_bounded]):
+    x: T_bounded
+
+class InvariantUnbounded(Generic[T_unbounded]):
+    x: T_unbounded
+
+def f(
+    bounded: Top[InvariantBounded[T_bounded]],
+    unbounded: Top[InvariantUnbounded[T_unbounded]],
+):
+    reveal_type(bounded)  # revealed: InvariantBounded[T_bounded@f]
+    reveal_type(unbounded)  # revealed: InvariantUnbounded[T_unbounded@f]
+```
+
 Parameters in callable are contravariant, so the variance should be flipped:
 
 ```py
 from typing import Callable
-from ty_extensions import TypeOf
+from ty_extensions._internal import TypeOf
 
 type InvariantCallable = Callable[[GenericInvariant[Any]], None]
 type CovariantCallable = Callable[[GenericCovariant[Any]], None]
@@ -502,7 +656,8 @@ materialization (themselves) and applying `Top` or `Bottom` again does nothing.
 
 ```py
 from typing import Any
-from ty_extensions import Top, Bottom, static_assert, is_equivalent_to
+from ty_extensions import Top, Bottom, static_assert
+from ty_extensions._internal import is_equivalent_to
 
 static_assert(is_equivalent_to(Top[Top[list[Any]]], Top[list[Any]]))
 static_assert(is_equivalent_to(Bottom[Top[list[Any]]], Top[list[Any]]))
@@ -516,27 +671,28 @@ static_assert(is_equivalent_to(Top[Bottom[list[Any]]], Bottom[list[Any]]))
 Any `list[T]` is a subtype of `Top[list[Any]]`, but with more restrictive gradual types, not all
 other specializations are subtypes.
 
-```py
+```pyi
 from typing import Any, Literal
-from ty_extensions import is_subtype_of, static_assert, Top, Intersection, Bottom
+from ty_extensions import static_assert, Top, Bottom
+from ty_extensions._internal import is_subtype_of
 
 # None and Top
 static_assert(is_subtype_of(list[int], Top[list[Any]]))
 static_assert(not is_subtype_of(Top[list[Any]], list[int]))
-static_assert(is_subtype_of(list[bool], Top[list[Intersection[int, Any]]]))
-static_assert(is_subtype_of(list[int], Top[list[Intersection[int, Any]]]))
-static_assert(not is_subtype_of(list[int | str], Top[list[Intersection[int, Any]]]))
-static_assert(not is_subtype_of(list[object], Top[list[Intersection[int, Any]]]))
-static_assert(not is_subtype_of(list[str], Top[list[Intersection[int, Any]]]))
-static_assert(not is_subtype_of(list[str | bool], Top[list[Intersection[int, Any]]]))
+static_assert(is_subtype_of(list[bool], Top[list[int & Any]]))
+static_assert(is_subtype_of(list[int], Top[list[int & Any]]))
+static_assert(not is_subtype_of(list[int | str], Top[list[int & Any]]))
+static_assert(not is_subtype_of(list[object], Top[list[int & Any]]))
+static_assert(not is_subtype_of(list[str], Top[list[int & Any]]))
+static_assert(not is_subtype_of(list[str | bool], Top[list[int & Any]]))
 
 # Top and Top
 static_assert(is_subtype_of(Top[list[int | Any]], Top[list[Any]]))
 static_assert(not is_subtype_of(Top[list[Any]], Top[list[int | Any]]))
-static_assert(is_subtype_of(Top[list[Intersection[int, Any]]], Top[list[Any]]))
-static_assert(not is_subtype_of(Top[list[Any]], Top[list[Intersection[int, Any]]]))
-static_assert(not is_subtype_of(Top[list[Intersection[int, Any]]], Top[list[int | Any]]))
-static_assert(not is_subtype_of(Top[list[int | Any]], Top[list[Intersection[int, Any]]]))
+static_assert(is_subtype_of(Top[list[int & Any]], Top[list[Any]]))
+static_assert(not is_subtype_of(Top[list[Any]], Top[list[int & Any]]))
+static_assert(not is_subtype_of(Top[list[int & Any]], Top[list[int | Any]]))
+static_assert(not is_subtype_of(Top[list[int | Any]], Top[list[int & Any]]))
 static_assert(not is_subtype_of(Top[list[str | Any]], Top[list[int | Any]]))
 static_assert(is_subtype_of(Top[list[str | int | Any]], Top[list[int | Any]]))
 static_assert(not is_subtype_of(Top[list[int | Any]], Top[list[str | int | Any]]))
@@ -546,8 +702,8 @@ static_assert(is_subtype_of(Bottom[list[Any]], Top[list[Any]]))
 static_assert(is_subtype_of(Bottom[list[Any]], Top[list[int | Any]]))
 static_assert(is_subtype_of(Bottom[list[int | Any]], Top[list[Any]]))
 static_assert(is_subtype_of(Bottom[list[int | Any]], Top[list[int | str]]))
-static_assert(is_subtype_of(Bottom[list[Intersection[int, Any]]], Top[list[Intersection[str, Any]]]))
-static_assert(not is_subtype_of(Bottom[list[Intersection[int, bool | Any]]], Bottom[list[Intersection[str, Literal["x"] | Any]]]))
+static_assert(is_subtype_of(Bottom[list[int & Any]], Top[list[str & Any]]))
+static_assert(not is_subtype_of(Bottom[list[int & (bool | Any)]], Bottom[list[str & (Literal["x"] | Any)]]))
 
 # None and None
 static_assert(not is_subtype_of(list[int], list[Any]))
@@ -564,7 +720,7 @@ static_assert(is_subtype_of(Top[list[int]], list[int]))
 # Bottom and None
 static_assert(is_subtype_of(Bottom[list[Any]], list[object]))
 static_assert(is_subtype_of(Bottom[list[int | Any]], list[str | int]))
-static_assert(not is_subtype_of(Bottom[list[str | Any]], list[Intersection[int, bool | Any]]))
+static_assert(not is_subtype_of(Bottom[list[str | Any]], list[int & (bool | Any)]))
 
 # None and Bottom
 static_assert(not is_subtype_of(list[int], Bottom[list[Any]]))
@@ -591,29 +747,30 @@ static_assert(not is_subtype_of(Bottom[list[int | Any]], Bottom[list[Any]]))
 Assignability is the same as subtyping for top and bottom materializations, because those are fully
 static types, but some gradual types are assignable even if they are not subtypes.
 
-```py
+```pyi
 from typing import Any, Literal
-from ty_extensions import is_assignable_to, static_assert, Top, Intersection, Bottom
+from ty_extensions import static_assert, Top, Bottom
+from ty_extensions._internal import is_assignable_to
 
 # None and Top
 static_assert(is_assignable_to(list[Any], Top[list[Any]]))
 static_assert(is_assignable_to(list[int], Top[list[Any]]))
 static_assert(not is_assignable_to(Top[list[Any]], list[int]))
-static_assert(is_assignable_to(list[bool], Top[list[Intersection[int, Any]]]))
-static_assert(is_assignable_to(list[int], Top[list[Intersection[int, Any]]]))
-static_assert(is_assignable_to(list[Any], Top[list[Intersection[int, Any]]]))
-static_assert(not is_assignable_to(list[int | str], Top[list[Intersection[int, Any]]]))
-static_assert(not is_assignable_to(list[object], Top[list[Intersection[int, Any]]]))
-static_assert(not is_assignable_to(list[str], Top[list[Intersection[int, Any]]]))
-static_assert(not is_assignable_to(list[str | bool], Top[list[Intersection[int, Any]]]))
+static_assert(is_assignable_to(list[bool], Top[list[int & Any]]))
+static_assert(is_assignable_to(list[int], Top[list[int & Any]]))
+static_assert(is_assignable_to(list[Any], Top[list[int & Any]]))
+static_assert(not is_assignable_to(list[int | str], Top[list[int & Any]]))
+static_assert(not is_assignable_to(list[object], Top[list[int & Any]]))
+static_assert(not is_assignable_to(list[str], Top[list[int & Any]]))
+static_assert(not is_assignable_to(list[str | bool], Top[list[int & Any]]))
 
 # Top and Top
 static_assert(is_assignable_to(Top[list[int | Any]], Top[list[Any]]))
 static_assert(not is_assignable_to(Top[list[Any]], Top[list[int | Any]]))
-static_assert(is_assignable_to(Top[list[Intersection[int, Any]]], Top[list[Any]]))
-static_assert(not is_assignable_to(Top[list[Any]], Top[list[Intersection[int, Any]]]))
-static_assert(not is_assignable_to(Top[list[Intersection[int, Any]]], Top[list[int | Any]]))
-static_assert(not is_assignable_to(Top[list[int | Any]], Top[list[Intersection[int, Any]]]))
+static_assert(is_assignable_to(Top[list[int & Any]], Top[list[Any]]))
+static_assert(not is_assignable_to(Top[list[Any]], Top[list[int & Any]]))
+static_assert(not is_assignable_to(Top[list[int & Any]], Top[list[int | Any]]))
+static_assert(not is_assignable_to(Top[list[int | Any]], Top[list[int & Any]]))
 static_assert(not is_assignable_to(Top[list[str | Any]], Top[list[int | Any]]))
 static_assert(is_assignable_to(Top[list[str | int | Any]], Top[list[int | Any]]))
 static_assert(not is_assignable_to(Top[list[int | Any]], Top[list[str | int | Any]]))
@@ -622,10 +779,8 @@ static_assert(not is_assignable_to(Top[list[int | Any]], Top[list[str | int | An
 static_assert(is_assignable_to(Bottom[list[Any]], Top[list[Any]]))
 static_assert(is_assignable_to(Bottom[list[Any]], Top[list[int | Any]]))
 static_assert(is_assignable_to(Bottom[list[int | Any]], Top[list[Any]]))
-static_assert(is_assignable_to(Bottom[list[Intersection[int, Any]]], Top[list[Intersection[str, Any]]]))
-static_assert(
-    not is_assignable_to(Bottom[list[Intersection[int, bool | Any]]], Bottom[list[Intersection[str, Literal["x"] | Any]]])
-)
+static_assert(is_assignable_to(Bottom[list[int & Any]], Top[list[str & Any]]))
+static_assert(not is_assignable_to(Bottom[list[int & (bool | Any)]], Bottom[list[str & (Literal["x"] | Any)]]))
 
 # None and None
 static_assert(is_assignable_to(list[int], list[Any]))
@@ -642,7 +797,7 @@ static_assert(is_assignable_to(Top[list[int]], list[int]))
 # Bottom and None
 static_assert(is_assignable_to(Bottom[list[Any]], list[object]))
 static_assert(is_assignable_to(Bottom[list[int | Any]], Top[list[str | int]]))
-static_assert(not is_assignable_to(Bottom[list[str | Any]], list[Intersection[int, bool | Any]]))
+static_assert(not is_assignable_to(Bottom[list[str | Any]], list[int & (bool | Any)]))
 
 # None and Bottom
 static_assert(is_assignable_to(list[Any], Bottom[list[Any]]))
@@ -671,7 +826,8 @@ number of other covariant ABCs, but we'll use a synthetic example.
 
 ```py
 from typing import Generic, TypeVar, Any
-from ty_extensions import static_assert, is_assignable_to, is_equivalent_to, Top
+from ty_extensions import static_assert, Top
+from ty_extensions._internal import is_assignable_to, is_equivalent_to
 
 class A:
     pass
@@ -729,4 +885,31 @@ def capybara(top: Top[Invariant[Any]], bottom: Bottom[Invariant[Any]]) -> None:
 
     reveal_type(top.attr)  # revealed: object
     reveal_type(bottom.attr)  # revealed: Never
+
+def slice_list(top: Top[list[Any]], bottom: Bottom[list[Any]]) -> None:
+    reveal_type(top[:])  # revealed: Top[list[Any]]
+    reveal_type(bottom[:])  # revealed: Bottom[list[Any]]
+
+class Mixed[T, U]:
+    first: T
+    second: U
+    nested: list[tuple[Any, U]]
+
+def preserve_unrelated_any(top: Top[Mixed[Any, int]], bottom: Bottom[Mixed[Any, int]]) -> None:
+    reveal_type(top.nested)  # revealed: list[tuple[Any, int]]
+    reveal_type(bottom.nested)  # revealed: list[tuple[Any, int]]
+```
+
+Alias specializations also preserve the materialization polarity in contravariant positions.
+
+```py
+from ty_extensions import Top, Bottom
+from typing import Any, Callable
+
+type Alias[T] = T
+type AliasedCallable[T] = Callable[[Alias[T]], T]
+
+def _(top: Top[AliasedCallable[Any]], bottom: Bottom[AliasedCallable[Any]]) -> None:
+    reveal_type(top)  # revealed: (Never, /) -> object
+    reveal_type(bottom)  # revealed: (object, /) -> Never
 ```

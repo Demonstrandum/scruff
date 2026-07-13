@@ -6,8 +6,8 @@
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use scruff::{args::GlobalConfigArgs, check};
 use ruff_linter::logging::set_up_logging;
+use scruff::{args::GlobalConfigArgs, check};
 use std::process::ExitCode;
 
 mod format_dev;

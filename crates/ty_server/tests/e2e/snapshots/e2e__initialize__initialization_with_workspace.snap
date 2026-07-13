@@ -7,7 +7,10 @@ expression: initialization_result
     "positionEncoding": "utf-16",
     "textDocumentSync": {
       "openClose": true,
-      "change": 2
+      "change": 2,
+      "save": {
+        "includeText": false
+      }
     },
     "notebookDocumentSync": {
       "notebookSelector": [
@@ -21,13 +24,14 @@ expression: initialization_result
       ],
       "save": false
     },
-    "selectionRangeProvider": true,
-    "hoverProvider": true,
     "completionProvider": {
       "triggerCharacters": [
-        "."
+        ".",
+        "\"",
+        "'"
       ]
     },
+    "hoverProvider": true,
     "signatureHelpProvider": {
       "triggerCharacters": [
         "(",
@@ -37,19 +41,30 @@ expression: initialization_result
         ")"
       ]
     },
+    "declarationProvider": true,
     "definitionProvider": true,
     "typeDefinitionProvider": true,
     "referencesProvider": true,
     "documentHighlightProvider": true,
     "documentSymbolProvider": true,
+    "codeActionProvider": {
+      "codeActionKinds": [
+        "quickfix"
+      ]
+    },
     "workspaceSymbolProvider": true,
-    "declarationProvider": true,
+    "renameProvider": {
+      "prepareProvider": true
+    },
+    "foldingRangeProvider": true,
+    "selectionRangeProvider": true,
     "executeCommandProvider": {
       "commands": [
         "ty.printDebugInformation"
       ],
       "workDoneProgress": false
     },
+    "callHierarchyProvider": true,
     "semanticTokensProvider": {
       "legend": {
         "tokenTypes": [
@@ -72,18 +87,26 @@ expression: initialization_result
         "tokenModifiers": [
           "definition",
           "readonly",
-          "async"
+          "async",
+          "documentation"
         ]
       },
       "range": true,
       "full": true
     },
+    "typeHierarchyProvider": true,
     "inlayHintProvider": {},
     "diagnosticProvider": {
       "identifier": "ty",
       "interFileDependencies": true,
       "workspaceDiagnostics": true,
       "workDoneProgress": true
+    },
+    "workspace": {
+      "workspaceFolders": {
+        "supported": true,
+        "changeNotifications": true
+      }
     }
   },
   "serverInfo": {

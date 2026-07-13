@@ -12,7 +12,7 @@ python-version = "3.12"
 ```py
 type IntOrStr = int | str
 
-reveal_type(IntOrStr)  # revealed: typing.TypeAliasType
+reveal_type(IntOrStr)  # revealed: TypeAliasType
 reveal_type(IntOrStr.__name__)  # revealed: Literal["IntOrStr"]
 
 x: IntOrStr = 1
@@ -40,6 +40,36 @@ type OptionalInt = int | None
 x: OptionalInt = "1"
 ```
 
+## No type qualifiers
+
+The right-hand side of a type alias definition is a type expression, not an annotation expression.
+Type qualifiers like `ClassVar` and `Final` are only valid in annotation expressions, so they cannot
+appear at the top level of a PEP 695 alias definition:
+
+```py
+from typing_extensions import ClassVar, Final, Required, NotRequired, ReadOnly
+from dataclasses import InitVar
+
+# error: [invalid-type-form] "Type qualifier `typing.ClassVar` is not allowed in type alias values"
+type Bad1 = ClassVar[str]
+# error: [invalid-type-form] "Type qualifier `typing.ClassVar` is not allowed in type alias values"
+type Bad2 = ClassVar
+# error: [invalid-type-form] "Type qualifier `typing.Final` is not allowed in type alias values"
+type Bad3 = Final[int]
+# error: [invalid-type-form] "Type qualifier `typing.Final` is not allowed in type alias values"
+type Bad4 = Final
+# error: [invalid-type-form] "Type qualifier `typing.Required` is not allowed in type alias values"
+type Bad5 = Required[int]
+# error: [invalid-type-form] "Type qualifier `typing.NotRequired` is not allowed in type alias values"
+type Bad6 = NotRequired[int]
+# error: [invalid-type-form] "Type qualifier `typing.ReadOnly` is not allowed in type alias values"
+type Bad7 = ReadOnly[int]
+# error: [invalid-type-form] "Type qualifier `dataclasses.InitVar` is not allowed in type alias values"
+type Bad8 = InitVar[int]
+# error: [invalid-type-form] "Type qualifier `dataclasses.InitVar` is not allowed in type alias values"
+type Bad9 = InitVar
+```
+
 ## Type aliases in type aliases
 
 ```py
@@ -50,6 +80,29 @@ x: IntOrStrOrBytes = 1
 
 def f() -> None:
     reveal_type(x)  # revealed: int | str | bytes
+```
+
+## `Self`
+
+`Self` is not allowed in an explicit type alias value, even when the alias is defined in a class
+body. Runtime-expression positions, such as `Annotated` metadata, are not part of the alias value's
+type expression.
+
+TODO: Reject `Self` in alias type-parameter bounds and defaults.
+
+TODO: Reject `Self` introduced indirectly through runtime-expression forms such as `TypeOf[value]`.
+
+```py
+from typing import Annotated, Self, cast
+
+class C:
+    # error: [invalid-type-form] "`Self` cannot be used in a type alias"
+    type Alias = tuple[Self]
+
+    # error: [invalid-type-form] "`Self` cannot be used in a type alias"
+    type Simplified = object | Self
+
+    type Metadata = Annotated[int, cast(Self, object())]
 ```
 
 ## Aliased type aliases
@@ -106,6 +159,65 @@ def _(flag: bool):
 ```py
 type ListOrSet[T] = list[T] | set[T]
 reveal_type(ListOrSet.__type_params__)  # revealed: tuple[TypeVar | ParamSpec | TypeVarTuple, ...]
+type Tuple1[T] = tuple[T]
+
+def _(cond: bool):
+    Generic = ListOrSet if cond else Tuple1
+
+    def _(x: Generic[int]):
+        reveal_type(x)  # revealed: list[int] | set[int] | tuple[int]
+
+try:
+    class Foo[T]:
+        x: T
+        def foo(self) -> T:
+            return self.x
+
+    ...
+except Exception:
+    class Foo[T]:
+        x: T
+        def foo(self) -> T:
+            return self.x
+
+def f(x: Foo[int]):
+    reveal_type(x.foo())  # revealed: int
+```
+
+## Stringified values
+
+Stringifying the right-hand side of a type alias is redundant, but allowed:
+
+```py
+type X = "int | str"
+
+def f(obj: X):
+    reveal_type(obj)  # revealed: int | str
+```
+
+The right-hand side of a PEP-695 type alias will not usually be executed, but can be if the user
+accesses the `.__value__` attribute. Normal runtime rules still therefore apply regarding partially
+stringified alias values:
+
+```py
+# snapshot: unsupported-operator
+type Y = "int" | str
+
+def g(obj: Y):
+    reveal_type(obj)  # revealed: int | str
+```
+
+```snapshot
+error[unsupported-operator]: Unsupported `|` operation
+ --> src/mdtest_snippet.py:6:10
+  |
+6 | type Y = "int" | str
+  |          -----^^^---
+  |          |       |
+  |          |       Has type `<class 'str'>`
+  |          Has type `Literal["int"]`
+  |
+info: A type alias scope is lazy but will be executed at runtime if the `__value__` property is accessed
 ```
 
 ## In unions and intersections
@@ -120,6 +232,29 @@ def f(x: IntOrStr, y: str | bytes):
     reveal_type(z)  # revealed: (int & ~AlwaysFalsy) | str | bytes
 ```
 
+## Loop-carried augmented unions
+
+PEP 604 unions created by augmented assignment should converge when the previous loop iteration
+already contains the same type alias:
+
+```py
+def f(condition: bool):
+    type Left = int
+    alias = Left
+    reveal_type(alias)  # revealed: TypeAliasType
+
+    while condition:
+        type Right = str
+        alias |= Right
+        reveal_type(alias)  # revealed: <types.UnionType special-form 'int | str'>
+
+    reveal_type(alias)  # revealed: TypeAliasType | <types.UnionType special-form 'int | str'>
+
+    # it would be okay to emit an `invalid-type-form` error here
+    def inner(x: alias):
+        reveal_type(x)  # revealed: int | str
+```
+
 ## Multiple layers of union aliases
 
 ```py
@@ -132,9 +267,55 @@ type W = A | B
 type X = C | D
 type Y = W | X
 
-from ty_extensions import is_equivalent_to, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_equivalent_to
 
 static_assert(is_equivalent_to(Y, A | B | C | D))
+```
+
+## Unions of enum literal aliases
+
+A union of aliases covering every member of an enum is equivalent to the enum itself, including when
+the aliases occur inside a larger type.
+
+```py
+from enum import Enum
+from typing import Literal
+
+class Choice(Enum):
+    A = "A"
+    B = "B"
+
+type A = Literal[Choice.A]
+type B = Literal[Choice.B]
+type Either = A | B
+type Selector = A | B | tuple[A, B]
+
+def accept_either(value: Either) -> None: ...
+def accept_optional_either(value: Either | None) -> None: ...
+def accept_selector(value: Selector) -> None: ...
+
+class Config:
+    either: Either
+    selector: Selector
+
+def _(choice: Choice, config: Config) -> None:
+    direct: Either = choice
+    accept_either(choice)
+    accept_optional_either(config.either)
+    values: list[Selector] = []
+    accept_selector(config.selector)
+
+class ExtendedChoice(Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+
+type ExtendedA = Literal[ExtendedChoice.A]
+type ExtendedB = Literal[ExtendedChoice.B]
+
+def _(choice: ExtendedChoice) -> None:
+    partial: ExtendedA | ExtendedB = choice  # error: [invalid-assignment]
 ```
 
 ## In binary ops
@@ -154,7 +335,8 @@ def _(x: X, y: tuple[Literal[1], Literal[3]]):
 Two `TypeAliasType`s are distinct and disjoint, even if they refer to the same type
 
 ```py
-from ty_extensions import static_assert, is_equivalent_to, is_disjoint_from, TypeOf
+from ty_extensions import static_assert
+from ty_extensions._internal import TypeOf, is_equivalent_to, is_disjoint_from
 
 type Alias1 = int
 type Alias2 = int
@@ -182,7 +364,7 @@ from typing_extensions import TypeAliasType, Union
 
 IntOrStr = TypeAliasType("IntOrStr", Union[int, str])
 
-reveal_type(IntOrStr)  # revealed: typing.TypeAliasType
+reveal_type(IntOrStr)  # revealed: TypeAliasType
 
 reveal_type(IntOrStr.__name__)  # revealed: Literal["IntOrStr"]
 
@@ -200,7 +382,25 @@ T = TypeVar("T")
 IntAndT = TypeAliasType("IntAndT", tuple[int, T], type_params=(T,))
 
 def f(x: IntAndT[str]) -> None:
-    reveal_type(x)  # revealed: @Todo(Generic manual PEP-695 type alias)
+    # TODO: This should be `tuple[int, str]`
+    reveal_type(x)  # revealed: Unknown
+```
+
+### Generic value binds type variables to alias definition
+
+```py
+from typing import Generic
+from typing_extensions import TypeAliasType, TypeVar
+
+T = TypeVar("T", bound=int)
+A = TypeAliasType("A", tuple[T], type_params=(T,))
+
+S = TypeVar("S", bound=tuple[int])
+
+class C(Generic[S]):
+    pass
+
+x: C[A]
 ```
 
 ### Error cases
@@ -213,8 +413,49 @@ from typing_extensions import TypeAliasType
 def get_name() -> str:
     return "IntOrStr"
 
-# error: [invalid-type-alias-type] "The name of a `typing.TypeAlias` must be a string literal"
+# error: [invalid-type-alias-type] "The first argument to `TypeAliasType` must be a string literal"
 IntOrStr = TypeAliasType(get_name(), int | str)
+```
+
+#### Name does not match variable
+
+```py
+from typing import Union
+from typing_extensions import TypeAliasType
+
+# error: [mismatched-type-name] "The name passed to `TypeAliasType` must match the variable it is assigned to: Expected "IntOrStr", got "WrongName""
+IntOrStr = TypeAliasType("WrongName", Union[int, str])
+reveal_type(IntOrStr)  # revealed: TypeAliasType
+```
+
+#### Not a simple variable assignment
+
+`TypeAliasType` must be used in a simple variable assignment. Using it as a standalone expression or
+in a tuple unpacking is not supported.
+
+```py
+from typing_extensions import TypeAliasType
+
+# error: [invalid-type-alias-type] "A `TypeAliasType` definition must be a simple variable assignment"
+TypeAliasType("IntOrStr", "int | str")
+```
+
+### Mutually recursive `TypeAliasType` definitions
+
+Mutually recursive type aliases created via the `TypeAliasType` constructor should not cause the
+type checker to hang. The value type is computed lazily to break cycles.
+
+```py
+from typing_extensions import TypeAliasType, Union
+
+A = TypeAliasType("A", Union[str, "B"])
+B = TypeAliasType("B", list[A])
+
+def f(x: A) -> None:
+    reveal_type(x)  # revealed: str | list[A]
+
+def g(x: B) -> None:
+    reveal_type(x)  # revealed: list[A]
 ```
 
 ## Cyclic aliases
@@ -228,6 +469,11 @@ def f(x: OptNestedInt) -> None:
     reveal_type(x)  # revealed: int | tuple[OptNestedInt, ...] | None
     if x is not None:
         reveal_type(x)  # revealed: int | tuple[OptNestedInt, ...]
+
+type RecursiveList = list[RecursiveList]
+
+def g(x: RecursiveList):
+    reveal_type(x[0])  # revealed: list[RecursiveList]
 ```
 
 ### Invalid self-referential
@@ -244,6 +490,46 @@ def f(x: IntOr, y: OrInt):
         reveal_type(x)  # revealed: Never
     if not isinstance(y, int):
         reveal_type(y)  # revealed: Never
+
+# error: [cyclic-type-alias-definition] "Cyclic definition of `Itself`"
+type Itself = Itself
+
+def foo(
+    # this is a very strange thing to do, but this is a regression test to ensure it doesn't panic
+    Itself: Itself,
+):
+    x: Itself
+    reveal_type(Itself)  # revealed: Divergent
+
+# A type alias defined with invalid recursion behaves as a dynamic type.
+foo(42)
+foo("hello")
+
+# error: [cyclic-type-alias-definition] "Cyclic definition of `A`"
+type A = B
+# error: [cyclic-type-alias-definition] "Cyclic definition of `B`"
+type B = A
+
+def bar(B: B):
+    x: B
+    reveal_type(B)  # revealed: Divergent
+
+# error: [cyclic-type-alias-definition] "Cyclic definition of `G`"
+type G[T] = G[T]
+# error: [cyclic-type-alias-definition] "Cyclic definition of `H`"
+type H[T] = I[T]
+# error: [cyclic-type-alias-definition] "Cyclic definition of `I`"
+type I[T] = H[T]
+
+# It's not possible to create an element of this type, but it's not an error for now
+type DirectRecursiveList[T] = list[DirectRecursiveList[T]]
+
+# TODO: this should probably be a cyclic-type-alias-definition error
+type Foo[T] = list[T] | Bar[T]
+type Bar[T] = int | Foo[T]
+
+def _(x: Bar[int]):
+    reveal_type(x)  # revealed: int | list[int]
 ```
 
 ### With legacy generic
@@ -302,7 +588,8 @@ def _(x: C):
 ### Subtyping of materializations of cyclic aliases
 
 ```py
-from ty_extensions import static_assert, is_subtype_of, Bottom, Top
+from ty_extensions import static_assert, Bottom, Top
+from ty_extensions._internal import is_subtype_of
 
 type JsonValue = None | JsonDict
 type JsonDict = dict[str, JsonValue]
@@ -311,6 +598,66 @@ static_assert(is_subtype_of(Top[JsonDict], Top[JsonDict]))
 static_assert(is_subtype_of(Top[JsonDict], Bottom[JsonDict]))
 static_assert(is_subtype_of(Bottom[JsonDict], Bottom[JsonDict]))
 static_assert(is_subtype_of(Bottom[JsonDict], Top[JsonDict]))
+```
+
+### Equivalence of top materializations of mutually recursive invariant aliases
+
+```py
+from typing import Callable
+from ty_extensions import static_assert, Top
+from ty_extensions._internal import is_equivalent_to, is_subtype_of
+
+class Box[T]:
+    pass
+
+type A = Callable[[B], None]
+type B = Callable[[A], None]
+
+static_assert(is_equivalent_to(Top[Box[A]], Top[Box[B]]))
+static_assert(is_subtype_of(Top[Box[A]], Top[Box[B]]))
+static_assert(is_subtype_of(Top[Box[B]], Top[Box[A]]))
+```
+
+### Assignment through recursive aliases
+
+```py
+from __future__ import annotations
+
+type JSON = str | int | float | bool | list[JSON] | list[JSON_OBJECT] | dict[str, JSON] | None
+type JSON_OBJECT = dict[str, JSON]
+
+x: JSON_OBJECT = {"hello": 23}
+
+def f() -> JSON_OBJECT:
+    return {"hello": 23}
+```
+
+### Aliased union in a self-recursive type alias
+
+Regression test for <https://github.com/astral-sh/ty/issues/3835>.
+
+```py
+from collections.abc import Sequence
+
+type JSONScalar = str | int
+type JSONValue = JSONScalar | Sequence[JSONValue] | dict[str, JSONValue]
+```
+
+### Recursive dict alias in method return
+
+```py
+from __future__ import annotations
+from dataclasses import dataclass
+
+type NodeDict = dict[str, str | list[NodeDict]]
+
+@dataclass
+class Node:
+    label: str
+    children: list[Node]
+
+    def to_dict(self) -> NodeDict:
+        return {"label": self.label, "children": [child.to_dict() for child in self.children]}
 ```
 
 ### Cyclic defaults
@@ -327,7 +674,7 @@ class C(P[T]):
     pass
 
 reveal_type(C[int]())  # revealed: C[int]
-reveal_type(C())  # revealed: C[Divergent]
+reveal_type(C())  # revealed: C[C[Divergent]]
 ```
 
 ### Union inside generic
@@ -342,18 +689,18 @@ type A = list[Union["A", str]]
 def f(x: A):
     reveal_type(x)  # revealed: list[A | str]
     for item in x:
-        reveal_type(item)  # revealed: list[Any | str] | str
+        reveal_type(item)  # revealed: list[A | str] | str
 ```
 
 #### With new-style union
 
 ```py
-type A = list["A" | str]
+type A = list[A | str]
 
 def f(x: A):
     reveal_type(x)  # revealed: list[A | str]
     for item in x:
-        reveal_type(item)  # revealed: list[Any | str] | str
+        reveal_type(item)  # revealed: list[A | str] | str
 ```
 
 #### With Optional
@@ -366,7 +713,7 @@ type A = list[Optional[Union["A", str]]]
 def f(x: A):
     reveal_type(x)  # revealed: list[A | str | None]
     for item in x:
-        reveal_type(item)  # revealed: list[Any | str | None] | str | None
+        reveal_type(item)  # revealed: list[A | str | None] | str | None
 ```
 
 ### Tuple comparison
@@ -387,4 +734,49 @@ type Y = X | str | dict[str, Y]
 def _(y: Y):
     if isinstance(y, dict):
         reveal_type(y)  # revealed: dict[str, X] | dict[str, Y]
+```
+
+### Recursive alias with tuple - stack overflow test (issue 2470)
+
+This test case used to cause a stack overflow. The returned type `list[int]` is not assignable to
+`RecursiveT = int | tuple[RecursiveT, ...]`, so we get an error.
+
+```py
+type RecursiveT = int | tuple[RecursiveT, ...]
+
+def foo(a: int, b: int) -> RecursiveT:
+    some_intermediate_var = (a, b)
+    # error: [invalid-return-type] "Return type does not match returned value: expected `RecursiveT`, found `list[int]`"
+    return list(some_intermediate_var)
+```
+
+### Recursive `TypeIs` and `TypeGuard` aliases don't stack overflow
+
+```py
+from typing_extensions import TypeGuard, TypeIs
+from collections.abc import Callable
+
+type RecursiveIs = TypeIs[RecursiveIs]  # error: [cyclic-type-alias-definition]
+type RecursiveGuard = TypeGuard[RecursiveGuard]
+
+type AliasIs = RecursiveIs  # error: [cyclic-type-alias-definition]
+type AliasGuard = RecursiveGuard
+
+type CallableIs = TypeIs[Callable[[], CallableIs]]
+type CallableGuard = TypeGuard[Callable[[], CallableGuard]]
+
+reveal_type(CallableIs)  # revealed: TypeAliasType
+reveal_type(CallableGuard)  # revealed: TypeAliasType
+```
+
+### Recursive alias in binary operators doesn't stack overflow
+
+```py
+from typing import reveal_type
+
+type A = int | A
+
+def foo(x: A):
+    reveal_type(x + 1)  # revealed: int
+    reveal_type(1 + x)  # revealed: int
 ```

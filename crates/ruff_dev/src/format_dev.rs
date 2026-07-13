@@ -11,9 +11,7 @@ use std::{fmt, fs, io, iter};
 
 use anyhow::{Context, Error, bail, format_err};
 use clap::{CommandFactory, FromArgMatches};
-use imara_diff::intern::InternedInput;
-use imara_diff::sink::Counter;
-use imara_diff::{Algorithm, diff};
+use imara_diff::{Algorithm, Diff, InternedInput};
 use indicatif::ProgressStyle;
 #[cfg_attr(feature = "singlethreaded", allow(unused_imports))]
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -27,8 +25,6 @@ use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-use scruff::args::{ConfigArguments, FormatArguments, FormatCommand, GlobalConfigArgs, LogLevelArgs};
-use scruff::resolve::resolve;
 use ruff_formatter::{FormatError, LineWidth, PrintError};
 use ruff_linter::logging::LogLevel;
 use ruff_linter::settings::types::{FilePattern, FilePatternSet};
@@ -36,7 +32,11 @@ use ruff_python_formatter::{
     FormatModuleError, MagicTrailingComma, PreviewMode, PyFormatOptions, format_module_source,
 };
 use ruff_python_parser::ParseError;
-use ruff_workspace::resolver::{PyprojectConfig, ResolvedFile, Resolver, python_files_in_path};
+use ruff_workspace::resolver::{PyprojectConfig, ResolvedFile, Resolver, project_files_in_path};
+use scruff::args::{
+    ConfigArguments, FormatArguments, FormatCommand, GlobalConfigArgs, LogLevelArgs,
+};
+use scruff::resolve::resolve;
 
 fn parse_cli(dirs: &[PathBuf]) -> anyhow::Result<(FormatArguments, ConfigArguments)> {
     let args_matches = FormatCommand::command()
@@ -68,7 +68,7 @@ fn ruff_check_paths<'a>(
     cli: &FormatArguments,
     config_arguments: &ConfigArguments,
 ) -> anyhow::Result<(Vec<Result<ResolvedFile, ignore::Error>>, Resolver<'a>)> {
-    let (paths, resolver) = python_files_in_path(&cli.files, pyproject_config, config_arguments)?;
+    let (paths, resolver) = project_files_in_path(&cli.files, pyproject_config, config_arguments)?;
     Ok((paths, resolver))
 }
 
@@ -119,15 +119,17 @@ impl Statistics {
         } else {
             // `similar` was too slow (for some files >90% diffing instead of formatting)
             let input = InternedInput::new(black, ruff);
-            let changes = diff(Algorithm::Histogram, &input, Counter::default());
+            let changes = Diff::compute(Algorithm::Histogram, &input);
+            let removals = changes.count_removals();
+            let additions = changes.count_additions();
             assert_eq!(
-                input.before.len() - (changes.removals as usize),
-                input.after.len() - (changes.insertions as usize)
+                input.before.len() - (removals as usize),
+                input.after.len() - (additions as usize)
             );
             Self {
-                black_input: changes.removals,
-                ruff_output: changes.insertions,
-                intersection: u32::try_from(input.before.len()).unwrap() - changes.removals,
+                black_input: removals,
+                ruff_output: additions,
+                intersection: u32::try_from(input.before.len()).unwrap() - removals,
                 files_with_differences: 1,
             }
         }
@@ -295,7 +297,7 @@ fn setup_logging(log_level_args: &LogLevelArgs, log_file: Option<&Path>) -> io::
         // Default without the spinner
         ProgressStyle::with_template("{span_child_prefix} {span_name}{{{span_fields}}}").unwrap(),
     );
-    let indicitif_compatible_writer_layer = tracing_subscriber::fmt::layer()
+    let indicatif_compatible_writer_layer = tracing_subscriber::fmt::layer()
         .with_writer(indicatif_layer.get_stderr_writer())
         .with_target(false);
     let log_layer = log_file.map(File::create).transpose()?.map(|log_file| {
@@ -305,7 +307,7 @@ fn setup_logging(log_level_args: &LogLevelArgs, log_file: Option<&Path>) -> io::
     });
     tracing_subscriber::registry()
         .with(filter_layer)
-        .with(indicitif_compatible_writer_layer)
+        .with(indicatif_compatible_writer_layer)
         .with(indicatif_layer)
         .with(log_layer)
         .init();

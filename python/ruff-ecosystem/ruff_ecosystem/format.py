@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import time
 from asyncio import create_subprocess_exec
+from collections.abc import Sequence
 from enum import Enum
 from pathlib import Path
 from subprocess import PIPE
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 from unidiff import PatchSet
 
@@ -150,9 +151,9 @@ async def compare_format(
     )
     match format_comparison:
         case FormatComparison.ruff_then_ruff:
-            coro = format_then_format(Formatter.scruff, *args)
+            coro = format_then_format(Formatter.ruff, *args)
         case FormatComparison.ruff_and_ruff:
-            coro = format_and_format(Formatter.scruff, *args)
+            coro = format_and_format(Formatter.ruff, *args)
         case FormatComparison.black_then_ruff:
             coro = format_then_format(Formatter.black, *args)
         case FormatComparison.black_and_ruff:
@@ -182,15 +183,14 @@ async def format_then_format(
             options=options,
         )
         # Then get the diff from stdout
-        diff = await format(
-            formatter=Formatter.scruff,
+        return await format(
+            formatter=Formatter.ruff,
             executable=ruff_comparison_executable.resolve(),
             path=cloned_repo.path,
             name=cloned_repo.fullname,
             options=options,
             diff=True,
         )
-    return diff
 
 
 async def format_and_format(
@@ -221,7 +221,7 @@ async def format_and_format(
     with config_overrides.patch_config(cloned_repo.path, options.preview):
         # Then run format again
         await format(
-            formatter=Formatter.scruff,
+            formatter=Formatter.ruff,
             executable=ruff_comparison_executable.resolve(),
             path=cloned_repo.path,
             name=cloned_repo.fullname,
@@ -229,9 +229,7 @@ async def format_and_format(
         )
 
     # Then get the diff from the commit
-    diff = await cloned_repo.diff(commit)
-
-    return diff
+    return await cloned_repo.diff(commit)
 
 
 async def format(
@@ -246,7 +244,7 @@ async def format(
     """Run the given ruff binary against the specified path."""
     args = (
         options.to_ruff_args()
-        if formatter == Formatter.scruff
+        if formatter == Formatter.ruff
         else options.to_black_args()
     )
     logger.debug(f"Formatting {name} with {executable} " + " ".join(args))
@@ -271,8 +269,7 @@ async def format(
     if proc.returncode not in [0, 1]:
         raise ToolError(err.decode("utf8"))
 
-    lines = result.decode("utf8").splitlines()
-    return lines
+    return result.decode("utf8").splitlines()
 
 
 class FormatComparison(Enum):
@@ -299,4 +296,4 @@ class FormatComparison(Enum):
 
 class Formatter(Enum):
     black = "black"
-    scruff = "scruff"
+    ruff = "ruff"

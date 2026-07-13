@@ -27,7 +27,8 @@ Types that "produce" data on demand are covariant in their typevar. If you expec
 get from the sequence is a valid `int`.
 
 ```py
-from ty_extensions import is_assignable_to, is_equivalent_to, is_subtype_of, static_assert, Unknown
+from ty_extensions import static_assert, Unknown
+from ty_extensions._internal import is_assignable_to, is_equivalent_to, is_subtype_of
 from typing import Any, Never
 
 class A: ...
@@ -105,7 +106,8 @@ Types that "consume" data are contravariant in their typevar. If you expect a co
 that you pass into the consumer is a valid `int`.
 
 ```py
-from ty_extensions import is_assignable_to, is_equivalent_to, is_subtype_of, static_assert, Unknown
+from ty_extensions import static_assert, Unknown
+from ty_extensions._internal import is_assignable_to, is_equivalent_to, is_subtype_of
 from typing import Any, Never
 
 class A: ...
@@ -172,6 +174,23 @@ static_assert(not is_equivalent_to(D[Any], C[Any]))
 static_assert(not is_equivalent_to(D[Any], C[Unknown]))
 ```
 
+## Bounded typevars in contravariant positions
+
+When a bounded typevar appears in a contravariant position, the actual type doesn't need to satisfy
+the bound directly. The typevar can be solved to the intersection of the actual type and the bound
+(e.g., `Never` when disjoint).
+
+```py
+class Contra[T]:
+    def append(self, x: T): ...
+
+def f[T: int](x: Contra[T]) -> T:
+    raise NotImplementedError
+
+def _(x: Contra[str]):
+    reveal_type(f(x))  # revealed: Never
+```
+
 ## Invariance
 
 With an invariant typevar, only equivalent specializations of the generic class are subtypes of or
@@ -195,7 +214,8 @@ In the end, if you expect a mutable list, you must always be given a list of exa
 since we can't know in advance which of the allowed methods you'll want to use.
 
 ```py
-from ty_extensions import is_assignable_to, is_equivalent_to, is_subtype_of, static_assert, Unknown
+from ty_extensions import static_assert, Unknown
+from ty_extensions._internal import is_assignable_to, is_equivalent_to, is_subtype_of
 from typing import Any, Never
 
 class A: ...
@@ -275,7 +295,8 @@ at all. (If it did, it would have to be covariant, contravariant, or invariant, 
 the typevar was used.)
 
 ```py
-from ty_extensions import is_assignable_to, is_equivalent_to, is_subtype_of, static_assert, Unknown
+from ty_extensions import static_assert, Unknown
+from ty_extensions._internal import is_assignable_to, is_equivalent_to, is_subtype_of
 from typing import Any, Never
 
 class A: ...
@@ -344,13 +365,63 @@ static_assert(not is_equivalent_to(D[Any], C[Any]))
 static_assert(not is_equivalent_to(D[Any], C[Unknown]))
 ```
 
+## Only specialized types of generic class instances influence variance
+
+```toml
+[environment]
+python-version = "3.14"
+```
+
+If a generic class definition refers to a specialized instance of itself, only the specialized types
+of that instance affect its variance.
+
+```py
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
+
+class Bivariant[T]:
+    def takes_int_self(self, value: Bivariant[int]): ...
+
+static_assert(is_subtype_of(Bivariant[int], Bivariant[object]))
+static_assert(is_subtype_of(Bivariant[object], Bivariant[int]))
+
+class Covariant[T]:
+    def get(self) -> T:
+        raise NotImplementedError
+
+    def takes_int_self(self, value: Covariant[int]): ...
+
+static_assert(is_subtype_of(Covariant[int], Covariant[object]))
+static_assert(not is_subtype_of(Covariant[object], Covariant[int]))
+
+class Contravariant[T]:
+    def send(self, value: T): ...
+    def takes_int_self(self, value: Contravariant[int]): ...
+
+static_assert(is_subtype_of(Contravariant[object], Contravariant[int]))
+static_assert(not is_subtype_of(Contravariant[int], Contravariant[object]))
+```
+
+```py
+class Covariant[T]:
+    def get(self) -> T:
+        raise NotImplementedError
+
+    def add[S](self: Covariant[S], other: list[S]) -> Covariant[S]:
+        raise NotImplementedError
+
+static_assert(is_subtype_of(Covariant[int], Covariant[object]))
+static_assert(not is_subtype_of(Covariant[object], Covariant[int]))
+```
+
 ## Mutual Recursion
 
 This example due to Martin Huschenbett's PyCon 2025 talk,
 [Linear Time variance Inference for PEP 695][linear-time-variance-talk]
 
 ```py
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 from typing import Any
 
 class A: ...
@@ -421,7 +492,8 @@ Normal attributes are mutable, and so make the enclosing class invariant in this
 [inv]).
 
 ```py
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -445,13 +517,14 @@ invariance.
 
 ```py
 from typing import Final
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
 
 class C[T]:
-    x: Final[T]
+    x: Final[T]  # error: [final-without-value]
 
 static_assert(is_subtype_of(C[B], C[A]))
 static_assert(not is_subtype_of(C[A], C[B]))
@@ -463,7 +536,8 @@ Underscore-prefixed instance attributes are considered private, and thus are ass
 mutated.
 
 ```py
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -494,7 +568,8 @@ static_assert(not is_subtype_of(D[A], D[B]))
 
 ```py
 from dataclasses import dataclass, field
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -514,6 +589,29 @@ static_assert(is_subtype_of(E[B], E[A]))
 static_assert(not is_subtype_of(E[A], E[B]))
 ```
 
+This also works for dataclass-transformers:
+
+```py
+from typing import dataclass_transform
+
+@dataclass_transform(frozen_default=False)
+class ModelBase:
+    def __init_subclass__(cls, frozen: bool = False) -> None:
+        pass
+
+class NonFrozenModel[T](ModelBase):
+    value: T
+
+static_assert(not is_subtype_of(NonFrozenModel[B], NonFrozenModel[A]))
+static_assert(not is_subtype_of(NonFrozenModel[A], NonFrozenModel[B]))
+
+class FrozenModel[T](ModelBase, frozen=True):
+    value: T
+
+static_assert(is_subtype_of(FrozenModel[B], FrozenModel[A]))
+static_assert(not is_subtype_of(FrozenModel[A], FrozenModel[B]))
+```
+
 #### Frozen dataclasses in Python 3.13 and later
 
 ```toml
@@ -527,7 +625,8 @@ dataclasses on Python 3.13+ can't be covariant in their field types.
 
 ```py
 from dataclasses import dataclass
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -540,11 +639,35 @@ static_assert(not is_subtype_of(D[B], D[A]))
 static_assert(not is_subtype_of(D[A], D[B]))
 ```
 
+The same holds for dataclass-transformers:
+
+```py
+from typing import dataclass_transform
+
+@dataclass_transform(frozen_default=True)
+class ModelBase:
+    def __init_subclass__(cls, frozen: bool = True) -> None:
+        pass
+
+class DefaultFrozenModel[T](ModelBase):
+    value: T
+
+static_assert(not is_subtype_of(DefaultFrozenModel[B], DefaultFrozenModel[A]))
+static_assert(not is_subtype_of(DefaultFrozenModel[A], DefaultFrozenModel[B]))
+
+class ExplicitFrozenModel[T](ModelBase, frozen=True):
+    value: T
+
+static_assert(not is_subtype_of(ExplicitFrozenModel[B], ExplicitFrozenModel[A]))
+static_assert(not is_subtype_of(ExplicitFrozenModel[A], ExplicitFrozenModel[B]))
+```
+
 #### NamedTuple
 
 ```py
 from typing import NamedTuple
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -582,7 +705,8 @@ static_assert(not is_subtype_of(C[A], C[B]))
 Properties constrain to covariance if they are get-only and invariant if they are get-set:
 
 ```py
-from ty_extensions import static_assert, is_subtype_of
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -611,7 +735,8 @@ static_assert(not is_subtype_of(D[A], D[B]))
 Implicit attributes work like normal ones
 
 ```py
-from ty_extensions import static_assert, is_subtype_of
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -631,7 +756,8 @@ only used at the beginning of an object's life. As such, we don't need to worry 
 impact of these methods.
 
 ```py
-from ty_extensions import static_assert, is_subtype_of
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -668,7 +794,8 @@ Union types are covariant in all their members. If `A <: B`, then `A | C <: B | 
 `C | A <: C | B`.
 
 ```py
-from ty_extensions import is_assignable_to, is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_assignable_to, is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -694,7 +821,8 @@ creates constraints through control flow. In ty's representation, intersection t
 in their positive conjuncts and contravariant in their negative conjuncts.
 
 ```py
-from ty_extensions import is_assignable_to, is_subtype_of, static_assert, Intersection, Not
+from ty_extensions import static_assert, Intersection, Not
+from ty_extensions._internal import is_assignable_to, is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -724,7 +852,8 @@ The `type[T]` construct represents the type of classes that are subclasses of `T
 in `T` because if `A <: B`, then `type[A] <: type[B]` holds.
 
 ```py
-from ty_extensions import is_assignable_to, is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_assignable_to, is_subtype_of
 
 class A: ...
 class B(A): ...
@@ -771,7 +900,8 @@ python-version = "3.13"
 
 ```py
 from typing import TypeIs
-from ty_extensions import is_assignable_to, is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_assignable_to, is_subtype_of
 
 class A:
     pass
@@ -780,7 +910,7 @@ class B(A):
     pass
 
 class C[T]:
-    def check(x: object) -> TypeIs[T]:
+    def check(self, x: object) -> TypeIs[T]:
         # this is a bad check, but we only care about it type-checking
         return False
 
@@ -790,12 +920,52 @@ static_assert(not is_assignable_to(C[B], C[A]))
 static_assert(not is_assignable_to(C[A], C[B]))
 ```
 
+## TypeGuard
+
+`TypeGuard[T]` is covariant in `T`. The typing spec doesn't explicitly call this out, but it follows
+from similar logic to invariance of `TypeIs` except without the negative case.
+
+Formally, suppose we have types `A` and `B` with `B < A`. Take `x: object` to be the value that all
+subsequent `TypeGuard`s are narrowing.
+
+We can assign `p: TypeGuard[A] = q` where `q: TypeGuard[B]` because
+
+- if `q` is `False`, then no constraints were learned on `x` before and none are now learned, so
+    nothing changes
+- if `q` is `True`, then we know `x: B`. From `B < A`, we conclude `x: A`.
+
+We _cannot_ assign `p: TypeGuard[B] = q` where `q: TypeGuard[A]` because if `q` is `True`, we would
+be concluding `x: B` from `x: A`, which is an unsafe downcast.
+
+```py
+from typing import TypeGuard
+from ty_extensions import static_assert
+from ty_extensions._internal import is_assignable_to, is_subtype_of
+
+class A:
+    pass
+
+class B(A):
+    pass
+
+class C[T]:
+    def check(self, x: object) -> TypeGuard[T]:
+        # this is a bad check, but we only care about it type-checking
+        return False
+
+static_assert(is_subtype_of(C[B], C[A]))
+static_assert(not is_subtype_of(C[A], C[B]))
+static_assert(is_assignable_to(C[B], C[A]))
+static_assert(not is_assignable_to(C[A], C[B]))
+```
+
 ## Type aliases
 
 The variance of the type alias matches the variance of the value type (RHS type).
 
 ```py
-from ty_extensions import static_assert, is_subtype_of
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 from typing import Literal
 
 class Covariant[T]:
@@ -856,7 +1026,8 @@ as well. In the following example, `T` is covariant in `C`, and contravariant in
 you only count its own occurrences. Because we count both then, `T` is invariant in `D`.
 
 ```py
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 class A:
     pass
@@ -883,7 +1054,8 @@ static_assert(not is_subtype_of(D[A], D[B]))
 
 ```py
 from typing import TypeVar, Generic
-from ty_extensions import is_subtype_of, static_assert
+from ty_extensions import static_assert
+from ty_extensions._internal import is_subtype_of
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)

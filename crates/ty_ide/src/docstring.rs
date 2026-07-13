@@ -6,24 +6,16 @@
 //! There are no formal specifications for any of these formats, so the parsing
 //! logic needs to be tolerant of variations.
 
+mod document;
+mod markdown;
+
+use indexmap::IndexMap;
 use regex::Regex;
-use ruff_python_trivia::{PythonWhitespace, leading_indentation};
+use ruff_python_trivia::{PythonWhitespace, expand_tabs, leading_indentation};
 use ruff_source_file::UniversalNewlines;
-use std::collections::HashMap;
 use std::sync::LazyLock;
 
 use crate::MarkupKind;
-
-// Static regex instances to avoid recompilation
-static GOOGLE_SECTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)^\s*(Args|Arguments|Parameters)\s*:\s*$")
-        .expect("Google section regex should be valid")
-});
-
-static GOOGLE_PARAM_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\s*(\*?\*?\w+)\s*(\(.*?\))?\s*:\s*(.+)")
-        .expect("Google parameter regex should be valid")
-});
 
 static NUMPY_SECTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)^\s*Parameters\s*$").expect("NumPy section regex should be valid")
@@ -31,11 +23,6 @@ static NUMPY_SECTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 
 static NUMPY_UNDERLINE_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\s*-+\s*$").expect("NumPy underline regex should be valid"));
-
-static REST_PARAM_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\s*:param\s+(?:(\w+)\s+)?(\w+)\s*:\s*(.+)")
-        .expect("reST parameter regex should be valid")
-});
 
 /// A docstring which hasn't yet been interpreted or rendered
 ///
@@ -65,38 +52,58 @@ impl Docstring {
     /// Render the docstring for markdown display
     pub fn render_markdown(&self) -> String {
         let trimmed = documentation_trim(&self.0);
-        render_markdown(&trimmed)
+        markdown::render(&trimmed)
     }
 
     /// Extract parameter documentation from popular docstring formats.
     /// Returns a map of parameter names to their documentation.
-    pub fn parameter_documentation(&self) -> HashMap<String, String> {
-        let mut param_docs = HashMap::new();
-
-        // Google-style docstrings
-        param_docs.extend(extract_google_style_params(&self.0));
-
-        // NumPy-style docstrings
-        param_docs.extend(extract_numpy_style_params(&self.0));
-
-        // reST/Sphinx-style docstrings
-        param_docs.extend(extract_rest_style_params(&self.0));
-
-        param_docs
+    pub fn parameter_documentation(&self) -> IndexMap<String, String> {
+        let normalized_source = documentation_trim(&self.0);
+        document::parameter_documentation(&normalized_source, extract_numpy_style_params(&self.0))
     }
+}
+
+/// Text extracted from within a larger docstring.
+///
+/// Unlike a complete docstring, a fragment has already had its surrounding indentation removed.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct DocstringFragment(String);
+
+impl DocstringFragment {
+    pub fn new(raw: &str) -> Self {
+        Self(documentation_fragment_trim(raw))
+    }
+
+    pub fn render(&self, kind: MarkupKind) -> String {
+        match kind {
+            MarkupKind::PlainText => self.0.clone(),
+            MarkupKind::Markdown => self.render_markdown(),
+        }
+    }
+}
+
+/// Normalizes an extracted docstring fragment without removing meaningful relative indentation.
+fn documentation_fragment_trim(docs: &str) -> String {
+    let expanded = expand_tabs(docs.trim_end());
+    let mut output = String::with_capacity(expanded.len());
+    for line in expanded.universal_newlines() {
+        output.push_str(line.as_str().trim_whitespace_end());
+        output.push('\n');
+    }
+    output
 }
 
 /// Normalizes tabs and trims a docstring as specified in PEP-0257
 ///
 /// See: <https://peps.python.org/pep-0257/#handling-docstring-indentation>
 fn documentation_trim(docs: &str) -> String {
-    // First apply tab expansion as we don't want tabs in our output
-    // (python says tabs are equal to 8 spaces).
+    // First apply tab expansion as we don't want tabs in our output. Python advances tabs to the
+    // next eight-column tab stop.
     //
     // We also trim off all trailing whitespace here to eliminate trailing newlines so we
     // don't need to handle trailing blank lines later. We can't trim away leading
     // whitespace yet, because we need to identify the first line and handle it specially.
-    let expanded = docs.trim_end().replace('\t', "        ");
+    let expanded = expand_tabs(docs.trim_end());
 
     // Compute the minimum indention of all non-empty non-first lines
     // and statistics about leading blank lines to help trim them later.
@@ -149,306 +156,6 @@ fn documentation_trim(docs: &str) -> String {
     output
 }
 
-/// Given a presumed reStructuredText docstring, render it to GitHub Flavored Markdown.
-///
-/// This function assumes the input has had its whitespace normalized by `documentation_trim`,
-/// so leading whitespace is always a space, and newlines are always `\n`.
-///
-/// The general approach here is:
-///
-/// * Preserve the docstring verbatim by default, ensuring indent/linewraps are preserved
-/// * Escape problematic things where necessary (bare `__dunder__` => `\_\_dunder\_\_`)
-/// * Introduce code fences where appropriate
-///
-/// The first rule is significant in ensuring various docstring idioms render clearly.
-/// In particular ensuring things like this are faithfully rendered:
-///
-/// ```text
-/// param1 -- a good parameter
-/// param2 -- another good parameter
-///           with longer docs
-/// ```
-///
-/// If we didn't go out of our way to preserve the indentation and line-breaks, markdown would
-/// constantly render inputs like that into abominations like:
-///
-/// ```html
-/// <p>
-/// param1 -- a good parameter param2 -- another good parameter
-/// </p>
-///
-/// <code>
-/// with longer docs
-/// </code>
-/// ```
-fn render_markdown(docstring: &str) -> String {
-    // TODO: there is a convention that `singletick` is for items that can
-    // be looked up in-scope while ``multitick`` is for opaque inline code.
-    // While rendering this we should make note of all the `singletick` locations
-    // and (possibly in a higher up piece of logic) try to resolve the names for
-    // cross-linking. (Similar to `TypeDetails` in the type formatting code.)
-    let mut output = String::new();
-    let mut first_line = true;
-    let mut block_indent = 0;
-    let mut in_doctest = false;
-    let mut starting_literal = false;
-    let mut in_literal = false;
-    let mut in_any_code = false;
-    for untrimmed_line in docstring.lines() {
-        // We can assume leading whitespace has been normalized
-        let mut line = untrimmed_line.trim_start_matches(' ');
-        let line_indent = untrimmed_line.len() - line.len();
-
-        // First thing's first, add a newline to start the new line
-        if !first_line {
-            // If we're not in a codeblock, add trailing space to the line to authentically wrap it
-            // (Lines ending with two spaces tell markdown to preserve a linebreak)
-            if !in_any_code {
-                output.push_str("  ");
-            }
-            // Only push newlines if we're not scanning for a real line
-            if !starting_literal {
-                output.push('\n');
-            }
-        }
-
-        // If we're in a literal block and we find a non-empty dedented line, end the block
-        // TODO: we should remove all the trailing blank lines
-        // (Just pop all trailing `\n` from `output`?)
-        if in_literal && line_indent < block_indent && !line.is_empty() {
-            in_literal = false;
-            in_any_code = false;
-            block_indent = 0;
-            output.push_str("```\n");
-        }
-
-        // We previously entered a literal block and we just found our first non-blank line
-        // So now we're actually in the literal block
-        if starting_literal && !line.is_empty() {
-            starting_literal = false;
-            in_literal = true;
-            in_any_code = true;
-            block_indent = line_indent;
-            // TODO: I hope people don't have literal blocks about markdown code fence syntax
-            // TODO: should we not be this aggressive? Let it autodetect?
-            // TODO: respect `.. code-block::` directives:
-            // <https://www.sphinx-doc.org/en/master/usage/restructuredtext/directives.html#directive-code-block>
-            output.push_str("\n```python\n");
-        }
-
-        // If we're not in a codeblock and we see something that signals a doctest, start one
-        if !in_any_code && line.starts_with(">>>") {
-            block_indent = line_indent;
-            in_doctest = true;
-            in_any_code = true;
-            // TODO: is there something more specific? `pycon`?
-            output.push_str("```python\n");
-        }
-
-        // If we're not in a codeblock and we see something that signals a literal block, start one
-        if !in_any_code && let Some(without_lit) = line.strip_suffix("::") {
-            let trimmed_without_lit = without_lit.trim();
-            if let Some(character) = trimmed_without_lit.chars().next_back() {
-                if character.is_whitespace() {
-                    // Remove the marker completely
-                    line = trimmed_without_lit;
-                } else {
-                    // Only remove the first `:`
-                    line = line.strip_suffix(":").unwrap();
-                }
-            } else {
-                // Delete whole line
-                line = trimmed_without_lit;
-            }
-            starting_literal = true;
-        }
-
-        // Add this line's indentation.
-        // We could subtract the block_indent here but in practice it's uglier
-        // TODO: should we not do this if the `line.is_empty()`? When would it matter?
-        for _ in 0..line_indent {
-            // If we're not in a codeblock use non-breaking spaces to preserve the indent
-            if !in_any_code {
-                // TODO: would the raw unicode codepoint be handled *better* or *worse*
-                // by various IDEs? VS Code handles this approach well, at least.
-                output.push_str("&nbsp;");
-            } else {
-                output.push(' ');
-            }
-        }
-
-        if !in_any_code {
-            // This line is plain text, so we need to escape things that are inert in reST
-            // but active syntax in markdown... but not if it's inside `inline code`.
-            // Inline-code syntax is shared by reST and markdown which is really convenient
-            // except we need to find and parse it anyway to do this escaping properly! :(
-            // For now we assume `inline code` does not span a line (I'm not even sure if can).
-            //
-            // Things that need to be escaped: underscores
-            //
-            // e.g. we want __init__ => \_\_init\_\_ but `__init__` => `__init__`
-            let escape = |input: &str| input.replace('_', "\\_");
-
-            let mut in_inline_code = false;
-            let mut first_chunk = true;
-            let mut opening_tick_count = 0;
-            let mut current_tick_count = 0;
-            for chunk in line.split('`') {
-                // First chunk is definitionally not in inline-code and so always plaintext
-                if first_chunk {
-                    first_chunk = false;
-                    output.push_str(&escape(chunk));
-                    continue;
-                }
-                // Not in first chunk, emit the ` between the last chunk and this one
-                output.push('`');
-                current_tick_count += 1;
-
-                // If we're in an inline block and have enough close-ticks to terminate it, do so.
-                // TODO: we parse ``hello```there` as (hello)(there) which probably isn't correct
-                // (definitely not for markdown) but it's close enough for horse grenades in this
-                // MVP impl. Notably we're verbatime emitting all the `'s so as long as reST and
-                // markdown agree we're *fine*. The accuracy of this parsing only affects the
-                // accuracy of where we apply escaping (so we need to misparse and see escapables
-                // for any of this to matter).
-                if opening_tick_count > 0 && current_tick_count >= opening_tick_count {
-                    opening_tick_count = 0;
-                    current_tick_count = 0;
-                    in_inline_code = false;
-                }
-
-                // If this chunk is completely empty we're just in a run of ticks, continue
-                if chunk.is_empty() {
-                    continue;
-                }
-
-                // Ok the chunk is non-empty, our run of ticks is complete
-                if in_inline_code {
-                    // The previous check for >= open_tick_count didn't trip, so these can't close
-                    // and these ticks will be verbatim rendered in the content
-                    current_tick_count = 0;
-                } else if current_tick_count > 0 {
-                    // Ok we're now in inline code
-                    opening_tick_count = current_tick_count;
-                    current_tick_count = 0;
-                    in_inline_code = true;
-                }
-
-                // Finally include the content either escaped or not
-                if in_inline_code {
-                    output.push_str(chunk);
-                } else {
-                    output.push_str(&escape(chunk));
-                }
-            }
-            // NOTE: explicitly not "flushing" the ticks here.
-            // We respect however the user closed their inline code.
-        } else if line.is_empty() {
-            if in_doctest {
-                // This is the end of a doctest
-                block_indent = 0;
-                in_any_code = false;
-                in_literal = false;
-                output.push_str("```");
-            }
-        } else {
-            // Print the line verbatim, it's in code
-            output.push_str(line);
-        }
-
-        first_line = false;
-    }
-    // Flush codeblock
-    if in_any_code {
-        output.push_str("\n```");
-    }
-
-    output
-}
-
-/// Extract parameter documentation from Google-style docstrings.
-fn extract_google_style_params(docstring: &str) -> HashMap<String, String> {
-    let mut param_docs = HashMap::new();
-
-    let mut in_args_section = false;
-    let mut current_param: Option<String> = None;
-    let mut current_doc = String::new();
-
-    for line_obj in docstring.universal_newlines() {
-        let line = line_obj.as_str();
-        if GOOGLE_SECTION_REGEX.is_match(line) {
-            in_args_section = true;
-            continue;
-        }
-
-        if in_args_section {
-            // Check if we hit another section (starts with a word followed by colon at line start)
-            if !line.starts_with(' ') && !line.starts_with('\t') && line.contains(':') {
-                if let Some(colon_pos) = line.find(':') {
-                    let section_name = line[..colon_pos].trim();
-                    // If this looks like another section, stop processing args
-                    if !section_name.is_empty()
-                        && section_name
-                            .chars()
-                            .all(|c| c.is_alphabetic() || c.is_whitespace())
-                    {
-                        // Check if this is a known section name
-                        let known_sections = [
-                            "Returns", "Return", "Raises", "Yields", "Yield", "Examples",
-                            "Example", "Note", "Notes", "Warning", "Warnings",
-                        ];
-                        if known_sections.contains(&section_name) {
-                            if let Some(param_name) = current_param.take() {
-                                param_docs.insert(param_name, current_doc.trim().to_string());
-                                current_doc.clear();
-                            }
-                            in_args_section = false;
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            if let Some(captures) = GOOGLE_PARAM_REGEX.captures(line) {
-                // Save previous parameter if exists
-                if let Some(param_name) = current_param.take() {
-                    param_docs.insert(param_name, current_doc.trim().to_string());
-                    current_doc.clear();
-                }
-
-                // Start new parameter
-                if let (Some(param), Some(desc)) = (captures.get(1), captures.get(3)) {
-                    current_param = Some(param.as_str().to_string());
-                    current_doc = desc.as_str().to_string();
-                }
-            } else if line.starts_with(' ') || line.starts_with('\t') {
-                // This is a continuation of the current parameter documentation
-                if current_param.is_some() {
-                    if !current_doc.is_empty() {
-                        current_doc.push('\n');
-                    }
-                    current_doc.push_str(line.trim());
-                }
-            } else {
-                // This is a line that doesn't start with whitespace and isn't a parameter
-                // It might be a section or other content, so stop processing args
-                if let Some(param_name) = current_param.take() {
-                    param_docs.insert(param_name, current_doc.trim().to_string());
-                    current_doc.clear();
-                }
-                in_args_section = false;
-            }
-        }
-    }
-
-    // Don't forget the last parameter
-    if let Some(param_name) = current_param {
-        param_docs.insert(param_name, current_doc.trim().to_string());
-    }
-
-    param_docs
-}
-
 /// Calculate the indentation level of a line.
 ///
 /// Based on python's expandtabs (where tabs are considered 8 spaces).
@@ -460,8 +167,8 @@ fn get_indentation_level(line: &str) -> usize {
 }
 
 /// Extract parameter documentation from NumPy-style docstrings.
-fn extract_numpy_style_params(docstring: &str) -> HashMap<String, String> {
-    let mut param_docs = HashMap::new();
+fn extract_numpy_style_params(docstring: &str) -> IndexMap<String, String> {
+    let mut param_docs = IndexMap::new();
 
     let mut lines = docstring
         .universal_newlines()
@@ -626,86 +333,43 @@ fn extract_numpy_style_params(docstring: &str) -> HashMap<String, String> {
     param_docs
 }
 
-/// Extract parameter documentation from reST/Sphinx-style docstrings.
-fn extract_rest_style_params(docstring: &str) -> HashMap<String, String> {
-    let mut param_docs = HashMap::new();
-
-    let mut current_param: Option<String> = None;
-    let mut current_doc = String::new();
-
-    for line_obj in docstring.universal_newlines() {
-        let line = line_obj.as_str();
-        if let Some(captures) = REST_PARAM_REGEX.captures(line) {
-            // Save previous parameter if exists
-            if let Some(param_name) = current_param.take() {
-                param_docs.insert(param_name, current_doc.trim().to_string());
-                current_doc.clear();
-            }
-
-            // Extract parameter name and description
-            if let (Some(param_match), Some(desc_match)) = (captures.get(2), captures.get(3)) {
-                current_param = Some(param_match.as_str().to_string());
-                current_doc = desc_match.as_str().to_string();
-            }
-        } else if current_param.is_some() {
-            let trimmed = line.trim();
-
-            // Check if this is a new section - stop processing if we hit section headers
-            if trimmed == "Parameters" || trimmed == "Args" || trimmed == "Arguments" {
-                // Save current param and stop processing
-                if let Some(param_name) = current_param.take() {
-                    param_docs.insert(param_name, current_doc.trim().to_string());
-                    current_doc.clear();
-                }
-                break;
-            }
-
-            // Check if this is another directive line starting with ':'
-            if trimmed.starts_with(':') {
-                // This is a new directive, save current param
-                if let Some(param_name) = current_param.take() {
-                    param_docs.insert(param_name, current_doc.trim().to_string());
-                    current_doc.clear();
-                }
-                // Let the next iteration handle this directive
-                continue;
-            }
-
-            // Check if this is a continuation line (indented)
-            if line.starts_with("    ") && !trimmed.is_empty() {
-                // This is a continuation line
-                if !current_doc.is_empty() {
-                    current_doc.push('\n');
-                }
-                current_doc.push_str(trimmed);
-            } else if !trimmed.is_empty() && !line.starts_with(' ') && !line.starts_with('\t') {
-                // This is a non-indented line - likely end of the current parameter
-                if let Some(param_name) = current_param.take() {
-                    param_docs.insert(param_name, current_doc.trim().to_string());
-                    current_doc.clear();
-                }
-                break;
-            }
-        }
-    }
-
-    // Don't forget the last parameter
-    if let Some(param_name) = current_param {
-        param_docs.insert(param_name, current_doc.trim().to_string());
-    }
-
-    param_docs
-}
-
 #[cfg(test)]
 mod tests {
+    use insta::Settings;
     use insta::assert_snapshot;
 
     use super::*;
 
+    fn bind_docstring_snapshot_filters() -> impl Drop {
+        let mut settings = Settings::clone_current();
+        // Markdown hard breaks are encoded as trailing spaces (`"  \n"`), but many editors
+        // trim trailing whitespace in string literals. Replace them with `<HB>` in snapshots
+        // so tests are stable and the expected output stays readable.
+        settings.add_filter("  \n", "<HB>\n");
+        settings.bind_to_scope()
+    }
+
+    #[test]
+    fn expands_tabs_to_tab_stops_when_trimming_documentation() {
+        assert_snapshot!(
+            documentation_trim(
+                "\
+Summary.
+    baseline
+  \tindented",
+            ),
+            @"
+        Summary.
+        baseline
+            indented
+        "
+        );
+    }
+
     // A nice doctest that is surrounded by prose
     #[test]
     fn dunder_escape() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         Here _this_ and ___that__ should be escaped
         Here *this* and **that** should be untouched
@@ -730,65 +394,76 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
-        Here _this_ and ___that__ should be escaped
-        Here *this* and **that** should be untouched
-        Here `this` and ``that`` should be untouched
-
-        Here `_this_` and ``__that__`` should be untouched
-        Here `_this_` ``__that__`` should be untouched
-        `_this_too_should_be_untouched_`
-
-        Here `_this_```__that__`` should be untouched but this_is_escaped
-        Here ``_this_```__that__` should be untouched but this_is_escaped
-
-        Here `_this_ and _that_ should be escaped (but isn't)
-        Here _this_ and _that_` should be escaped
-        `Here _this_ and _that_ should be escaped (but isn't)
-        Here _this_ and _that_ should be escaped`
-
-        Here ```_is_``__a__`_balanced_``_mess_```
-        Here ```_is_`````__a__``_random_````_mess__````
-        ```_is_`````__a__``_random_````_mess__````
-        ");
-
         assert_snapshot!(docstring.render_markdown(), @r"
-        Here \_this\_ and \_\_\_that\_\_ should be escaped  
-        Here *this* and **that** should be untouched  
-        Here `this` and ``that`` should be untouched  
-          
-        Here `_this_` and ``__that__`` should be untouched  
-        Here `_this_` ``__that__`` should be untouched  
-        `_this_too_should_be_untouched_`  
-          
-        Here `_this_```__that__`` should be untouched but this\_is\_escaped  
-        Here ``_this_```__that__` should be untouched but this\_is\_escaped  
-          
-        Here `_this_ and _that_ should be escaped (but isn't)  
-        Here \_this\_ and \_that\_` should be escaped  
-        `Here _this_ and _that_ should be escaped (but isn't)  
-        Here \_this\_ and \_that\_ should be escaped`  
-          
-        Here ```_is_``__a__`_balanced_``_mess_```  
-        Here ```_is_`````__a__``\_random\_````_mess__````  
+        Here \_this\_ and \_\_\_that\_\_ should be escaped<HB>
+        Here *this* and **that** should be untouched<HB>
+        Here `this` and ``that`` should be untouched<HB>
+        <HB>
+        Here `_this_` and ``__that__`` should be untouched<HB>
+        Here `_this_` ``__that__`` should be untouched<HB>
+        `_this_too_should_be_untouched_`<HB>
+        <HB>
+        Here `_this_```__that__`` should be untouched but this\_is\_escaped<HB>
+        Here ``_this_```__that__` should be untouched but this\_is\_escaped<HB>
+        <HB>
+        Here `_this_ and _that_ should be escaped (but isn't)<HB>
+        Here \_this\_ and \_that\_` should be escaped<HB>
+        `Here _this_ and _that_ should be escaped (but isn't)<HB>
+        Here \_this\_ and \_that\_ should be escaped`<HB>
+        <HB>
+        Here ```_is_``__a__`_balanced_``_mess_```<HB>
+        Here ```_is_`````__a__``\_random\_````_mess__````<HB>
         ```_is_`````__a__``\_random\_````_mess__````
         ");
+    }
+
+    #[test]
+    fn html_escape() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        Parse a URL into 6 components:
+        <scheme>://<netloc>/<path>;<params>?<query>#<fragment>
+
+        Markdown code fences keep literal HTML:
+
+        ```text
+        <tag attr="value">content</tag>
+        ```
+
+        So does `inline <code>`.
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Parse a URL into 6 components:<HB>
+        &lt;scheme&gt;://&lt;netloc&gt;/&lt;path&gt;;&lt;params&gt;?&lt;query&gt;#&lt;fragment&gt;<HB>
+        <HB>
+        Markdown code fences keep literal HTML:<HB>
+        <HB>
+        ```text
+        <tag attr="value">content</tag>
+        ```<HB>
+        <HB>
+        So does `inline <code>`.
+        "#);
     }
 
     // A literal block where the `::` is flush with the paragraph
     // and should become `:`
     #[test]
     fn literal_colon() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         Check out this great example code::
 
             x_y = "hello"
-            
+
             if len(x_y) > 4:
                 print(x_y)
             else:
                 print("too short :(")
-            
+
             print("done")
 
         You love to see it.
@@ -796,24 +471,9 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r#"
-        Check out this great example code::
-
-            x_y = "hello"
-
-            if len(x_y) > 4:
-                print(x_y)
-            else:
-                print("too short :(")
-
-            print("done")
-
-        You love to see it.
-        "#);
-
         assert_snapshot!(docstring.render_markdown(), @r#"
-        Check out this great example code:    
-        ```python
+        Check out this great example code:  <HB>
+        ```````````python
             x_y = "hello"
 
             if len(x_y) > 4:
@@ -823,7 +483,7 @@ mod tests {
 
             print("done")
 
-        ```
+        ```````````
         You love to see it.
         "#);
     }
@@ -832,16 +492,17 @@ mod tests {
     // and should be erased
     #[test]
     fn literal_space() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         Check out this great example code ::
 
             x_y = "hello"
-            
+
             if len(x_y) > 4:
                 print(x_y)
             else:
                 print("too short :(")
-            
+
             print("done")
 
         You love to see it.
@@ -849,24 +510,9 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r#"
-        Check out this great example code ::
-
-            x_y = "hello"
-
-            if len(x_y) > 4:
-                print(x_y)
-            else:
-                print("too short :(")
-
-            print("done")
-
-        You love to see it.
-        "#);
-
         assert_snapshot!(docstring.render_markdown(), @r#"
-        Check out this great example code :    
-        ```python
+        Check out this great example code  <HB>
+        ```````````python
             x_y = "hello"
 
             if len(x_y) > 4:
@@ -876,7 +522,7 @@ mod tests {
 
             print("done")
 
-        ```
+        ```````````
         You love to see it.
         "#);
     }
@@ -885,17 +531,18 @@ mod tests {
     // and the whole line should be deleted
     #[test]
     fn literal_own_line() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         Check out this great example code
             ::
 
             x_y = "hello"
-            
+
             if len(x_y) > 4:
                 print(x_y)
             else:
                 print("too short :(")
-            
+
             print("done")
 
         You love to see it.
@@ -903,26 +550,10 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r#"
-        Check out this great example code
-            ::
-
-            x_y = "hello"
-
-            if len(x_y) > 4:
-                print(x_y)
-            else:
-                print("too short :(")
-
-            print("done")
-
-        You love to see it.
-        "#);
-
         assert_snapshot!(docstring.render_markdown(), @r#"
-        Check out this great example code  
-        &nbsp;&nbsp;&nbsp;&nbsp;    
-        ```python
+        Check out this great example code<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;  <HB>
+        ```````````python
             x_y = "hello"
 
             if len(x_y) > 4:
@@ -932,7 +563,7 @@ mod tests {
 
             print("done")
 
-        ```
+        ```````````
         You love to see it.
         "#);
     }
@@ -941,37 +572,25 @@ mod tests {
     // and I have no idea what Should happen but let's record what Does
     #[test]
     fn literal_squeezed() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         Check out this great example code::
             x_y = "hello"
-            
+
             if len(x_y) > 4:
                 print(x_y)
             else:
                 print("too short :(")
-            
+
             print("done")
         You love to see it.
         "#;
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r#"
-        Check out this great example code::
-            x_y = "hello"
-
-            if len(x_y) > 4:
-                print(x_y)
-            else:
-                print("too short :(")
-
-            print("done")
-        You love to see it.
-        "#);
-
         assert_snapshot!(docstring.render_markdown(), @r#"
-        Check out this great example code:  
-        ```python
+        Check out this great example code:<HB>
+        ```````````python
             x_y = "hello"
 
             if len(x_y) > 4:
@@ -980,7 +599,7 @@ mod tests {
                 print("too short :(")
 
             print("done")
-        ```
+        ```````````
         You love to see it.
         "#);
     }
@@ -989,23 +608,24 @@ mod tests {
     // and we should tidy up
     #[test]
     fn literal_flush() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         Check out this great example code::
 
             x_y = "hello"
-            
+
             if len(x_y) > 4:
                 print(x_y)
             else:
                 print("too short :(")
-            
+
             print("done")"#;
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r#"
-        Check out this great example code::
-
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Check out this great example code:  <HB>
+        ```````````python
             x_y = "hello"
 
             if len(x_y) > 4:
@@ -1014,26 +634,485 @@ mod tests {
                 print("too short :(")
 
             print("done")
+        ```````````
         "#);
+    }
+
+    // `warning` and several other directives are special languages that should actually
+    // still be shown as text and not ```code```.
+    #[test]
+    fn warning_block() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        The thing you need to understand is that computers are hard.
+
+        .. warning::
+            Now listen here buckaroo you might have seen me say computers are hard,
+            and though "yeah I know computers are hard but NO you DON'T KNOW.
+
+            Listen:
+
+            - Computers
+            - Are
+            - Hard
+
+            Ok!?!?!?
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
 
         assert_snapshot!(docstring.render_markdown(), @r#"
-        Check out this great example code:    
+        The thing you need to understand is that computers are hard.<HB>
+        <HB>
+        **Warning:**<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;Now listen here buckaroo you might have seen me say computers are hard,<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;and though "yeah I know computers are hard but NO you DON'T KNOW.<HB>
+        <HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;Listen:<HB>
+        <HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;- Computers<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;- Are<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;- Hard<HB>
+        <HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;Ok!?!?!?
+        "#);
+    }
+
+    // `warning` and several other directives are special languages that should actually
+    // still be shown as text and not ```code```.
+    #[test]
+    fn version_blocks() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        Some much-updated docs
+
+        .. version-added:: 3.0
+           Function added
+
+        .. version-changed:: 4.0
+           The `spam` argument was added
+        .. version-changed:: 4.1
+           The `spam` argument is considered evil now.
+
+           You really shouldnt use it
+
+        And that's the docs
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        Some much-updated docs<HB>
+        <HB>
+        **Added in version 3.0:**<HB>
+        &nbsp;&nbsp;&nbsp;Function added<HB>
+        <HB>
+        **Changed in version 4.0:**<HB>
+        &nbsp;&nbsp;&nbsp;The `spam` argument was added<HB>
+        **Changed in version 4.1:**<HB>
+        &nbsp;&nbsp;&nbsp;The `spam` argument is considered evil now.<HB>
+        <HB>
+        &nbsp;&nbsp;&nbsp;You really shouldnt use it<HB>
+        <HB>
+        And that's the docs
+        ");
+    }
+
+    // I don't know if this is valid syntax but we preserve stuff before non-code blocks like
+    // `..deprecated ::`
+    #[test]
+    fn deprecated_prefix_gunk() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        wow this is some changes .. deprecated:: 1.2.3
+            x = 2
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        **wow this is some changes Deprecated since version 1.2.3:**<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;x = 2
+        ");
+    }
+
+    // We should not parse the contents of a markdown codefence
+    #[test]
+    fn explicit_markdown_block_with_ps1_contents() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
         ```python
-            x_y = "hello"
-
-            if len(x_y) > 4:
-                print(x_y)
-            else:
-                print("too short :(")
-
-            print("done")
+        >>> thing.do_thing()
+        wow it did the thing
+        >>> thing.do_other_thing()
+        it sure did the thing
         ```
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func:<HB>
+        <HB>
+        ```python
+        >>> thing.do_thing()
+        wow it did the thing
+        >>> thing.do_other_thing()
+        it sure did the thing
+        ```
+        ");
+    }
+
+    // We should not parse the contents of a markdown codefence
+    #[test]
+    fn explicit_markdown_block_with_underscore_contents_tick() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
+        `````python
+        x_y = thing_do();
+        ``` # this should't close the fence!
+        a_b = other_thing();
+        `````
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func:<HB>
+        <HB>
+        `````python
+        x_y = thing_do();
+        ``` # this should't close the fence!
+        a_b = other_thing();
+        `````
+        ");
+    }
+
+    // `~~~` also starts a markdown codefence
+    #[test]
+    fn explicit_markdown_block_with_underscore_contents_tilde() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
+        ~~~~~python
+        x_y = thing_do();
+        ~~~ # this should't close the fence!
+        a_b = other_thing();
+        ~~~~~
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func:<HB>
+        <HB>
+        ~~~~~python
+        x_y = thing_do();
+        ~~~ # this should't close the fence!
+        a_b = other_thing();
+        ~~~~~
+        ");
+    }
+
+    // If an explicit markdown codefence is indented, eat the indent so it renders
+    // "the way the user expects" (as written this is basically invalid markdown,
+    // but it's nice if we handle it anyway because it makes visual sense).
+    #[test]
+    fn explicit_markdown_block_with_indent_tick() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func...
+
+        Returns:
+            Some details
+            `````python
+            x_y = thing_do();
+            ``` # this should't close the fence!
+            a_b = other_thing();
+            `````
+            And so on.
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func...<HB>
+        <HB>
+        Returns:<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;Some details<HB>
+        `````python
+            x_y = thing_do();
+            ``` # this should't close the fence!
+            a_b = other_thing();
+        `````<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;And so on.
+        ");
+    }
+
+    // If an explicit markdown codefence is indented, eat the indent so it renders
+    // "the way the user expects" (as written this is basically invalid markdown,
+    // but it's nice if we handle it anyway because it makes visual sense).
+    #[test]
+    fn explicit_markdown_block_with_indent_tilde() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func...
+
+        Returns:
+            Some details
+            ~~~~~~python
+            x_y = thing_do();
+            ~~~ # this should't close the fence!
+            a_b = other_thing();
+            ~~~~~~
+            And so on.
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func...<HB>
+        <HB>
+        Returns:<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;Some details<HB>
+        ~~~~~~python
+            x_y = thing_do();
+            ~~~ # this should't close the fence!
+            a_b = other_thing();
+        ~~~~~~<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;And so on.
+        ");
+    }
+
+    // What do we do when we hit the end of the docstring with an unclosed markdown block?
+    #[test]
+    fn explicit_markdown_block_with_unclosed_fence_tick() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
+        ````python
+        x_y = thing_do();
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func:<HB>
+        <HB>
+        ````python
+        x_y = thing_do();
+        ````
+        ");
+    }
+
+    // What do we do when we hit the end of the docstring with an unclosed markdown block?
+    #[test]
+    fn explicit_markdown_block_with_unclosed_fence_tilde() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
+        ~~~~~python
+        x_y = thing_do();
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func:<HB>
+        <HB>
+        ~~~~~python
+        x_y = thing_do();
+        ~~~~~
+        ");
+    }
+
+    // Demonstration of where we're unreasonably lax about markdown block parsing.
+    // It's fine to break this test, it's not particularly intentional behaviour.
+    #[test]
+    fn explicit_markdown_block_messy_corners_tick() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
+                ``````we still think this is a codefence```
+            x_y = thing_do();
+        ```````````` and are sloppy as heck with indentation and closing shrugggg
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @r"
+        My cool func:<HB>
+        <HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;``````we still think this is a codefence```<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;x\_y = thing\_do();<HB>
+        ```````````` and are sloppy as heck with indentation and closing shrugggg
+        ````````````
+        ");
+    }
+
+    // Demonstration of where we're unreasonably lax about markdown block parsing.
+    // It's fine to break this test, it's not particularly intentional behaviour.
+    #[test]
+    fn explicit_markdown_block_messy_corners_tilde() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        My cool func:
+
+                ~~~~~~we still think this is a codefence~~~
+            x_y = thing_do();
+        ~~~~~~~~~~~~~ and are sloppy as heck with indentation and closing shrugggg
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        My cool func:<HB>
+        <HB>
+        ~~~~~~we still think this is a codefence~~~
+            x_y = thing_do();
+        ~~~~~~~~~~~~~ and are sloppy as heck with indentation and closing shrugggg
+        ");
+    }
+
+    // `.. code::` is a literal block and the `.. code::` should be deleted
+    #[test]
+    fn code_block() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        Here's some code!
+
+        .. code::
+            def main() {
+                print("hello world!")
+            }
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Here's some code!<HB>
+        <HB>
+        <HB>
+        ```````````python
+            def main() {
+                print("hello world!")
+            }
+        ```````````
+        "#);
+    }
+
+    // `.. code:: rust` is a literal block with rust syntax highlighting
+    #[test]
+    fn code_block_lang() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        Here's some Rust code!
+
+        .. code:: rust
+            fn main() {
+                println!("hello world!");
+            }
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Here's some Rust code!<HB>
+        <HB>
+        <HB>
+        ```````````rust
+            fn main() {
+                println!("hello world!");
+            }
+        ```````````
+        "#);
+    }
+
+    // I don't know if this is valid syntax but we preserve stuff before `..code ::`
+    #[test]
+    fn code_block_prefix_gunk() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        wow this is some code.. code:: abc
+            x = 2
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        wow this is some code<HB>
+        ```````````abc
+            x = 2
+        ```````````
+        ");
+    }
+
+    // `.. asdgfhjkl-unknown::` is treated the same as `.. code::`
+    #[test]
+    fn unknown_block() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        Here's some code!
+
+        .. asdgfhjkl-unknown::
+            fn main() {
+                println!("hello world!");
+            }
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Here's some code!<HB>
+        <HB>
+        <HB>
+        ```````````python
+            fn main() {
+                println!("hello world!");
+            }
+        ```````````
+        "#);
+    }
+
+    // `.. asdgfhjkl-unknown:: rust` is treated the same as `.. code:: rust`
+    #[test]
+    fn unknown_block_lang() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = r#"
+        Here's some Rust code!
+
+        .. asdgfhjkl-unknown::   rust
+            fn main() {
+                print("hello world!")
+            }
+        "#;
+
+        let docstring = Docstring::new(docstring.to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Here's some Rust code!<HB>
+        <HB>
+        <HB>
+        ```````````rust
+            fn main() {
+                print("hello world!")
+            }
+        ```````````
         "#);
     }
 
     // A nice doctest that is surrounded by prose
     #[test]
     fn doctest_simple() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description
 
@@ -1047,26 +1126,15 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
-        This is a function description
-
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description<HB>
+        <HB>
+        ```````````python
         >>> thing.do_thing()
         wow it did the thing
         >>> thing.do_other_thing()
         it sure did the thing
-
-        As you can see it did the thing!
-        ");
-
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description  
-          
-        ```python
-        >>> thing.do_thing()
-        wow it did the thing
-        >>> thing.do_other_thing()
-        it sure did the thing
-        ```  
+        ```````````<HB>
         As you can see it did the thing!
         ");
     }
@@ -1074,6 +1142,7 @@ mod tests {
     // A nice doctest that is surrounded by prose with an indent
     #[test]
     fn doctest_simple_indent() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description
 
@@ -1087,26 +1156,15 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
-        This is a function description
-
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description<HB>
+        <HB>
+        ```````````python
             >>> thing.do_thing()
             wow it did the thing
             >>> thing.do_other_thing()
             it sure did the thing
-
-        As you can see it did the thing!
-        ");
-
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description  
-          
-        ```python
-            >>> thing.do_thing()
-            wow it did the thing
-            >>> thing.do_other_thing()
-            it sure did the thing
-        ```  
+        ```````````<HB>
         As you can see it did the thing!
         ");
     }
@@ -1114,6 +1172,7 @@ mod tests {
     // A doctest that has nothing around it
     #[test]
     fn doctest_flush() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#">>> thing.do_thing()
         wow it did the thing
         >>> thing.do_other_thing()
@@ -1121,26 +1180,20 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_markdown(), @"
+        ```````````python
         >>> thing.do_thing()
         wow it did the thing
         >>> thing.do_other_thing()
         it sure did the thing
-        ");
-
-        assert_snapshot!(docstring.render_markdown(), @r"
-        ```python
-        >>> thing.do_thing()
-        wow it did the thing
-        >>> thing.do_other_thing()
-        it sure did the thing
-        ```
+        ```````````
         ");
     }
 
     // A doctest embedded in a literal block (it's just a literal block)
     #[test]
     fn literal_doctest() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description::
 
@@ -1154,32 +1207,22 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
-        This is a function description::
-
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description:  <HB>
+        ```````````python
             >>> thing.do_thing()
             wow it did the thing
             >>> thing.do_other_thing()
             it sure did the thing
 
-        As you can see it did the thing!
-        ");
-
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description:    
-        ```python
-            >>> thing.do_thing()
-            wow it did the thing
-            >>> thing.do_other_thing()
-            it sure did the thing
-
-        ```
+        ```````````
         As you can see it did the thing!
         ");
     }
 
     #[test]
     fn doctest_indent_flush() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         And so you can see that
             >>> thing.do_thing()
@@ -1189,27 +1232,20 @@ mod tests {
 
         let docstring = Docstring::new(docstring.to_owned());
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
-        And so you can see that
+        assert_snapshot!(docstring.render_markdown(), @"
+        And so you can see that<HB>
+        ```````````python
             >>> thing.do_thing()
             wow it did the thing
             >>> thing.do_other_thing()
             it sure did the thing
-        ");
-
-        assert_snapshot!(docstring.render_markdown(), @r"
-        And so you can see that  
-        ```python
-            >>> thing.do_thing()
-            wow it did the thing
-            >>> thing.do_other_thing()
-            it sure did the thing
-        ```
+        ```````````
         ");
     }
 
     #[test]
     fn test_google_style_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description.
 
@@ -1234,7 +1270,7 @@ mod tests {
         );
         assert_eq!(&param_docs["param3"], "A parameter without type annotation");
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         Args:
@@ -1247,22 +1283,23 @@ mod tests {
             str: The return value description
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        Args:  
-        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): The first parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): The second parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.  
-        &nbsp;&nbsp;&nbsp;&nbsp;param3: A parameter without type annotation  
-          
-        Returns:  
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.<HB>
+        <HB>
+        Args:<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): The first parameter description<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): The second parameter description<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param3: A parameter without type annotation<HB>
+        <HB>
+        Returns:<HB>
         &nbsp;&nbsp;&nbsp;&nbsp;str: The return value description
         ");
     }
 
     #[test]
     fn test_numpy_style_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description.
 
@@ -1299,7 +1336,7 @@ mod tests {
             "A parameter without type annotation"
         );
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         Parameters
@@ -1318,28 +1355,29 @@ mod tests {
             The return value description
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        Parameters  
-        ----------  
-        param1 : str  
-        &nbsp;&nbsp;&nbsp;&nbsp;The first parameter description  
-        param2 : int  
-        &nbsp;&nbsp;&nbsp;&nbsp;The second parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.  
-        param3  
-        &nbsp;&nbsp;&nbsp;&nbsp;A parameter without type annotation  
-          
-        Returns  
-        -------  
-        str  
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.<HB>
+        <HB>
+        Parameters<HB>
+        ----------<HB>
+        param1 : str<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;The first parameter description<HB>
+        param2 : int<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;The second parameter description<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.<HB>
+        param3<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;A parameter without type annotation<HB>
+        <HB>
+        Returns<HB>
+        -------<HB>
+        str<HB>
         &nbsp;&nbsp;&nbsp;&nbsp;The return value description
         ");
     }
 
     #[test]
     fn test_pep257_style_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"Insert an entry into the list of warnings filters (at the front).
 
         'param1' -- The first parameter description
@@ -1376,26 +1414,27 @@ mod tests {
         ");
 
         assert_snapshot!(docstring.render_markdown(), @r"
-        Insert an entry into the list of warnings filters (at the front).  
-          
-        'param1' -- The first parameter description  
-        'param2' -- The second parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.  
-        'param3' -- A parameter without type annotation  
-          
-        ```python
+        Insert an entry into the list of warnings filters (at the front).<HB>
+        <HB>
+        'param1' -- The first parameter description<HB>
+        'param2' -- The second parameter description<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.<HB>
+        'param3' -- A parameter without type annotation<HB>
+        <HB>
+        ```````````python
         >>> print repr(foo.__doc__)
         '\n    This is the second line of the docstring.\n    '
         >>> foo.__doc__.splitlines()
         ['', '    This is the second line of the docstring.', '    ']
         >>> trim(foo.__doc__)
         'This is the second line of the docstring.'
-        ```
+        ```````````
         ");
     }
 
     #[test]
     fn test_no_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a simple function description without parameter documentation.
         "#;
@@ -1411,6 +1450,7 @@ mod tests {
 
     #[test]
     fn test_mixed_style_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description.
 
@@ -1441,7 +1481,7 @@ mod tests {
             "NumPy-style parameter"
         );
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         Args:
@@ -1454,22 +1494,41 @@ mod tests {
             NumPy-style parameter
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        Args:  
-        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): Google-style parameter  
-        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): Another Google-style parameter  
-          
-        Parameters  
-        ----------  
-        param3 : bool  
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.<HB>
+        <HB>
+        Args:<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): Google-style parameter<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): Another Google-style parameter<HB>
+        <HB>
+        Parameters<HB>
+        ----------<HB>
+        param3 : bool<HB>
         &nbsp;&nbsp;&nbsp;&nbsp;NumPy-style parameter
+        ");
+    }
+
+    /// PEP 257 trimming removes indentation from a docstring's first physical
+    /// line. If a field starts there, continuation indentation is ambiguous, so
+    /// leave the normalized text unchanged rather than guessing. Starting the
+    /// field after the opening newline or a summary makes the intent unambiguous.
+    #[test]
+    fn rest_markdown_does_not_special_case_first_line_field_continuation() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = Docstring::new(":param value: First line.\n    Second line.".to_owned());
+
+        assert_snapshot!(docstring.render_markdown(), @"
+        ## Parameters
+        **value**<HB>
+        First line.
+
+        Second line.
         ");
     }
 
     #[test]
     fn test_rest_style_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description.
 
@@ -1498,7 +1557,7 @@ mod tests {
             "A parameter without type annotation"
         );
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         :param str param1: The first parameter description
@@ -1509,31 +1568,43 @@ mod tests {
         :rtype: str
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        :param str param1: The first parameter description  
-        :param int param2: The second parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.  
-        :param param3: A parameter without type annotation  
-        :returns: The return value description  
-        :rtype: str
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.
+
+        ## Parameters
+        **param1**: `str`<HB>
+        The first parameter description
+
+        **param2**: `int`<HB>
+        The second parameter description<HB>
+        This is a continuation of param2 description.
+
+        **param3**<HB>
+        A parameter without type annotation
+
+        ## Returns
+        `str`<HB>
+        The return value description
         ");
     }
 
     #[test]
     fn test_mixed_style_with_rest_parameter_documentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description.
 
         Args:
             param1 (str): Google-style parameter
+            param2 (int): Google-style duplicate parameter
 
         :param int param2: reST-style parameter
         :param param3: Another reST-style parameter
 
         Parameters
         ----------
+        param3 : str
+            NumPy-style duplicate parameter
         param4 : bool
             NumPy-style parameter
         "#;
@@ -1559,39 +1630,50 @@ mod tests {
             "NumPy-style parameter"
         );
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         Args:
             param1 (str): Google-style parameter
+            param2 (int): Google-style duplicate parameter
 
         :param int param2: reST-style parameter
         :param param3: Another reST-style parameter
 
         Parameters
         ----------
+        param3 : str
+            NumPy-style duplicate parameter
         param4 : bool
             NumPy-style parameter
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        Args:  
-        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): Google-style parameter  
-          
-        :param int param2: reST-style parameter  
-        :param param3: Another reST-style parameter  
-          
-        Parameters  
-        ----------  
-        param4 : bool  
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.<HB>
+        <HB>
+        Args:<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): Google-style parameter<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): Google-style duplicate parameter
+
+        ## Parameters
+        **param2**: `int`<HB>
+        reST-style parameter
+
+        **param3**<HB>
+        Another reST-style parameter
+
+        Parameters<HB>
+        ----------<HB>
+        param3 : str<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;NumPy-style duplicate parameter<HB>
+        param4 : bool<HB>
         &nbsp;&nbsp;&nbsp;&nbsp;NumPy-style parameter
         ");
     }
 
     #[test]
     fn test_numpy_style_with_different_indentation() {
+        let _snap = bind_docstring_snapshot_filters();
         let docstring = r#"
         This is a function description.
 
@@ -1628,7 +1710,7 @@ mod tests {
             "A parameter without type annotation"
         );
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         Parameters
@@ -1647,28 +1729,29 @@ mod tests {
             The return value description
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        Parameters  
-        ----------  
-        param1 : str  
-        &nbsp;&nbsp;&nbsp;&nbsp;The first parameter description  
-        param2 : int  
-        &nbsp;&nbsp;&nbsp;&nbsp;The second parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.  
-        param3  
-        &nbsp;&nbsp;&nbsp;&nbsp;A parameter without type annotation  
-          
-        Returns  
-        -------  
-        str  
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.<HB>
+        <HB>
+        Parameters<HB>
+        ----------<HB>
+        param1 : str<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;The first parameter description<HB>
+        param2 : int<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;The second parameter description<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.<HB>
+        param3<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;A parameter without type annotation<HB>
+        <HB>
+        Returns<HB>
+        -------<HB>
+        str<HB>
         &nbsp;&nbsp;&nbsp;&nbsp;The return value description
         ");
     }
 
     #[test]
     fn test_numpy_style_with_tabs_and_mixed_indentation() {
+        let _snap = bind_docstring_snapshot_filters();
         // Using raw strings to avoid tab/space conversion issues in the test
         let docstring = "
         This is a function description.
@@ -1701,7 +1784,7 @@ mod tests {
             "A parameter without type annotation"
         );
 
-        assert_snapshot!(docstring.render_plaintext(), @r"
+        assert_snapshot!(docstring.render_plaintext(), @"
         This is a function description.
 
         Parameters
@@ -1715,23 +1798,24 @@ mod tests {
                 A parameter without type annotation
         ");
 
-        assert_snapshot!(docstring.render_markdown(), @r"
-        This is a function description.  
-          
-        Parameters  
-        ----------  
-        param1 : str  
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The first parameter description  
-        param2 : int  
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The second parameter description  
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.  
-        param3  
+        assert_snapshot!(docstring.render_markdown(), @"
+        This is a function description.<HB>
+        <HB>
+        Parameters<HB>
+        ----------<HB>
+        param1 : str<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The first parameter description<HB>
+        param2 : int<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The second parameter description<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is a continuation of param2 description.<HB>
+        param3<HB>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A parameter without type annotation
         ");
     }
 
     #[test]
     fn test_universal_newlines() {
+        let _snap = bind_docstring_snapshot_filters();
         // Test with Windows-style line endings (\r\n)
         let docstring_windows = "This is a function description.\r\n\r\nArgs:\r\n    param1 (str): The first parameter\r\n    param2 (int): The second parameter\r\n";
 
@@ -1749,70 +1833,83 @@ mod tests {
         let param_docs_mac = docstring_mac.parameter_documentation();
         let param_docs_unix = docstring_unix.parameter_documentation();
 
-        // All should produce the same results
+        assert_eq!(param_docs_mac, param_docs_windows);
+        assert_eq!(param_docs_unix, param_docs_windows);
         assert_eq!(param_docs_windows.len(), 2);
-        assert_eq!(param_docs_mac.len(), 2);
-        assert_eq!(param_docs_unix.len(), 2);
-
         assert_eq!(
             param_docs_windows.get("param1"),
             Some(&"The first parameter".to_string())
         );
-        assert_eq!(
-            param_docs_mac.get("param1"),
-            Some(&"The first parameter".to_string())
+
+        let plaintext = docstring_windows.render_plaintext();
+        assert_snapshot!(plaintext.as_str(), @"
+        This is a function description.
+
+        Args:
+            param1 (str): The first parameter
+            param2 (int): The second parameter
+        ");
+        assert_eq!(docstring_mac.render_plaintext(), plaintext);
+        assert_eq!(docstring_unix.render_plaintext(), plaintext);
+
+        let markdown = docstring_windows.render_markdown();
+        assert_snapshot!(markdown.as_str(), @"
+        This is a function description.<HB>
+        <HB>
+        Args:<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): The first parameter<HB>
+        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): The second parameter
+        ");
+        assert_eq!(docstring_mac.render_markdown(), markdown);
+        assert_eq!(docstring_unix.render_markdown(), markdown);
+    }
+
+    // Regression test: a doctest followed by a literal block with blank lines inside.
+    // Previously, in_doctest wasn't reset when ending a doctest, so a blank line inside
+    // a subsequent literal block would incorrectly end the literal block early.
+    // See: https://github.com/astral-sh/ty/issues/2497
+    #[test]
+    fn doctest_then_literal_block_with_blank_lines() {
+        let _snap = bind_docstring_snapshot_filters();
+        let docstring = Docstring::new(
+            "\
+Example:
+
+>>> print(\"hello\")
+hello
+
+Code example::
+
+    def foo():
+        pass
+
+    def bar():
+        pass
+
+Done.
+"
+            .to_owned(),
         );
-        assert_eq!(
-            param_docs_unix.get("param1"),
-            Some(&"The first parameter".to_string())
-        );
 
-        assert_snapshot!(docstring_windows.render_plaintext(), @r"
-        This is a function description.
+        // The blank line between foo() and bar() should be preserved inside the code block,
+        // NOT cause the code block to end early with bar() rendered as regular text.
+        assert_snapshot!(docstring.render_markdown(), @r#"
+        Example:<HB>
+        <HB>
+        ```````````python
+        >>> print("hello")
+        hello
+        ```````````<HB>
+        Code example:  <HB>
+        ```````````python
+            def foo():
+                pass
 
-        Args:
-            param1 (str): The first parameter
-            param2 (int): The second parameter
-        ");
+            def bar():
+                pass
 
-        assert_snapshot!(docstring_windows.render_markdown(), @r"
-        This is a function description.  
-          
-        Args:  
-        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): The first parameter  
-        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): The second parameter
-        ");
-
-        assert_snapshot!(docstring_mac.render_plaintext(), @r"
-        This is a function description.
-
-        Args:
-            param1 (str): The first parameter
-            param2 (int): The second parameter
-        ");
-
-        assert_snapshot!(docstring_mac.render_markdown(), @r"
-        This is a function description.  
-          
-        Args:  
-        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): The first parameter  
-        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): The second parameter
-        ");
-
-        assert_snapshot!(docstring_unix.render_plaintext(), @r"
-        This is a function description.
-
-        Args:
-            param1 (str): The first parameter
-            param2 (int): The second parameter
-        ");
-
-        assert_snapshot!(docstring_unix.render_markdown(), @r"
-        This is a function description.  
-          
-        Args:  
-        &nbsp;&nbsp;&nbsp;&nbsp;param1 (str): The first parameter  
-        &nbsp;&nbsp;&nbsp;&nbsp;param2 (int): The second parameter
-        ");
+        ```````````
+        Done.
+        "#);
     }
 }
