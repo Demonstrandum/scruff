@@ -1898,6 +1898,8 @@ fn conflicting_required_import_pyi025(
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use anyhow::Result;
 
     use ruff_linter::UnresolvedRuleSelector;
@@ -1905,7 +1907,9 @@ mod tests {
     use ruff_linter::rule_selector::PreviewOptions;
     use ruff_linter::settings::types::PreviewMode;
 
-    use crate::configuration::{LintConfiguration, RuleSelection};
+    use crate::configuration::{
+        Configuration, FormatConfiguration, LintConfiguration, Mode, RuleSelection,
+    };
     use crate::options::PydocstyleOptions;
 
     const PREVIEW_RULES: &[Rule] = &[
@@ -1936,6 +1940,37 @@ mod tests {
         .as_rule_table(preview.map(|preview| preview.mode).unwrap_or_default())?
         .iter_enabled()
         .collect())
+    }
+
+    #[test]
+    fn tali_mode_enables_symbol_quotes() -> Result<()> {
+        let settings = Configuration {
+            mode: Some(Mode::Tali),
+            ..Configuration::default()
+        }
+        .into_settings(Path::new("."))?;
+
+        assert_eq!(
+            settings.formatter.quote_style,
+            ruff_python_formatter::QuoteStyle::Symbol
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn symbol_quote_regex_reaches_formatter_settings() -> Result<()> {
+        let settings = Configuration {
+            format: FormatConfiguration {
+                quote_style: Some(ruff_python_formatter::QuoteStyle::Symbol),
+                quote_symbol_regex: Some("^identifier$".to_string()),
+                ..FormatConfiguration::default()
+            },
+            ..Configuration::default()
+        }
+        .into_settings(Path::new("."))?;
+
+        assert!(settings.formatter.quote_symbol_regex.is_some());
+        Ok(())
     }
 
     #[test]
