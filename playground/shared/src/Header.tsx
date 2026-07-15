@@ -90,7 +90,13 @@ function Divider() {
   );
 }
 
-function Logo({ name, className }: { name: "scruff" | "ty"; className: string }) {
+function Logo({
+  name,
+  className,
+}: {
+  name: "scruff" | "ty";
+  className: string;
+}) {
   switch (name) {
     case "scruff":
       return (
