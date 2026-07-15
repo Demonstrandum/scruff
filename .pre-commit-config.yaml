@@ -58,7 +58,7 @@ repos:
         entry: cargo run --quiet -p scruff -- format
         language: system
         types_or: [python, pyi]
-        exclude: '^(examples/|crates/(ruff|ty)_python_semantic/resources/)'
+        exclude: "^(examples/|crates/(ruff|ty)_python_semantic/resources/)"
         require_serial: true
         priority: 0
       - id: scruff-check
@@ -66,7 +66,7 @@ repos:
         entry: cargo run --quiet -p scruff -- check --fix --exit-non-zero-on-fix
         language: system
         types_or: [python, pyi]
-        exclude: '^(examples/|crates/(ruff|ty)_python_semantic/resources/)'
+        exclude: "^(examples/|crates/(ruff|ty)_python_semantic/resources/)"
         require_serial: true
         priority: 1
   # Prettier
@@ -147,4 +147,3 @@ repos:
             | docs/\w+\.md
           )$
         priority: 1
-
