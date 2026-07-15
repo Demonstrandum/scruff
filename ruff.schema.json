@@ -541,6 +541,17 @@
       ],
       "deprecated": true
     },
+    "mode": {
+      "description": "Select a predefined Scruff configuration mode.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Mode"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "namespace-packages": {
       "description": "Mark the specified directories as namespace packages. For the purpose of\nmodule resolution, Ruff will treat those directories and all their subdirectories\nas if they contained an `__init__.py` file.",
       "type": [
@@ -1642,6 +1653,13 @@
             }
           ]
         },
+        "quote-symbol-regex": {
+          "description": "A regular expression identifying symbol-like strings when\n[`quote-style`](#format_quote-style) is set to `symbol`.\n\nMatching strings use single quotes; all other strings use double quotes.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "skip-magic-trailing-comma": {
           "description": "Ruff uses existing trailing commas as an indication that short lines should be left separate.\nIf this option is set to `true`, the magic trailing comma is ignored.\n\nFor example, Ruff leaves the arguments separate even though\ncollapsing the arguments to a single line doesn't exceed the line length if `skip-magic-trailing-comma = false`:\n\n```python\n# The arguments remain on separate lines because of the trailing comma after `b`\ndef test(\n    a,\n    b,\n): pass\n```\n\nSetting `skip-magic-trailing-comma = true` changes the formatting to:\n\n```python\n# The arguments are collapsed to a single line because the trailing comma is ignored\ndef test(a, b):\n    pass\n```",
           "type": [
@@ -2667,6 +2685,35 @@
       },
       "additionalProperties": false
     },
+    "Mode": {
+      "oneOf": [
+        {
+          "description": "Ruff's standard behavior.",
+          "type": "string",
+          "const": "default"
+        },
+        {
+          "description": "Conservative defaults focused on critical errors.",
+          "type": "string",
+          "const": "minimal"
+        },
+        {
+          "description": "Comprehensive linting, including preview rules.",
+          "type": "string",
+          "const": "strict"
+        },
+        {
+          "description": "Black-compatible formatting with style-focused rules.",
+          "type": "string",
+          "const": "black"
+        },
+        {
+          "description": "Symbol-aware quote formatting.",
+          "type": "string",
+          "const": "tali"
+        }
+      ]
+    },
     "NameImports": {
       "type": "string"
     },
@@ -3046,11 +3093,20 @@
       ]
     },
     "QuoteStyle": {
-      "type": "string",
-      "enum": [
-        "single",
-        "double",
-        "preserve"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "single",
+            "double",
+            "preserve"
+          ]
+        },
+        {
+          "description": "Use single quotes for symbols/identifiers (matching a regex) and double quotes for other strings",
+          "type": "string",
+          "const": "symbol"
+        }
       ]
     },
     "RelativeImportsOrder": {

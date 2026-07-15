@@ -10,6 +10,7 @@ exclude: |
     crates/ruff_linter/resources/(?!mdtest/).*|
     crates/ruff_linter/src/rules/.*/snapshots/.*|
     crates/ruff_notebook/resources/.*|
+    crates/ruff_python_parser/resources/.*|
     crates/ruff_server/resources/.*|
     crates/scruff/resources/.*|
     crates/ruff_python_formatter/resources/.*|
@@ -58,6 +59,7 @@ repos:
         language: system
         types_or: [python, pyi]
         exclude: crates/ty_python_semantic/resources/corpus/
+        require_serial: true
         priority: 0
       - id: scruff-check
         name: scruff check

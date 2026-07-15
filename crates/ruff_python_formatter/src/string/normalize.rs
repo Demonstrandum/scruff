@@ -232,13 +232,13 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
             }
             None => {
                 // Fallback to default symbol pattern if no regex is provided
-                self.is_default_symbol(&content_to_check)
+                Self::is_default_symbol(&content_to_check)
             }
         }
     }
 
     /// Default symbol detection: letters, numbers, underscores, hyphens, dots, colons
-    fn is_default_symbol(&self, content: &str) -> QuoteStyle {
+    fn is_default_symbol(content: &str) -> QuoteStyle {
         let is_symbol = !content.is_empty()
             && content
                 .chars()

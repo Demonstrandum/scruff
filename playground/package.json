@@ -14,7 +14,7 @@
   },
   "workspaces": [
     "ty",
-    "scruff",
+    "ruff",
     "shared"
   ],
   "prettier": {

@@ -27,12 +27,12 @@ RUN rustup target add $(cat rust_target.txt)
 COPY crates crates
 COPY Cargo.toml Cargo.toml
 COPY Cargo.lock Cargo.lock
-RUN cargo zigbuild --bin ruff --target $(cat rust_target.txt) --release
-RUN cp target/$(cat rust_target.txt)/release/ruff /ruff
+RUN cargo zigbuild --bin scruff --target $(cat rust_target.txt) --release
+RUN cp target/$(cat rust_target.txt)/release/scruff /scruff
 # TODO: Optimize binary size, with a version that also works when cross compiling
-# RUN strip --strip-all /ruff
+# RUN strip --strip-all /scruff
 
 FROM scratch
-COPY --from=build /ruff /ruff
+COPY --from=build /scruff /scruff
 WORKDIR /io
-ENTRYPOINT ["/ruff"]
+ENTRYPOINT ["/scruff"]

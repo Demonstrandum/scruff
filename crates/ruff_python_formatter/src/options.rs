@@ -2,8 +2,6 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-use regex;
-
 use ruff_formatter::printer::{LineEnding, PrinterOptions, SourceMapGeneration};
 use ruff_formatter::{FormatOptions, IndentStyle, IndentWidth, LineWidth};
 use ruff_macros::CacheKey;
@@ -44,7 +42,7 @@ pub struct PyFormatOptions {
     /// The preferred quote style to use (single vs double quotes).
     quote_style: QuoteStyle,
 
-    /// Regular expression to identify symbols when using QuoteStyle::Symbol.
+    /// Regular expression to identify symbols when using `QuoteStyle::Symbol`.
     /// Symbols will use single quotes, non-symbols use double quotes.
     #[cfg_attr(feature = "serde", serde(skip))]
     quote_symbol_regex: Option<regex::Regex>,

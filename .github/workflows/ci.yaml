@@ -630,6 +630,7 @@ jobs:
     # Only runs on pull requests, since that is the only we way we can find the base version for comparison.
     # Ecosystem check needs linter and/or formatter changes.
     if: |
+      github.repository == 'astral-sh/ruff' &&
       !contains(github.event.pull_request.labels.*.name, 'no-test') && github.event_name == 'pull_request' &&
       (
         needs.determine_changes.outputs.linter == 'true' ||
@@ -788,6 +789,10 @@ jobs:
           git rev-list --format=%s --max-count=1 old_commit
           cargo build --profile=profiling --bin=ty
           mv target/profiling/ty ty-old
+
+          # The merge base can contain a stale fork lockfile. Run the fuzzer
+          # from the pull request revision against both built binaries.
+          git checkout "$GITHUB_SHA" -- python/py-fuzzer
 
           (
             uv run \
@@ -959,7 +964,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: determine_changes
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-test') && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/master') }}
+    if: ${{ github.repository == 'astral-sh/ruff' && !contains(github.event.pull_request.labels.*.name, 'no-test') && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/master') }}
     env:
       # Line-tables-only debug info: faster builds, backtraces still work.
       CARGO_PROFILE_DEV_DEBUG: line-tables-only

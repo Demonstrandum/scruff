@@ -47,6 +47,7 @@ env:
 jobs:
   build-ty:
     name: Build ty (${{ matrix.revision }})
+    if: ${{ github.repository == 'astral-sh/ruff' }}
     strategy:
       matrix:
         revision: [base, pr]

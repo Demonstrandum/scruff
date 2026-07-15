@@ -552,8 +552,8 @@ Log levels:
 Global options:
       --config <CONFIG_OPTION>
           Either a path to a TOML configuration file (`pyproject.toml` or
-          `ruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
-          find in a `ruff.toml` configuration file) overriding a specific
+          `scruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
+          find in a `scruff.toml` configuration file) overriding a specific
           configuration option (e.g., `--config "lint.line-length = 100"` or
           `--config "format.quote-style = 'single'"`). Overrides of individual
           settings using this option always take precedence over all
@@ -699,8 +699,8 @@ Log levels:
 Global options:
       --config <CONFIG_OPTION>
           Either a path to a TOML configuration file (`pyproject.toml` or
-          `ruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
-          find in a `ruff.toml` configuration file) overriding a specific
+          `scruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
+          find in a `scruff.toml` configuration file) overriding a specific
           configuration option (e.g., `--config "lint.line-length = 100"` or
           `--config "format.quote-style = 'single'"`). Overrides of individual
           settings using this option always take precedence over all
@@ -798,8 +798,8 @@ Log levels:
 Global options:
       --config <CONFIG_OPTION>
           Either a path to a TOML configuration file (`pyproject.toml` or
-          `ruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
-          find in a `ruff.toml` configuration file) overriding a specific
+          `scruff.toml`), or a TOML `<KEY> = <VALUE>` pair (such as you might
+          find in a `scruff.toml` configuration file) overriding a specific
           configuration option (e.g., `--config "lint.line-length = 100"` or
           `--config "format.quote-style = 'single'"`). Overrides of individual
           settings using this option always take precedence over all
