@@ -58,7 +58,7 @@ repos:
         entry: cargo run --quiet -p scruff -- format
         language: system
         types_or: [python, pyi]
-        exclude: crates/ty_python_semantic/resources/corpus/
+        exclude: '^(examples/|crates/ty_python_semantic/resources/)'
         require_serial: true
         priority: 0
       - id: scruff-check
@@ -66,12 +66,12 @@ repos:
         entry: cargo run --quiet -p scruff -- check --fix --exit-non-zero-on-fix
         language: system
         types_or: [python, pyi]
-        exclude: crates/ty_python_semantic/resources/corpus/
+        exclude: '^(examples/|crates/ty_python_semantic/resources/)'
         require_serial: true
         priority: 1
       - id: mdtest-format
         name: mdtest format
-        entry: cargo run --quiet -p scruff -- format
+        entry: cargo run --quiet -p scruff -- format --preview
         language: system
         types_or: [markdown]
         files: '^crates/.*/resources/(mdtest|lint_docs)/.*\.md$'

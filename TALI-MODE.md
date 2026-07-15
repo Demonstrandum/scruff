@@ -1,6 +1,6 @@
 # Tali Mode
 
-### Plan for `mode = "tali"`
+## Plan for `mode = "tali"`
 
 - [x] `quote-style = "symbol"`:
   - [x] Symbols and identifiers get single quotes, natural language double quotes.

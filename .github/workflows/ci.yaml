@@ -932,6 +932,8 @@ jobs:
         run: python scripts/transform_readme.py --target mkdocs
       - name: "Generate docs"
         run: python scripts/generate_mkdocs.py
+      - name: "Add Scruff to PATH"
+        run: echo "$GITHUB_WORKSPACE/target/debug" >> "$GITHUB_PATH"
       - name: "Check docs formatting"
         run: python scripts/check_docs_formatted.py
       - name: "Build docs"
