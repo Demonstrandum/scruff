@@ -58,7 +58,7 @@ repos:
         entry: cargo run --quiet -p scruff -- format
         language: system
         types_or: [python, pyi]
-        exclude: '^(examples/|crates/ty_python_semantic/resources/)'
+        exclude: '^(examples/|crates/(ruff|ty)_python_semantic/resources/)'
         require_serial: true
         priority: 0
       - id: scruff-check
@@ -66,17 +66,9 @@ repos:
         entry: cargo run --quiet -p scruff -- check --fix --exit-non-zero-on-fix
         language: system
         types_or: [python, pyi]
-        exclude: '^(examples/|crates/ty_python_semantic/resources/)'
+        exclude: '^(examples/|crates/(ruff|ty)_python_semantic/resources/)'
         require_serial: true
         priority: 1
-      - id: mdtest-format
-        name: mdtest format
-        entry: cargo run --quiet -p scruff -- format --preview
-        language: system
-        types_or: [markdown]
-        files: '^crates/.*/resources/(mdtest|lint_docs)/.*\.md$'
-        pass_filenames: true
-        priority: 2
   # Prettier
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: 39e2973981e6d2f9b6c543b0086a2d2393abdc89 # frozen: v3.9.4
@@ -156,4 +148,3 @@ repos:
           )$
         priority: 1
 
-  # Priority 2: mdtest-format runs after markdownlint-fix (both modify markdown).
