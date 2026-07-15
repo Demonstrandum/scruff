@@ -220,10 +220,7 @@ impl Mode {
         match self {
             Self::Black => (
                 Some(LineLength::try_from(88).expect("88 is a valid line length")),
-                Some(
-                    IndentWidth::try_from(NonZeroU8::new(4).unwrap())
-                        .expect("4 is a valid indent width"),
-                ),
+                Some(IndentWidth::from(NonZeroU8::new(4).unwrap())),
             ),
             Self::Default | Self::Minimal | Self::Strict | Self::Tali => (None, None),
         }
