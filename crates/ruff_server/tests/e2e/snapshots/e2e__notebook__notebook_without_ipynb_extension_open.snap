@@ -18,9 +18,9 @@ expression: diagnostics
       "severity": 2,
       "code": "I002",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/missing-required-import"
+        "href": "https://github.com/Demonstrandum/scruff/rules/missing-required-import"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Missing required import: `from __future__ import annotations`\n\nhelp: Insert required import: `from __future__ import annotations`",
       "tags": [],
       "data": {
@@ -70,9 +70,9 @@ expression: diagnostics
       "severity": 2,
       "code": "RUF900",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/stable-test-rule"
+        "href": "https://github.com/Demonstrandum/scruff/rules/stable-test-rule"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Hey this is a stable test rule.",
       "tags": [],
       "data": {
@@ -108,9 +108,9 @@ expression: diagnostics
       "severity": 2,
       "code": "RUF901",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/stable-test-rule-safe-fix"
+        "href": "https://github.com/Demonstrandum/scruff/rules/stable-test-rule-safe-fix"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Hey this is a stable test rule with a safe fix.",
       "tags": [],
       "data": {
@@ -160,9 +160,9 @@ expression: diagnostics
       "severity": 2,
       "code": "RUF902",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/stable-test-rule-unsafe-fix"
+        "href": "https://github.com/Demonstrandum/scruff/rules/stable-test-rule-unsafe-fix"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Hey this is a stable test rule with an unsafe fix.",
       "tags": [],
       "data": {
@@ -212,9 +212,9 @@ expression: diagnostics
       "severity": 2,
       "code": "RUF903",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/stable-test-rule-display-only-fix"
+        "href": "https://github.com/Demonstrandum/scruff/rules/stable-test-rule-display-only-fix"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Hey this is a stable test rule with a display only fix.",
       "tags": [],
       "data": {
@@ -250,9 +250,9 @@ expression: diagnostics
       "severity": 2,
       "code": "RUF950",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/redirected-to-test-rule"
+        "href": "https://github.com/Demonstrandum/scruff/rules/redirected-to-test-rule"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Hey this is a test rule that was redirected from another.",
       "tags": [],
       "data": {
@@ -291,9 +291,9 @@ expression: diagnostics
       "severity": 2,
       "code": "I001",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+        "href": "https://github.com/Demonstrandum/scruff/rules/unsorted-imports"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Import block is un-sorted or un-formatted\n\nhelp: Organize imports",
       "tags": [],
       "data": {
@@ -345,9 +345,9 @@ expression: diagnostics
       "severity": 2,
       "code": "E703",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/useless-semicolon"
+        "href": "https://github.com/Demonstrandum/scruff/rules/useless-semicolon"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Statement ends with an unnecessary semicolon\n\nhelp: Remove unnecessary semicolon",
       "tags": [],
       "data": {
@@ -401,9 +401,9 @@ expression: diagnostics
       "severity": 2,
       "code": "E703",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/useless-semicolon"
+        "href": "https://github.com/Demonstrandum/scruff/rules/useless-semicolon"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Statement ends with an unnecessary semicolon\n\nhelp: Remove unnecessary semicolon",
       "tags": [],
       "data": {
@@ -453,9 +453,9 @@ expression: diagnostics
       "severity": 2,
       "code": "E703",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/useless-semicolon"
+        "href": "https://github.com/Demonstrandum/scruff/rules/useless-semicolon"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "Statement ends with an unnecessary semicolon\n\nhelp: Remove unnecessary semicolon",
       "tags": [],
       "data": {
@@ -505,9 +505,9 @@ expression: diagnostics
       "severity": 2,
       "code": "F541",
       "codeDescription": {
-        "href": "https://docs.astral.sh/ruff/rules/f-string-missing-placeholders"
+        "href": "https://github.com/Demonstrandum/scruff/rules/f-string-missing-placeholders"
       },
-      "source": "Ruff",
+      "source": "Scruff",
       "message": "f-string without any placeholders\n\nhelp: Remove extraneous `f` prefix",
       "tags": [],
       "data": {

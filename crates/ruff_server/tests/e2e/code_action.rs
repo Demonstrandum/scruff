@@ -45,7 +45,7 @@ fn code_actions_for_python() -> Result<()> {
         @r#"
     [
       {
-        "title": "Ruff: Fix all auto-fixable problems",
+        "title": "Scruff: Fix all auto-fixable problems",
         "kind": "source.fixAll.ruff",
         "edit": {
           "changes": {
@@ -68,7 +68,7 @@ fn code_actions_for_python() -> Result<()> {
         }
       },
       {
-        "title": "Ruff: Organize imports",
+        "title": "Scruff: Organize imports",
         "kind": "source.organizeImports.ruff",
         "edit": {
           "changes": {}
@@ -120,8 +120,8 @@ preview = true
         })
         .collect();
 
-    assert!(titles.contains(&"Ruff (unused-import): Remove unused import: `os`"));
-    assert!(titles.contains(&"Ruff (unused-import): Disable for this line"));
+    assert!(titles.contains(&"Scruff (unused-import): Remove unused import: `os`"));
+    assert!(titles.contains(&"Scruff (unused-import): Disable for this line"));
 
     Ok(())
 }
