@@ -1,5 +1,5 @@
 ---
-source: crates/ruff/src/version.rs
+source: crates/scruff/src/version.rs
 expression: version
 ---
 {

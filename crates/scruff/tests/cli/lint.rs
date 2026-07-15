@@ -543,7 +543,7 @@ fn too_many_config_files() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: You cannot specify more than one configuration file on the command line.
 
       tip: remove either `--config=ruff.toml` or `--config=ruff2.toml`.
@@ -594,7 +594,7 @@ extend = "ruff3.toml"
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load extended configuration `[TMP]/ruff3.toml` (`[TMP]/ruff.toml` extends `[TMP]/ruff2.toml` extends `[TMP]/ruff3.toml`)
       Cause: Failed to read [TMP]/ruff3.toml
       Cause: No such file or directory (os error 2)
@@ -633,7 +633,7 @@ extend = "ruff.toml"
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Circular configuration detected: `[TMP]/ruff.toml` extends `[TMP]/ruff2.toml` extends `[TMP]/ruff3.toml` extends `[TMP]/ruff.toml`
     ");
 
@@ -665,7 +665,7 @@ select = [E501]
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load extended configuration `[TMP]/ruff2.toml` (`[TMP]/ruff.toml` extends `[TMP]/ruff2.toml`)
       Cause: Failed to parse [TMP]/ruff2.toml
       Cause: TOML parse error at line 3, column 11
@@ -694,7 +694,7 @@ fn config_file_and_isolated() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: The argument `--config=ruff.toml` cannot be used with `--isolated`
 
       tip: You cannot specify a configuration file and also specify `--isolated`,
@@ -769,7 +769,7 @@ fn unknown_rule_selectors_select_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `select` from the CLI
     ");
     Ok(())
@@ -784,7 +784,7 @@ fn unknown_rule_selectors_extend_select_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `extend-select` from the CLI
     ");
     Ok(())
@@ -799,7 +799,7 @@ fn unknown_rule_selectors_ignore_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `ignore` from the CLI
     ");
     Ok(())
@@ -814,7 +814,7 @@ fn unknown_rule_selectors_fixable_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `fixable` from the CLI
     ");
     Ok(())
@@ -829,7 +829,7 @@ fn unknown_rule_selectors_extend_fixable_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `extend-fixable` from the CLI
     ");
     Ok(())
@@ -844,7 +844,7 @@ fn unknown_rule_selectors_unfixable_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `unfixable` from the CLI
     ");
     Ok(())
@@ -859,7 +859,7 @@ fn unknown_rule_selectors_config_ignore_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `ignore` from the CLI
     ");
     Ok(())
@@ -875,7 +875,7 @@ fn unknown_rule_selectors_ruff_toml_extend_safe_fixes_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `extend-safe-fixes` from `[TMP]/ruff.toml`
     ");
     Ok(())
@@ -891,7 +891,7 @@ fn unknown_rule_selectors_ruff_toml_extend_unsafe_fixes_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `extend-unsafe-fixes` from `[TMP]/ruff.toml`
     ");
     Ok(())
@@ -906,7 +906,7 @@ fn unknown_rule_selectors_per_file_ignores_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `per-file-ignores` from the CLI
     ");
     Ok(())
@@ -921,7 +921,7 @@ fn unknown_rule_selectors_extend_per_file_ignores_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `per-file-ignores` from the CLI
     ");
     Ok(())
@@ -940,7 +940,7 @@ fn unknown_rule_selectors_ruff_toml_per_file_ignores_f481() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `per-file-ignores` from `[TMP]/ruff.toml`
     ");
     Ok(())
@@ -959,7 +959,7 @@ fn unknown_rule_selectors_ruff_toml_extend_per_file_ignores_f481() -> Result<()>
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Unknown rule selector `F481` in `per-file-ignores` from `[TMP]/ruff.toml`
     ");
     Ok(())
@@ -1209,7 +1209,7 @@ fn rule_name_selector_cli_preview_disabled() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Invalid selector `unused-import` in `select` from the CLI. Selecting rules by name requires preview mode
     ");
 
@@ -1245,7 +1245,7 @@ fn rule_name_selector_config_preview_disabled() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Invalid selector `unused-import` in `select` from `[TMP]/ruff.toml`. Selecting rules by name requires preview mode
     ");
 
@@ -1291,7 +1291,7 @@ fn valid_toml_but_nonexistent_option_provided_via_config_argument() {
            or a TOML `<KEY> = <VALUE>` pair overriding a specific configuration
            option
 
-    Could not parse the supplied argument as a `ruff.toml` configuration option:
+    Could not parse the supplied argument as a `scruff.toml` configuration option:
 
     unknown field `extend-selection`
 
@@ -1515,7 +1515,7 @@ fn deprecated_config_option_overridden_via_cli() {
     success: false
     exit_code: 1
     ----- stdout -----
-    -:1:7: N801 Class name `lowercase` should use CapWords convention
+    [1m-[0m[36m:[0m1[36m:[0m7[36m:[0m [1m[31mN801[0m Class name `lowercase` should use CapWords convention
     Found 1 error.
 
     ----- stderr -----
@@ -1608,7 +1608,7 @@ required-version = "pikachu"
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 2, column 20
@@ -1649,7 +1649,7 @@ import os
         ----- stdout -----
 
         ----- stderr -----
-        ruff failed
+        scruff failed
           Cause: Failed to load configuration `[TMP]/ruff.toml`
           Cause: Required version `==0.1.0` does not match the running version `[VERSION]`
         ");
@@ -1725,7 +1725,7 @@ import os
         ----- stdout -----
 
         ----- stderr -----
-        ruff failed
+        scruff failed
           Cause: Failed to load configuration `[TMP]/ruff.toml`
           Cause: Required version `>[VERSION]` does not match the running version `[VERSION]`
         ");
@@ -1766,7 +1766,7 @@ import os
         ----- stdout -----
 
         ----- stderr -----
-        ruff failed
+        scruff failed
           Cause: Failed to load configuration `[TMP]/ruff.toml`
           Cause: Required version `>[VERSION]` does not match the running version `[VERSION]`
         ");
@@ -2589,7 +2589,7 @@ fn add_noqa_with_newline_in_reason() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: --add-noqa <reason> cannot contain newline characters
     ");
 
@@ -2648,14 +2648,14 @@ fn add_ignore_requires_preview() -> Result<()> {
             .arg("--select=F401")
             .arg("--add-ignore"),
         @"
-        success: false
-        exit_code: 2
-        ----- stdout -----
+    success: false
+    exit_code: 2
+    ----- stdout -----
 
-        ----- stderr -----
-        ruff failed
-          Cause: `--add-ignore` requires preview mode, but preview is disabled for `[TMP]/noqa.py`
-        ",
+    ----- stderr -----
+    scruff failed
+      Cause: `--add-ignore` requires preview mode, but preview is disabled for `[TMP]/noqa.py`
+    ",
     );
 
     let test_code = fixture.read_file("noqa.py")?;
@@ -3389,7 +3389,7 @@ fn flake8_import_convention_invalid_aliases_config_alias_name() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 3, column 17
@@ -3423,7 +3423,7 @@ fn flake8_import_convention_invalid_aliases_config_extend_alias_name() -> Result
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 3, column 17
@@ -3457,7 +3457,7 @@ fn flake8_import_convention_invalid_aliases_config_module_name() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 3, column 1
@@ -3491,7 +3491,7 @@ fn flake8_import_convention_nfkc_normalization() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Invalid alias for module 'test.module': alias normalizes to '__debug__', which is not allowed.
     ");
     Ok(())
@@ -3791,7 +3791,7 @@ class Foo[_T, __T]:
         pass
 
     ----- stderr -----
-    test.py:2:14: private-type-parameter: Generic class uses private type parameters
+    [1mtest.py[0m[36m:[0m2[36m:[0m14[36m:[0m [1m[31mprivate-type-parameter[0m: Generic class uses private type parameters
     Found 2 errors (1 fixed, 1 remaining).
     "
     );
@@ -3937,7 +3937,7 @@ class A(Generic[T]):
     success: false
     exit_code: 1
     ----- stdout -----
-    test.py:6:9: non-pep695-generic-class: Generic class `A` uses `Generic` subclass instead of type parameters
+    [1mtest.py[0m[36m:[0m6[36m:[0m9[36m:[0m [1m[31mnon-pep695-generic-class[0m: Generic class `A` uses `Generic` subclass instead of type parameters
     Found 1 error.
     No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
 
@@ -4004,7 +4004,7 @@ fn walrus_before_py38() {
     success: false
     exit_code: 1
     ----- stdout -----
-    test.py:1:2: invalid-syntax: Cannot use named assignment expression (`:=`) on Python 3.7 (syntax was added in Python 3.8)
+    [1mtest.py[0m[36m:[0m1[36m:[0m2[36m:[0m [1m[31minvalid-syntax[0m: Cannot use named assignment expression (`:=`) on Python 3.7 (syntax was added in Python 3.8)
     Found 1 error.
 
     ----- stderr -----
@@ -4054,7 +4054,7 @@ match 2:
     success: false
     exit_code: 1
     ----- stdout -----
-    test.py:2:1: invalid-syntax: Cannot use `match` statement on Python 3.9 (syntax was added in Python 3.10)
+    [1mtest.py[0m[36m:[0m2[36m:[0m1[36m:[0m [1m[31minvalid-syntax[0m: Cannot use `match` statement on Python 3.9 (syntax was added in Python 3.10)
     Found 1 error.
 
     ----- stderr -----
@@ -4079,7 +4079,7 @@ match 2:
     success: false
     exit_code: 1
     ----- stdout -----
-    test.py:2:1: invalid-syntax: Cannot use `match` statement on Python 3.9 (syntax was added in Python 3.10)
+    [1mtest.py[0m[36m:[0m2[36m:[0m1[36m:[0m [1m[31minvalid-syntax[0m: Cannot use `match` statement on Python 3.9 (syntax was added in Python 3.10)
     Found 1 error.
 
     ----- stderr -----
@@ -4496,16 +4496,16 @@ fn show_fixes_in_full_output_with_preview_enabled() {
     success: false
     exit_code: 1
     ----- stdout -----
-    unused-import: [*] `math` imported but unused
-     --> -:1:8
-      |
-    1 | import math
-      |        ^^^^
-      |
-    help: Remove unused import: `math`
-      |
-      - import math
-      |
+    [1m[91munused-import: [0m[[1m[96m*[0m] [1m`math` imported but unused[0m
+     [1m[94m-->[0m -:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import math
+      [1m[94m|[0m        [1m[91m^^^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `math`[0m
+    [1m[94m [0m [1m[94m|[0m
+    [1m[94m [0m [1m[31m-[0m [31mimport math[0m
+    [1m[94m [0m [1m[94m|[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.

@@ -113,7 +113,7 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
         "ruff/b.py"
       ],
       "ruff/b.py": [],
-      "ruff/c.py": []
+      "scruff/c.py": []
     }
 
     ----- stderr -----
@@ -134,13 +134,12 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
     {
       "ruff/__init__.py": [],
       "ruff/a.py": [
-        "ruff/b.py",
-        "ruff/c.py"
+        "ruff/b.py"
       ],
       "ruff/b.py": [
-        "ruff/c.py"
+        "ruff/__init__.py"
       ],
-      "ruff/c.py": []
+      "scruff/c.py": []
     }
 
     ----- stderr -----

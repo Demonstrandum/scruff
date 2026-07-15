@@ -115,13 +115,13 @@ fn stdin_error() {
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> -:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m -:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.
@@ -140,13 +140,13 @@ fn stdin_filename() {
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> F401.py:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m F401.py:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.
@@ -176,21 +176,21 @@ import bar   # unused import
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `bar` imported but unused
-     --> bar.py:2:8
-      |
-    2 | import bar   # unused import
-      |        ^^^
-      |
-    help: Remove unused import: `bar`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`bar` imported but unused[0m
+     [1m[94m-->[0m bar.py:2:8
+      [1m[94m|[0m
+    [1m[94m2 |[0m import bar   # unused import
+      [1m[94m|[0m        [1m[91m^^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `bar`[0m
 
-    F401 [*] `foo` imported but unused
-     --> foo.py:2:8
-      |
-    2 | import foo   # unused import
-      |        ^^^
-      |
-    help: Remove unused import: `foo`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`foo` imported but unused[0m
+     [1m[94m-->[0m foo.py:2:8
+      [1m[94m|[0m
+    [1m[94m2 |[0m import foo   # unused import
+      [1m[94m|[0m        [1m[91m^^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `foo`[0m
 
     Found 2 errors.
     [*] 2 fixable with the `--fix` option.
@@ -212,13 +212,13 @@ fn check_warn_stdin_filename_with_files() {
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> F401.py:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m F401.py:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.
@@ -239,13 +239,13 @@ fn stdin_source_type_py() {
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> TCH.py:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m TCH.py:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.
@@ -477,12 +477,12 @@ fn stdin_fix_jupyter() {
      "nbformat_minor": 5
     }
     ----- stderr -----
-    F821 Undefined name `x`
-     --> Jupyter.ipynb:cell 3:1:7
-      |
-    1 | print(x)
-      |       ^
-      |
+    [1m[91mF821 [0m[1mUndefined name `x`[0m
+     [1m[94m-->[0m Jupyter.ipynb:cell 3:1:7
+      [1m[94m|[0m
+    [1m[94m1 |[0m print(x)
+      [1m[94m|[0m       [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 3 errors (2 fixed, 1 remaining).
     "#);
@@ -576,21 +576,21 @@ fn stdin_override_parser_ipynb() {
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> Jupyter.py:cell 1:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m Jupyter.py:cell 1:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
-    F401 [*] `sys` imported but unused
-     --> Jupyter.py:cell 3:1:8
-      |
-    1 | import sys
-      |        ^^^
-      |
-    help: Remove unused import: `sys`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`sys` imported but unused[0m
+     [1m[94m-->[0m Jupyter.py:cell 3:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import sys
+      [1m[94m|[0m        [1m[91m^^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `sys`[0m
 
     Found 2 errors.
     [*] 2 fixable with the `--fix` option.
@@ -614,13 +614,13 @@ fn stdin_override_parser_py() {
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> F401.ipynb:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m F401.ipynb:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.
@@ -649,13 +649,13 @@ extension = {ipynb="python"}
     success: false
     exit_code: 1
     ----- stdout -----
-    F401 [*] `os` imported but unused
-     --> F401.ipynb:1:8
-      |
-    1 | import os
-      |        ^^
-      |
-    help: Remove unused import: `os`
+    [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+     [1m[94m-->[0m F401.ipynb:1:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m import os
+      [1m[94m|[0m        [1m[91m^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
     Found 1 error.
     [*] 1 fixable with the `--fix` option.
@@ -679,15 +679,15 @@ fn stdin_fix_when_not_fixable_should_still_print_contents() {
          print(sys.version)
 
     ----- stderr -----
-    F634 If test is a tuple, which is always `True`
-     --> -:3:4
-      |
-    1 | import sys
-    2 |
-    3 | if (1, 2):
-      |    ^^^^^^
-    4 |      print(sys.version)
-      |
+    [1m[91mF634 [0m[1mIf test is a tuple, which is always `True`[0m
+     [1m[94m-->[0m -:3:4
+      [1m[94m|[0m
+    [1m[94m1 |[0m import sys
+    [1m[94m2 |[0m
+    [1m[94m3 |[0m if (1, 2):
+      [1m[94m|[0m    [1m[91m^^^^^^[0m
+    [1m[94m4 |[0m      print(sys.version)
+      [1m[94m|[0m
 
     Found 2 errors (1 fixed, 1 remaining).
     ");
@@ -845,12 +845,12 @@ fn stdin_parse_error() {
     success: false
     exit_code: 1
     ----- stdout -----
-    invalid-syntax: Expected one or more symbol names after import
-     --> -:1:16
-      |
-    1 | from foo import
-      |                ^
-      |
+    [1m[91minvalid-syntax: [0m[1mExpected one or more symbol names after import[0m
+     [1m[94m-->[0m -:1:16
+      [1m[94m|[0m
+    [1m[94m1 |[0m from foo import
+      [1m[94m|[0m                [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -866,21 +866,21 @@ fn stdin_multiple_parse_error() {
     success: false
     exit_code: 1
     ----- stdout -----
-    invalid-syntax: Expected one or more symbol names after import
-     --> -:1:16
-      |
-    1 | from foo import
-      |                ^
-    2 | bar =
-      |
+    [1m[91minvalid-syntax: [0m[1mExpected one or more symbol names after import[0m
+     [1m[94m-->[0m -:1:16
+      [1m[94m|[0m
+    [1m[94m1 |[0m from foo import
+      [1m[94m|[0m                [1m[91m^[0m
+    [1m[94m2 |[0m bar =
+      [1m[94m|[0m
 
-    invalid-syntax: Expected an expression
-     --> -:2:6
-      |
-    1 | from foo import
-    2 | bar =
-      |      ^
-      |
+    [1m[91minvalid-syntax: [0m[1mExpected an expression[0m
+     [1m[94m-->[0m -:2:6
+      [1m[94m|[0m
+    [1m[94m1 |[0m from foo import
+    [1m[94m2 |[0m bar =
+      [1m[94m|[0m      [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 2 errors.
 
@@ -897,12 +897,12 @@ fn parse_error_not_included() {
     success: false
     exit_code: 1
     ----- stdout -----
-    invalid-syntax: Expected an expression
-     --> -:1:6
-      |
-    1 | foo =
-      |      ^
-      |
+    [1m[91minvalid-syntax: [0m[1mExpected an expression[0m
+     [1m[94m-->[0m -:1:6
+      [1m[94m|[0m
+    [1m[94m1 |[0m foo =
+      [1m[94m|[0m      [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -920,12 +920,12 @@ fn full_output_preview() {
     success: false
     exit_code: 1
     ----- stdout -----
-    ambiguous-variable-name: Ambiguous variable name: `l`
-     --> -:1:1
-      |
-    1 | l = 1
-      | ^
-      |
+    [1m[91mambiguous-variable-name: [0m[1mAmbiguous variable name: `l`[0m
+     [1m[94m-->[0m -:1:1
+      [1m[94m|[0m
+    [1m[94m1 |[0m l = 1
+      [1m[94m|[0m [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -949,12 +949,12 @@ preview = true
     success: false
     exit_code: 1
     ----- stdout -----
-    ambiguous-variable-name: Ambiguous variable name: `l`
-     --> -:1:1
-      |
-    1 | l = 1
-      | ^
-      |
+    [1m[91mambiguous-variable-name: [0m[1mAmbiguous variable name: `l`[0m
+     [1m[94m-->[0m -:1:1
+      [1m[94m|[0m
+    [1m[94m1 |[0m l = 1
+      [1m[94m|[0m [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -971,12 +971,12 @@ fn full_output_format() {
     success: false
     exit_code: 1
     ----- stdout -----
-    E741 Ambiguous variable name: `l`
-     --> -:1:1
-      |
-    1 | l = 1
-      | ^
-      |
+    [1m[91mE741 [0m[1mAmbiguous variable name: `l`[0m
+     [1m[94m-->[0m -:1:1
+      [1m[94m|[0m
+    [1m[94m1 |[0m l = 1
+      [1m[94m|[0m [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -1287,12 +1287,12 @@ fn preview_enabled_prefix() {
     success: false
     exit_code: 1
     ----- stdout -----
-    -:1:1: stable-test-rule: Hey this is a stable test rule.
-    -:1:1: stable-test-rule-safe-fix: [*] Hey this is a stable test rule with a safe fix.
-    -:1:1: stable-test-rule-unsafe-fix: Hey this is a stable test rule with an unsafe fix.
-    -:1:1: stable-test-rule-display-only-fix: Hey this is a stable test rule with a display only fix.
-    -:1:1: preview-test-rule: Hey this is a preview test rule.
-    -:1:1: redirected-to-test-rule: Hey this is a test rule that was redirected from another.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule[0m: Hey this is a stable test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-safe-fix[0m: [[36m*[0m] Hey this is a stable test rule with a safe fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-unsafe-fix[0m: Hey this is a stable test rule with an unsafe fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-display-only-fix[0m: Hey this is a stable test rule with a display only fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mpreview-test-rule[0m: Hey this is a preview test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mredirected-to-test-rule[0m: Hey this is a test rule that was redirected from another.
     Found 6 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
 
@@ -1309,14 +1309,14 @@ fn preview_enabled_all() {
     success: false
     exit_code: 1
     ----- stdout -----
-    -:1:1: undocumented-public-module: Missing docstring in public module
-    -:1:1: missing-copyright-notice: Missing copyright notice at top of file
-    -:1:1: stable-test-rule: Hey this is a stable test rule.
-    -:1:1: stable-test-rule-safe-fix: [*] Hey this is a stable test rule with a safe fix.
-    -:1:1: stable-test-rule-unsafe-fix: Hey this is a stable test rule with an unsafe fix.
-    -:1:1: stable-test-rule-display-only-fix: Hey this is a stable test rule with a display only fix.
-    -:1:1: preview-test-rule: Hey this is a preview test rule.
-    -:1:1: redirected-to-test-rule: Hey this is a test rule that was redirected from another.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mundocumented-public-module[0m: Missing docstring in public module
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mmissing-copyright-notice[0m: Missing copyright notice at top of file
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule[0m: Hey this is a stable test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-safe-fix[0m: [[36m*[0m] Hey this is a stable test rule with a safe fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-unsafe-fix[0m: Hey this is a stable test rule with an unsafe fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-display-only-fix[0m: Hey this is a stable test rule with a display only fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mpreview-test-rule[0m: Hey this is a preview test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mredirected-to-test-rule[0m: Hey this is a test rule that was redirected from another.
     Found 8 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
 
@@ -1336,7 +1336,7 @@ fn preview_enabled_direct() {
     success: false
     exit_code: 1
     ----- stdout -----
-    -:1:1: preview-test-rule: Hey this is a preview test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mpreview-test-rule[0m: Hey this is a preview test rule.
     Found 1 error.
 
     ----- stderr -----
@@ -1449,12 +1449,12 @@ fn preview_enabled_group_ignore() {
     success: false
     exit_code: 1
     ----- stdout -----
-    -:1:1: stable-test-rule: Hey this is a stable test rule.
-    -:1:1: stable-test-rule-safe-fix: [*] Hey this is a stable test rule with a safe fix.
-    -:1:1: stable-test-rule-unsafe-fix: Hey this is a stable test rule with an unsafe fix.
-    -:1:1: stable-test-rule-display-only-fix: Hey this is a stable test rule with a display only fix.
-    -:1:1: preview-test-rule: Hey this is a preview test rule.
-    -:1:1: redirected-to-test-rule: Hey this is a test rule that was redirected from another.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule[0m: Hey this is a stable test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-safe-fix[0m: [[36m*[0m] Hey this is a stable test rule with a safe fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-unsafe-fix[0m: Hey this is a stable test rule with an unsafe fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mstable-test-rule-display-only-fix[0m: Hey this is a stable test rule with a display only fix.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mpreview-test-rule[0m: Hey this is a preview test rule.
+    [1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mredirected-to-test-rule[0m: Hey this is a test rule that was redirected from another.
     Found 6 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
 
@@ -1472,7 +1472,7 @@ fn removed_direct() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Rule `RUF931` was removed and cannot be selected.
     ");
 }
@@ -1490,7 +1490,7 @@ fn removed_direct_multiple() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: The following rules have been removed and cannot be selected:
         - RUF930
         - RUF931
@@ -1582,8 +1582,8 @@ fn redirect_direct() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF950 Hey this is a test rule that was redirected from another.
-    --> -:1:1
+    [1m[91mRUF950 [0m[1mHey this is a test rule that was redirected from another.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
 
@@ -1616,8 +1616,8 @@ fn redirect_prefix() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF950 Hey this is a test rule that was redirected from another.
-    --> -:1:1
+    [1m[91mRUF950 [0m[1mHey this is a test rule that was redirected from another.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
 
@@ -1635,8 +1635,8 @@ fn deprecated_direct() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF920 Hey this is a deprecated test rule.
-    --> -:1:1
+    [1m[91mRUF920 [0m[1mHey this is a deprecated test rule.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
 
@@ -1656,11 +1656,11 @@ fn deprecated_multiple_direct() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF920 Hey this is a deprecated test rule.
-    --> -:1:1
+    [1m[91mRUF920 [0m[1mHey this is a deprecated test rule.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF921 Hey this is another deprecated test rule.
-    --> -:1:1
+    [1m[91mRUF921 [0m[1mHey this is another deprecated test rule.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
 
@@ -1697,7 +1697,7 @@ fn deprecated_direct_preview_enabled() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Selection of deprecated rule `RUF920` is not allowed when preview is enabled.
     ");
 }
@@ -1731,7 +1731,7 @@ fn deprecated_multiple_direct_preview_enabled() {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Selection of deprecated rules is not allowed when preview is enabled. Remove selection of:
     	- RUF920
     	- RUF921
@@ -1828,13 +1828,13 @@ fn check_input_from_argfile() -> Result<()> {
         success: false
         exit_code: 1
         ----- stdout -----
-        F401 [*] `os` imported but unused
-         --> /path/to/a.py:1:8
-          |
-        1 | import os
-          |        ^^
-          |
-        help: Remove unused import: `os`
+        [1m[91mF401 [0m[[1m[96m*[0m] [1m`os` imported but unused[0m
+         [1m[94m-->[0m /path/to/a.py:1:8
+          [1m[94m|[0m
+        [1m[94m1 |[0m import os
+          [1m[94m|[0m        [1m[91m^^[0m
+          [1m[94m|[0m
+        [1m[96mhelp[0m: [1mRemove unused import: `os`[0m
 
         Found 1 error.
         [*] 1 fixable with the `--fix` option.
@@ -1859,7 +1859,7 @@ fn missing_argfile_reports_error() {
         ----- stdout -----
 
         ----- stderr -----
-        ruff failed
+        scruff failed
           Cause: Failed to read CLI arguments from files
           Cause: failed to open file `!.txt`: No such file or directory (os error 2)
         ");
@@ -1876,11 +1876,11 @@ fn check_hints_hidden_unsafe_fixes() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF901 [*] Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -1898,8 +1898,8 @@ fn check_hints_hidden_unsafe_fixes_with_no_safe_fixes() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
     No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -1918,11 +1918,11 @@ fn check_no_hint_for_hidden_unsafe_fixes_when_disabled() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF901 [*] Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
     [*] 1 fixable with the `--fix` option.
@@ -1942,8 +1942,8 @@ fn check_no_hint_for_hidden_unsafe_fixes_with_no_safe_fixes_when_disabled() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
 
@@ -1961,11 +1961,11 @@ fn check_shows_unsafe_fixes_with_opt_in() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF901 [*] Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 [*] Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
     [*] 2 fixable with the `--fix` option.
@@ -1987,8 +1987,8 @@ fn fix_applies_safe_fixes_by_default() {
     # fix from stable-test-rule-safe-fix
 
     ----- stderr -----
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors (1 fixed, 1 remaining).
     No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -2026,8 +2026,8 @@ fn fix_does_not_apply_display_only_fixes() {
     ----- stdout -----
     def add_to_list(item, some_list=[]): ...
     ----- stderr -----
-    RUF903 Hey this is a stable test rule with a display only fix.
-    --> -:1:1
+    [1m[91mRUF903 [0m[1mHey this is a stable test rule with a display only fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
     ");
@@ -2046,8 +2046,8 @@ fn fix_does_not_apply_display_only_fixes_with_unsafe_fixes_enabled() {
     ----- stdout -----
     def add_to_list(item, some_list=[]): ...
     ----- stderr -----
-    RUF903 Hey this is a stable test rule with a display only fix.
-    --> -:1:1
+    [1m[91mRUF903 [0m[1mHey this is a stable test rule with a display only fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
     ");
@@ -2065,8 +2065,8 @@ fn fix_only_unsafe_fixes_available() {
     ----- stdout -----
 
     ----- stderr -----
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 1 error.
     No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -2203,11 +2203,11 @@ extend-unsafe-fixes = ["RUF901"]
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF901 Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
     No fixes available (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
@@ -2239,11 +2239,11 @@ extend-safe-fixes = ["RUF902"]
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF901 [*] Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 [*] Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
     [*] 2 fixable with the `--fix` option.
@@ -2277,11 +2277,11 @@ extend-safe-fixes = ["RUF902"]
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF901 [*] Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 2 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -2317,20 +2317,20 @@ extend-safe-fixes = ["RUF9"]
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF900 Hey this is a stable test rule.
-    --> -:1:1
+    [1m[91mRUF900 [0m[1mHey this is a stable test rule.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF901 Hey this is a stable test rule with a safe fix.
-    --> -:1:1
+    [1m[91mRUF901 [0m[1mHey this is a stable test rule with a safe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF902 [*] Hey this is a stable test rule with an unsafe fix.
-    --> -:1:1
+    [1m[91mRUF902 [0m[[1m[96m*[0m] [1mHey this is a stable test rule with an unsafe fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF903 Hey this is a stable test rule with a display only fix.
-    --> -:1:1
+    [1m[91mRUF903 [0m[1mHey this is a stable test rule with a display only fix.[0m
+    [1m[94m-->[0m -:1:1
 
-    RUF950 Hey this is a test rule that was redirected from another.
-    --> -:1:1
+    [1m[91mRUF950 [0m[1mHey this is a test rule that was redirected from another.[0m
+    [1m[94m-->[0m -:1:1
 
     Found 5 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -2392,13 +2392,13 @@ def log(x, base) -> float:
     success: false
     exit_code: 1
     ----- stdout -----
-    D417 Missing argument description in the docstring for `log`: `base`
-     --> -:2:5
-      |
-    2 | def log(x, base) -> float:
-      |     ^^^
-    3 |     """Calculate natural log of a value
-      |
+    [1m[91mD417 [0m[1mMissing argument description in the docstring for `log`: `base`[0m
+     [1m[94m-->[0m -:2:5
+      [1m[94m|[0m
+    [1m[94m2 |[0m def log(x, base) -> float:
+      [1m[94m|[0m     [1m[91m^^^[0m
+    [1m[94m3 |[0m     """Calculate natural log of a value
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -2429,15 +2429,15 @@ select = ["RUF017"]
     success: false
     exit_code: 1
     ----- stdout -----
-    quadratic-list-summation: Avoid quadratic list summation
-     --> -:3:1
-      |
-    1 | x = [1, 2, 3]
-    2 | y = [4, 5, 6]
-    3 | sum([x, y], [])
-      | ^^^^^^^^^^^^^^^
-      |
-    help: Replace with `functools.reduce`
+    [1m[91mquadratic-list-summation: [0m[1mAvoid quadratic list summation[0m
+     [1m[94m-->[0m -:3:1
+      [1m[94m|[0m
+    [1m[94m1 |[0m x = [1, 2, 3]
+    [1m[94m2 |[0m y = [4, 5, 6]
+    [1m[94m3 |[0m sum([x, y], [])
+      [1m[94m|[0m [1m[91m^^^^^^^^^^^^^^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mReplace with `functools.reduce`[0m
 
     Found 1 error.
     No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
@@ -2470,15 +2470,15 @@ unfixable = ["RUF"]
     success: false
     exit_code: 1
     ----- stdout -----
-    quadratic-list-summation: Avoid quadratic list summation
-     --> -:3:1
-      |
-    1 | x = [1, 2, 3]
-    2 | y = [4, 5, 6]
-    3 | sum([x, y], [])
-      | ^^^^^^^^^^^^^^^
-      |
-    help: Replace with `functools.reduce`
+    [1m[91mquadratic-list-summation: [0m[1mAvoid quadratic list summation[0m
+     [1m[94m-->[0m -:3:1
+      [1m[94m|[0m
+    [1m[94m1 |[0m x = [1, 2, 3]
+    [1m[94m2 |[0m y = [4, 5, 6]
+    [1m[94m3 |[0m sum([x, y], [])
+      [1m[94m|[0m [1m[91m^^^^^^^^^^^^^^^[0m
+      [1m[94m|[0m
+    [1m[96mhelp[0m: [1mReplace with `functools.reduce`[0m
 
     Found 1 error.
 
@@ -2500,12 +2500,12 @@ fn pyproject_toml_stdin_syntax_error() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF200 Failed to parse pyproject.toml: unclosed table, expected `]`
-     --> pyproject.toml:1:9
-      |
-    1 | [project
-      |         ^
-      |
+    [1m[91mRUF200 [0m[1mFailed to parse pyproject.toml: unclosed table, expected `]`[0m
+     [1m[94m-->[0m pyproject.toml:1:9
+      [1m[94m|[0m
+    [1m[94m1 |[0m [project
+      [1m[94m|[0m         [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -2526,13 +2526,13 @@ fn pyproject_toml_stdin_schema_error() {
     success: false
     exit_code: 1
     ----- stdout -----
-    RUF200 Failed to parse pyproject.toml: invalid type: integer `1`, expected a string
-     --> pyproject.toml:2:8
-      |
-    1 | [project]
-    2 | name = 1
-      |        ^
-      |
+    [1m[91mRUF200 [0m[1mFailed to parse pyproject.toml: invalid type: integer `1`, expected a string[0m
+     [1m[94m-->[0m pyproject.toml:2:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m [project]
+    [1m[94m2 |[0m name = 1
+      [1m[94m|[0m        [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
 
@@ -2619,13 +2619,13 @@ fn pyproject_toml_stdin_schema_error_fix() {
     [project]
     name = 1
     ----- stderr -----
-    RUF200 Failed to parse pyproject.toml: invalid type: integer `1`, expected a string
-     --> pyproject.toml:2:8
-      |
-    1 | [project]
-    2 | name = 1
-      |        ^
-      |
+    [1m[91mRUF200 [0m[1mFailed to parse pyproject.toml: invalid type: integer `1`, expected a string[0m
+     [1m[94m-->[0m pyproject.toml:2:8
+      [1m[94m|[0m
+    [1m[94m1 |[0m [project]
+    [1m[94m2 |[0m name = 1
+      [1m[94m|[0m        [1m[91m^[0m
+      [1m[94m|[0m
 
     Found 1 error.
     "

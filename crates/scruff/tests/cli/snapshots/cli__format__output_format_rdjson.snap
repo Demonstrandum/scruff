@@ -1,7 +1,7 @@
 ---
-source: crates/ruff/tests/cli/format.rs
+source: crates/scruff/tests/cli/format.rs
 info:
-  program: ruff
+  program: scruff
   args:
     - format
     - "--no-cache"
@@ -53,8 +53,8 @@ exit_code: 1
   ],
   "severity": "WARNING",
   "source": {
-    "name": "ruff",
-    "url": "https://docs.astral.sh/ruff"
+    "name": "scruff",
+    "url": "https://github.com/Demonstrandum/scruff"
   }
 }
 ----- stderr -----

@@ -1,7 +1,7 @@
 ---
-source: crates/ruff/tests/cli/lint.rs
+source: crates/scruff/tests/cli/lint.rs
 info:
-  program: ruff
+  program: scruff
   args:
     - check
     - "--no-cache"
@@ -17,7 +17,7 @@ info:
 success: false
 exit_code: 1
 ----- stdout -----
--:1:1: I002 [*] Missing required import: `from collections.abc import Set as AbstractSet`
+[1m-[0m[36m:[0m1[36m:[0m1[36m:[0m [1m[31mI002[0m [[36m*[0m] Missing required import: `from collections.abc import Set as AbstractSet`
 Found 1 error.
 [*] 1 fixable with the `--fix` option.
 

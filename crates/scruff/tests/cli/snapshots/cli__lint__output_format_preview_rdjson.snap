@@ -1,7 +1,7 @@
 ---
-source: crates/ruff/tests/cli/lint.rs
+source: crates/scruff/tests/cli/lint.rs
 info:
-  program: ruff
+  program: scruff
   args:
     - check
     - "--no-cache"
@@ -21,7 +21,7 @@ exit_code: 1
   "diagnostics": [
     {
       "code": {
-        "url": "https://docs.astral.sh/ruff/rules/unused-import",
+        "url": "https://github.com/Demonstrandum/scruff/rules/unused-import",
         "value": "unused-import"
       },
       "location": {
@@ -56,7 +56,7 @@ exit_code: 1
     },
     {
       "code": {
-        "url": "https://docs.astral.sh/ruff/rules/undefined-name",
+        "url": "https://github.com/Demonstrandum/scruff/rules/undefined-name",
         "value": "undefined-name"
       },
       "location": {
@@ -96,8 +96,8 @@ exit_code: 1
   ],
   "severity": "WARNING",
   "source": {
-    "name": "ruff",
-    "url": "https://docs.astral.sh/ruff"
+    "name": "scruff",
+    "url": "https://github.com/Demonstrandum/scruff"
   }
 }
 ----- stderr -----

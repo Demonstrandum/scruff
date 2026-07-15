@@ -151,7 +151,7 @@ fn too_many_config_files() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: You cannot specify more than one configuration file on the command line.
 
       tip: remove either `--config=ruff.toml` or `--config=ruff2.toml`.
@@ -174,7 +174,7 @@ fn config_file_and_isolated() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: The argument `--config=ruff.toml` cannot be used with `--isolated`
 
       tip: You cannot specify a configuration file and also specify `--isolated`,
@@ -1021,7 +1021,7 @@ if True:
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 1, column 1
@@ -1056,7 +1056,7 @@ format = "json"
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: Failed to load configuration `[TMP]/ruff.toml`
       Cause: Failed to parse [TMP]/ruff.toml
       Cause: TOML parse error at line 2, column 10
@@ -2100,7 +2100,7 @@ def file2(arg1, arg2,):
     ----- stdout -----
 
     ----- stderr -----
-    ruff failed
+    scruff failed
       Cause: The `--range` option is only supported when formatting a single file but the specified paths resolve to 2 files.
     ");
 
