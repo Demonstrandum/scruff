@@ -1,0 +1,56 @@
+name: Close obsolete automation issues
+
+on:
+  push:
+    branches:
+      - cursor/merge-ruff-upstream-58f4
+    paths:
+      - ".github/workflows/close-automation-issues.yml"
+
+permissions:
+  issues: write
+
+jobs:
+  close:
+    if: ${{ github.repository == 'Demonstrandum/scruff' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const openItems = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: "open",
+                per_page: 100,
+              },
+            );
+
+            const obsolete = openItems.filter(
+              (item) =>
+                !item.pull_request &&
+                /^(Daily parser fuzz failed|Automated typeshed sync failed) on /.test(
+                  item.title,
+                ),
+            );
+
+            if (obsolete.length !== 249) {
+              core.setFailed(
+                `Expected exactly 249 obsolete automation issues, found ${obsolete.length}`,
+              );
+              return;
+            }
+
+            for (const issue of obsolete) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: "closed",
+                state_reason: "completed",
+              });
+            }
+
+            core.info(`Closed ${obsolete.length} obsolete automation issues`);
