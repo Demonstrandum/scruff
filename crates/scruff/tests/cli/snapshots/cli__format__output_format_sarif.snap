@@ -1,7 +1,7 @@
 ---
-source: crates/ruff/tests/cli/format.rs
+source: crates/scruff/tests/cli/format.rs
 info:
-  program: ruff
+  program: scruff
   args:
     - format
     - "--no-cache"
@@ -69,7 +69,7 @@ exit_code: 1
       "tool": {
         "driver": {
           "informationUri": "https://github.com/Demonstrandum/scruff",
-          "name": "ruff",
+          "name": "scruff",
           "rules": [],
           "version": "[VERSION]"
         }

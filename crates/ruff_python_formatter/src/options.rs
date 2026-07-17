@@ -2,8 +2,6 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-use regex;
-
 use ruff_formatter::printer::{LineEnding, PrinterOptions, SourceMapGeneration};
 use ruff_formatter::{FormatOptions, IndentStyle, IndentWidth, LineWidth};
 use ruff_macros::CacheKey;
@@ -44,7 +42,7 @@ pub struct PyFormatOptions {
     /// The preferred quote style to use (single vs double quotes).
     quote_style: QuoteStyle,
 
-    /// Regular expression to identify symbols when using QuoteStyle::Symbol.
+    /// Regular expression to identify symbols when using `QuoteStyle::Symbol`.
     /// Symbols will use single quotes, non-symbols use double quotes.
     #[cfg_attr(feature = "serde", serde(skip))]
     quote_symbol_regex: Option<regex::Regex>,
@@ -69,6 +67,13 @@ pub struct PyFormatOptions {
 
     /// Whether preview style formatting is enabled or not
     preview: PreviewMode,
+
+    /// Controls the quote style for nested strings in Python 3.12+.
+    ///
+    /// When set to `alternating` (default), Ruff will alternate quote styles for nested strings
+    /// inside interpolated string expressions. When set to `preferred`, Ruff will use
+    /// the configured `quote-style`.
+    nested_string_quote_style: NestedStringQuoteStyle,
 }
 
 fn default_line_width() -> LineWidth {
@@ -99,6 +104,7 @@ impl Default for PyFormatOptions {
             docstring_code: DocstringCode::default(),
             docstring_code_line_width: DocstringCodeLineWidth::default(),
             preview: PreviewMode::default(),
+            nested_string_quote_style: NestedStringQuoteStyle::default(),
         }
     }
 }
@@ -154,6 +160,10 @@ impl PyFormatOptions {
 
     pub const fn preview(&self) -> PreviewMode {
         self.preview
+    }
+
+    pub const fn nested_string_quote_style(&self) -> NestedStringQuoteStyle {
+        self.nested_string_quote_style
     }
 
     #[must_use]
@@ -219,6 +229,15 @@ impl PyFormatOptions {
     #[must_use]
     pub fn with_preview(mut self, preview: PreviewMode) -> Self {
         self.preview = preview;
+        self
+    }
+
+    #[must_use]
+    pub fn with_nested_string_quote_style(
+        mut self,
+        nested_string_quote_style: NestedStringQuoteStyle,
+    ) -> Self {
+        self.nested_string_quote_style = nested_string_quote_style;
         self
     }
 
@@ -370,6 +389,31 @@ impl fmt::Display for PreviewMode {
         match self {
             Self::Disabled => write!(f, "disabled"),
             Self::Enabled => write!(f, "enabled"),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Default, CacheKey)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+pub enum NestedStringQuoteStyle {
+    #[default]
+    Alternating,
+    Preferred,
+}
+
+impl NestedStringQuoteStyle {
+    pub const fn is_preferred(self) -> bool {
+        matches!(self, NestedStringQuoteStyle::Preferred)
+    }
+}
+
+impl fmt::Display for NestedStringQuoteStyle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Alternating => write!(f, "alternating"),
+            Self::Preferred => write!(f, "preferred"),
         }
     }
 }

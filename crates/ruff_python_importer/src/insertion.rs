@@ -5,8 +5,8 @@ use std::ops::Add;
 use ruff_diagnostics::Edit;
 use ruff_python_ast::Stmt;
 use ruff_python_ast::helpers::is_docstring_stmt;
+use ruff_python_ast::token::{TokenKind, Tokens};
 use ruff_python_codegen::Stylist;
-use ruff_python_parser::{TokenKind, Tokens};
 use ruff_python_trivia::is_python_whitespace;
 use ruff_python_trivia::{PythonWhitespace, textwrap::indent};
 use ruff_source_file::{LineRanges, UniversalNewlineIterator};
@@ -93,16 +93,24 @@ impl<'a> Insertion<'a> {
             contents.bom_start_offset()
         };
 
-        // Skip over commented lines, with whitespace separation.
+        // Skip over commented lines, with whitespace separation. Track blank
+        // lines after comments so we can preserve them between comments and
+        // the first statement.
+        let mut seen_comment = false;
         for line in
             UniversalNewlineIterator::with_offset(&contents[location.to_usize()..], location)
         {
             let trimmed_line = line.trim_whitespace_start();
             if trimmed_line.is_empty() {
+                if seen_comment {
+                    location = line.full_end();
+                }
                 continue;
             }
+
             if trimmed_line.starts_with('#') {
                 location = line.full_end();
+                seen_comment = true;
             } else {
                 break;
             }
@@ -194,7 +202,7 @@ impl<'a> Insertion<'a> {
             tokens
                 .before(at)
                 .last()
-                .map(ruff_python_parser::Token::kind),
+                .map(ruff_python_ast::token::Token::kind),
             Some(TokenKind::Import)
         ) {
             return None;
@@ -525,6 +533,35 @@ x = 1
             Insertion::inline(" ", TextSize::from(20), ";")
         );
 
+        // Script metadata comments followed by a blank line and imports.
+        // The blank line between the comments and the import should be preserved.
+        let contents = r"
+# /// script
+# dependencies = ['anyio']
+# ///
+
+import datetime as dt
+"
+        .trim_start();
+        assert_eq!(
+            insert(contents)?,
+            Insertion::own_line("", TextSize::from(47), "\n")
+        );
+
+        // Comments without a blank line before imports should insert right
+        // after the comments (no blank line to preserve).
+        let contents = r"
+# /// script
+# dependencies = ['anyio']
+# ///
+import datetime as dt
+"
+        .trim_start();
+        assert_eq!(
+            insert(contents)?,
+            Insertion::own_line("", TextSize::from(46), "\n")
+        );
+
         Ok(())
     }
 
@@ -572,7 +609,8 @@ from collections import Counter
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import Counter, defaultdict
         ",
         );
@@ -582,7 +620,8 @@ from collections import Counter, OrderedDict
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import Counter, OrderedDict, defaultdict
         ",
         );
@@ -592,7 +631,10 @@ from collections import (Counter)
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @"from collections import (Counter, defaultdict)",
+            @"
+
+        from collections import (Counter, defaultdict)
+        ",
         );
 
         let source = r#"
@@ -600,7 +642,10 @@ from collections import (Counter, OrderedDict)
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @"from collections import (Counter, OrderedDict, defaultdict)",
+            @"
+
+        from collections import (Counter, OrderedDict, defaultdict)
+        ",
         );
 
         let source = r#"
@@ -608,7 +653,10 @@ from collections import (Counter,)
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @"from collections import (Counter, defaultdict,)",
+            @"
+
+        from collections import (Counter, defaultdict,)
+        ",
         );
 
         let source = r#"
@@ -616,7 +664,10 @@ from collections import (Counter, OrderedDict,)
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @"from collections import (Counter, OrderedDict, defaultdict,)",
+            @"
+
+        from collections import (Counter, OrderedDict, defaultdict,)
+        ",
         );
 
         let source = r#"
@@ -626,7 +677,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter, defaultdict
         )
@@ -640,7 +692,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter, defaultdict,
         )
@@ -655,7 +708,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter,
           OrderedDict, defaultdict
@@ -671,7 +725,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter,
           OrderedDict, defaultdict,
@@ -686,6 +741,7 @@ from collections import \
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
             @r"
+
         from collections import \
           Counter, defaultdict
         ",
@@ -698,6 +754,7 @@ from collections import \
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
             @r"
+
         from collections import \
           Counter, OrderedDict, defaultdict
         ",
@@ -711,6 +768,7 @@ from collections import \
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
             @r"
+
         from collections import \
           Counter, \
           OrderedDict, defaultdict
@@ -745,7 +803,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter, defaultdict # comment
         )
@@ -759,7 +818,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter, defaultdict, # comment
         )
@@ -774,7 +834,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter, defaultdict # comment
           ,
@@ -791,7 +852,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           Counter, defaultdict
           # comment
@@ -809,7 +871,8 @@ from collections import (
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @r"
+            @"
+
         from collections import (
           # comment 1
           Counter, defaultdict # comment 2
@@ -823,7 +886,10 @@ from collections import Counter # comment
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @"from collections import Counter, defaultdict # comment",
+            @"
+
+        from collections import Counter, defaultdict # comment
+        ",
         );
 
         let source = r#"
@@ -831,7 +897,10 @@ from collections import Counter, OrderedDict # comment
 "#;
         insta::assert_snapshot!(
             snapshot(source, "defaultdict"),
-            @"from collections import Counter, OrderedDict, defaultdict # comment",
+            @"
+
+        from collections import Counter, OrderedDict, defaultdict # comment
+        ",
         );
     }
 }

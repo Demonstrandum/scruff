@@ -11,5 +11,3 @@ quote-symbol-regex = '^[a-zA-Z0-9_\-\|]+$'
 
 [tool.uv.sources]
 scruff = { path = "../../" }
-
-

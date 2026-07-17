@@ -1,7 +1,7 @@
 ---
-source: crates/ruff/tests/lint.rs
+source: crates/scruff/tests/cli/lint.rs
 info:
-  program: ruff
+  program: scruff
   args:
     - check
     - "--no-cache"
@@ -47,8 +47,10 @@ exit_code: 1
       "row": 1
     },
     "message": "`os` imported but unused",
+    "name": "unused-import",
     "noqa_row": 1,
-    "url": "https://docs.astral.sh/ruff/rules/unused-import"
+    "severity": "error",
+    "url": "https://github.com/Demonstrandum/scruff/rules/unused-import"
   },
   {
     "cell": null,
@@ -64,8 +66,10 @@ exit_code: 1
       "row": 2
     },
     "message": "Undefined name `y`",
+    "name": "undefined-name",
     "noqa_row": 2,
-    "url": "https://docs.astral.sh/ruff/rules/undefined-name"
+    "severity": "error",
+    "url": "https://github.com/Demonstrandum/scruff/rules/undefined-name"
   },
   {
     "cell": null,
@@ -81,7 +85,9 @@ exit_code: 1
       "row": 3
     },
     "message": "Cannot use `match` statement on Python 3.9 (syntax was added in Python 3.10)",
+    "name": "invalid-syntax",
     "noqa_row": null,
+    "severity": "error",
     "url": null
   }
 ]

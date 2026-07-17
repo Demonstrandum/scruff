@@ -33,6 +33,7 @@ I001 [*] Import block is un-sorted or un-formatted
    | |_____________^
    |
 help: Organize imports
+   |
    - from a import b
 1  + import A
 2  + import a
@@ -62,14 +63,15 @@ help: Organize imports
    - from b import C
 21 + from b import C, c
 22 | from b import c as d
-   - 
+   -
    - import A
    - import a
    - import b
    - import B
-   - 
+   -
    - import x as y
    - import x as A
    - import x as Y
    - import x
    - import x as a
+   |

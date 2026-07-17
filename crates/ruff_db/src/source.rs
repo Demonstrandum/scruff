@@ -1,6 +1,8 @@
+use std::borrow::Cow;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use ruff_diagnostics::SourceMap;
 use ruff_notebook::Notebook;
 use ruff_python_ast::PySourceType;
 use ruff_source_file::LineIndex;
@@ -10,11 +12,15 @@ use crate::files::{File, FilePath};
 use crate::system::System;
 
 /// Reads the source text of a python text file (must be valid UTF8) or notebook.
-#[salsa::tracked(heap_size=ruff_memory_usage::heap_size)]
+#[salsa::tracked(returns(clone), heap_size=ruff_memory_usage::heap_size)]
 pub fn source_text(db: &dyn Db, file: File) -> SourceText {
     let path = file.path(db);
     let _span = tracing::trace_span!("source_text", file = %path).entered();
     let mut read_error = None;
+
+    if let Some(source) = file.source_text_override(db) {
+        return source.clone();
+    }
 
     let kind = if is_notebook(db.system(), path) {
         file.read_to_notebook(db)
@@ -90,6 +96,45 @@ impl SourceText {
     pub fn read_error(&self) -> Option<&SourceTextError> {
         self.inner.read_error.as_ref()
     }
+
+    /// Returns a new instance for this file with the updated source text (Python code).
+    ///
+    /// Uses the `source_map` to preserve the cell-boundaries.
+    #[must_use]
+    pub fn with_text(&self, new_text: String, source_map: &SourceMap) -> Self {
+        let new_kind = match &self.inner.kind {
+            SourceTextKind::Text(_) => SourceTextKind::Text(new_text),
+
+            SourceTextKind::Notebook { notebook } => {
+                let mut new_notebook = notebook.as_ref().clone();
+                new_notebook.update(source_map, new_text);
+                SourceTextKind::Notebook {
+                    notebook: new_notebook.into(),
+                }
+            }
+        };
+
+        Self {
+            inner: Arc::new(SourceTextInner {
+                kind: new_kind,
+                read_error: self.inner.read_error.clone(),
+            }),
+        }
+    }
+
+    pub fn to_bytes(&self) -> Cow<'_, [u8]> {
+        match &self.inner.kind {
+            SourceTextKind::Text(source) => Cow::Borrowed(source.as_bytes()),
+            SourceTextKind::Notebook { notebook } => {
+                let mut output: Vec<u8> = Vec::new();
+                notebook
+                    .write(&mut output)
+                    .expect("writing to a Vec should never fail");
+
+                Cow::Owned(output)
+            }
+        }
+    }
 }
 
 impl Deref for SourceText {
@@ -117,13 +162,13 @@ impl std::fmt::Debug for SourceText {
     }
 }
 
-#[derive(Eq, PartialEq, get_size2::GetSize)]
+#[derive(Eq, PartialEq, get_size2::GetSize, Clone)]
 struct SourceTextInner {
     kind: SourceTextKind,
     read_error: Option<SourceTextError>,
 }
 
-#[derive(Eq, PartialEq, get_size2::GetSize)]
+#[derive(Eq, PartialEq, get_size2::GetSize, Clone)]
 enum SourceTextKind {
     Text(String),
     Notebook {
@@ -157,7 +202,7 @@ pub enum SourceTextError {
 }
 
 /// Computes the [`LineIndex`] for `file`.
-#[salsa::tracked(heap_size=ruff_memory_usage::heap_size)]
+#[salsa::tracked(returns(clone), heap_size=ruff_memory_usage::heap_size)]
 pub fn line_index(db: &dyn Db, file: File) -> LineIndex {
     let _span = tracing::trace_span!("line_index", ?file).entered();
 

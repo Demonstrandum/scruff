@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use ruff_db::files::File;
 use ty_combine::Combine;
+use ty_python_semantic::AnalysisSettings;
 use ty_python_semantic::lint::RuleSelection;
 
 use crate::metadata::options::{InnerOverrideOptions, OutputFormat};
@@ -19,12 +20,13 @@ use crate::{Db, glob::IncludeExcludeFilter};
 /// changing the terminal settings shouldn't invalidate any core type-checking queries.
 /// This can be achieved by adding a salsa query for the type checking specific settings.
 ///
-/// Settings that are part of [`ty_python_semantic::ProgramSettings`] are not included here.
+/// Settings that are part of [`ty_python_core::program::ProgramSettings`] are not included here.
 #[derive(Clone, Debug, Eq, PartialEq, get_size2::GetSize)]
 pub struct Settings {
     pub(super) rules: Arc<RuleSelection>,
     pub(super) terminal: TerminalSettings,
     pub(super) src: SrcSettings,
+    pub(super) analysis: AnalysisSettings,
 
     /// Settings for configuration overrides that apply to specific file patterns.
     ///
@@ -54,18 +56,39 @@ impl Settings {
     pub fn overrides(&self) -> &[Override] {
         &self.overrides
     }
+
+    pub fn analysis(&self) -> &AnalysisSettings {
+        &self.analysis
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default, get_size2::GetSize)]
+#[derive(Debug, Clone, PartialEq, Eq, get_size2::GetSize)]
 pub struct TerminalSettings {
     pub output_format: OutputFormat,
     pub error_on_warning: bool,
+}
+
+impl Default for TerminalSettings {
+    fn default() -> Self {
+        Self {
+            output_format: OutputFormat::default(),
+            error_on_warning: true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, get_size2::GetSize)]
 pub struct SrcSettings {
     pub respect_ignore_files: bool,
     pub files: IncludeExcludeFilter,
+}
+impl SrcSettings {
+    pub(crate) fn default() -> Self {
+        Self {
+            respect_ignore_files: true,
+            files: IncludeExcludeFilter::default(),
+        }
+    }
 }
 
 /// A single configuration override that applies to files matching specific patterns.
@@ -91,7 +114,7 @@ impl Override {
         matches!(
             self.files
                 .is_file_included(path, GlobFilterCheckMode::Adhoc),
-            IncludeResult::Included
+            IncludeResult::Included { .. }
         )
     }
 }
@@ -156,7 +179,7 @@ pub(crate) fn file_settings(db: &dyn Db, file: File) -> FileSettings {
 /// This is to make Salsa happy because it requires that queries with only a single argument
 /// take a salsa-struct as argument, which isn't the case here. The `()` enables salsa's
 /// automatic interning for the arguments.
-#[salsa::tracked(heap_size=ruff_memory_usage::heap_size)]
+#[salsa::tracked(returns(clone), heap_size=ruff_memory_usage::heap_size)]
 fn merge_overrides(db: &dyn Db, overrides: Vec<Arc<InnerOverrideOptions>>, _: ()) -> FileSettings {
     let mut overrides = overrides.into_iter().rev();
     let mut merged = (*overrides.next().unwrap()).clone();
@@ -165,18 +188,28 @@ fn merge_overrides(db: &dyn Db, overrides: Vec<Arc<InnerOverrideOptions>>, _: ()
         merged.combine_with((*option).clone());
     }
 
-    merged
-        .rules
-        .combine_with(db.project().metadata(db).options().rules.clone());
+    let metadata = db.project().metadata(db);
 
-    let Some(rules) = merged.rules else {
+    // Merge with the project level options by replaying the individual options
+    // in the correct precedence order.
+    for options in metadata.options_in_precedence_order(metadata.options()) {
+        merged.rules.combine_with(options.rules.clone());
+        merged.analysis.combine_with(options.analysis.clone());
+    }
+
+    if merged.rules.is_none() && merged.analysis.is_none() {
         return FileSettings::Global;
-    };
+    }
+
+    let rules = merged.rules.unwrap_or_default();
+    let analysis = merged.analysis.unwrap_or_default();
 
     // It's okay to ignore the errors here because the rules are eagerly validated
     // during `overrides.to_settings()`.
     let rules = rules.to_rule_selection(db, &mut Vec::new());
-    FileSettings::File(Arc::new(OverrideSettings { rules }))
+    let analysis = analysis.to_settings(db, &mut Vec::new());
+
+    FileSettings::File(Arc::new(OverrideSettings { rules, analysis }))
 }
 
 /// The resolved settings for a file.
@@ -196,9 +229,17 @@ impl FileSettings {
             FileSettings::File(override_settings) => &override_settings.rules,
         }
     }
+
+    pub fn analysis<'a>(&'a self, db: &'a dyn Db) -> &'a AnalysisSettings {
+        match self {
+            FileSettings::Global => db.project().settings(db).analysis(),
+            FileSettings::File(override_settings) => &override_settings.analysis,
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, get_size2::GetSize)]
 pub struct OverrideSettings {
     pub(super) rules: RuleSelection,
+    pub(super) analysis: AnalysisSettings,
 }

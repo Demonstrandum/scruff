@@ -9,7 +9,7 @@ use std::env::set_current_dir;
 use std::process::Command;
 
 use insta_cmd::{assert_cmd_snapshot, get_cargo_bin};
-const BIN_NAME: &str = "ruff";
+const BIN_NAME: &str = "scruff";
 
 #[test]
 fn check_in_deleted_directory_errors() {
@@ -18,13 +18,13 @@ fn check_in_deleted_directory_errors() {
     set_current_dir(&temp_path).unwrap();
     drop(temp_dir);
 
-    assert_cmd_snapshot!(Command::new(get_cargo_bin(BIN_NAME)).arg("check"), @r###"
-            success: false
-            exit_code: 2
-            ----- stdout -----
+    assert_cmd_snapshot!(Command::new(get_cargo_bin(BIN_NAME)).arg("check"), @"
+    success: false
+    exit_code: 2
+    ----- stdout -----
 
-            ----- stderr -----
-            scruff failed
-              Cause: Working directory does not exist
-            "###);
+    ----- stderr -----
+    scruff failed
+      Cause: Working directory does not exist
+    ");
 }

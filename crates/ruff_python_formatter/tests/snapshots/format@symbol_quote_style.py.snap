@@ -67,6 +67,7 @@ docstring-code-line-width  = "dynamic"
 preview                    = Disabled
 target_version             = 3.10
 source_type                = Python
+nested-string-quote-style  = alternating
 ```
 
 ```python
@@ -100,7 +101,7 @@ only_dot = '.'
 mixed_symbols = 'a-b_c.d:e'
 
 # F-strings and raw strings should respect the quote choice for their content
-f_string_symbol = f"value_{name}"
+f_string_symbol = f'value_{name}'
 f_string_text = f"Hello {name}, how are you?"
 raw_symbol = r'regex_pattern'
 raw_text = r"This is a raw string with text"

@@ -29,7 +29,7 @@ fn type_checking_imports() -> anyhow::Result<()> {
         ("ruff/c.py", ""),
     ])?;
 
-    assert_cmd_snapshot!(test.command(), @r###"
+    assert_cmd_snapshot!(test.command(), @r#"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -46,12 +46,12 @@ fn type_checking_imports() -> anyhow::Result<()> {
     }
 
     ----- stderr -----
-    "###);
+    "#);
 
     assert_cmd_snapshot!(
         test.command()
             .arg("--no-type-checking-imports"),
-        @r###"
+        @r#"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -65,7 +65,7 @@ fn type_checking_imports() -> anyhow::Result<()> {
     }
 
     ----- stderr -----
-    "###
+    "#
     );
 
     Ok(())
@@ -103,7 +103,7 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
         ),
     ])?;
 
-    assert_cmd_snapshot!(test.command(), @r###"
+    assert_cmd_snapshot!(test.command(), @r#"
     success: true
     exit_code: 0
     ----- stdout -----
@@ -113,11 +113,11 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
         "ruff/b.py"
       ],
       "ruff/b.py": [],
-      "ruff/c.py": []
+      "scruff/c.py": []
     }
 
     ----- stderr -----
-    "###);
+    "#);
 
     test.write_file(
         "scruff.toml",
@@ -127,24 +127,23 @@ fn type_checking_imports_from_config() -> anyhow::Result<()> {
         "#,
     )?;
 
-    assert_cmd_snapshot!(test.command(), @r###"
+    assert_cmd_snapshot!(test.command(), @r#"
     success: true
     exit_code: 0
     ----- stdout -----
     {
       "ruff/__init__.py": [],
       "ruff/a.py": [
-        "ruff/b.py",
-        "ruff/c.py"
+        "ruff/b.py"
       ],
       "ruff/b.py": [
-        "ruff/c.py"
+        "ruff/__init__.py"
       ],
-      "ruff/c.py": []
+      "scruff/c.py": []
     }
 
     ----- stderr -----
-    "###
+    "#
     );
 
     Ok(())

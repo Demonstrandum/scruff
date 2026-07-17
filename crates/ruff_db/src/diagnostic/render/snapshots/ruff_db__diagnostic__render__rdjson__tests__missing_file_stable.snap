@@ -14,7 +14,7 @@ expression: env.render(&diag)
   ],
   "severity": "WARNING",
   "source": {
-    "name": "ruff",
-    "url": "https://docs.astral.sh/ruff"
+    "name": "scruff",
+    "url": "https://github.com/Demonstrandum/scruff"
   }
 }
