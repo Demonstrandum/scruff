@@ -2,8 +2,8 @@ use std::cell::Cell;
 
 use ruff_formatter::{FormatRuleWithOptions, format_args, write};
 use ruff_python_ast::{AnyNodeRef, Parameters};
-use ruff_source_file::LineRanges;
 use ruff_python_trivia::{CommentLinePosition, SimpleToken, SimpleTokenKind, SimpleTokenizer};
+use ruff_source_file::LineRanges;
 use ruff_text_size::{Ranged, TextRange, TextSize};
 
 use crate::comments::{
@@ -111,11 +111,7 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                 });
         let tali_magic_trailing_comma = f.options().is_tali_mode()
             && f.options().magic_trailing_comma().is_respect()
-            && has_trailing_comma(
-                item,
-                last_parameter_node(item),
-                f.context().source(),
-            );
+            && has_trailing_comma(item, last_parameter_node(item), f.context().source());
 
         let format_inner = format_with(|f: &mut PyFormatter| {
             let tali_group_breaks = if f.options().is_tali_mode()
