@@ -2,6 +2,7 @@ use std::cell::Cell;
 
 use ruff_formatter::{FormatRuleWithOptions, format_args, write};
 use ruff_python_ast::{AnyNodeRef, Parameters};
+use ruff_source_file::LineRanges;
 use ruff_python_trivia::{CommentLinePosition, SimpleToken, SimpleTokenKind, SimpleTokenizer};
 use ruff_text_size::{Ranged, TextRange, TextSize};
 
@@ -127,9 +128,9 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                     let index = separator_index.get();
                     separator_index.set(index + 1);
                     if group_breaks[index] {
-                        hard_line_break().fmt(f)?;
+                        hard_line_break().fmt(f)
                     } else {
-                        space().fmt(f)?;
+                        space().fmt(f)
                     }
                 } else if f.context().node_level().is_parenthesized() {
                     soft_line_break_or_space().fmt(f)
@@ -322,7 +323,7 @@ fn parameter_item_ranges(
     }
 
     ranges.extend(parameters.kwonlyargs.iter().map(Ranged::range));
-    ranges.extend(parameters.kwarg.iter().map(Ranged::range));
+    ranges.extend(parameters.kwarg.as_deref().map(Ranged::range));
     ranges
 }
 

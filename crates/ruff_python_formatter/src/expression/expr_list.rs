@@ -1,5 +1,6 @@
 use ruff_formatter::prelude::format_with;
 use ruff_python_ast::{AnyNodeRef, Expr, ExprList};
+use ruff_source_file::LineRanges;
 use ruff_text_size::Ranged;
 
 use crate::expression::parentheses::{
@@ -63,10 +64,12 @@ fn is_rectangular_nested_list(elements: &[Expr], context: &PyFormatContext) -> b
 }
 
 fn nested_sequence_shape(expression: &Expr, context: &PyFormatContext) -> Option<Vec<usize>> {
-    if !context
+    if context
         .comments()
         .leading_dangling_trailing(expression)
-        .is_empty()
+        .into_iter()
+        .next()
+        .is_some()
     {
         return None;
     }
