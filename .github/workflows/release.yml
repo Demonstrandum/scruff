@@ -257,12 +257,29 @@ jobs:
       "id-token": "write"
       "packages": "write"
 
+  custom-publish-wasm:
+    needs:
+      - plan
+      - host
+      - release-gate
+    if: ${{ !fromJson(needs.plan.outputs.val).announcement_is_prerelease || fromJson(needs.plan.outputs.val).publish_prereleases }}
+    uses: ./.github/workflows/publish-wasm.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+    # publish jobs get escalated permissions
+    permissions:
+      "contents": "read"
+      "id-token": "write"
+      "packages": "write"
+
   custom-publish-crates:
     needs:
       - plan
       - host
       - release-gate
       - custom-publish-pypi # DIRTY: see #16989
+      - custom-publish-wasm # DIRTY: see #16989
     if: ${{ !fromJson(needs.plan.outputs.val).announcement_is_prerelease || fromJson(needs.plan.outputs.val).publish_prereleases }}
     uses: ./.github/workflows/publish-crates.yml
     with:
@@ -280,12 +297,13 @@ jobs:
       - host
       - release-gate
       - custom-publish-pypi
+      - custom-publish-wasm
     # use "always() && ..." to allow us to wait for all publish jobs while
     # still allowing individual publish jobs to skip themselves (for prereleases).
     # "host" however must run to completion, no skipping allowed!
     # `custom-publish-crates` is intentionally not a dependency because a crates.io outage should
     # not block the rest of the release.
-    if: ${{ always() && needs.host.result == 'success' && needs.release-gate.result == 'success' && (needs.custom-publish-pypi.result == 'skipped' || needs.custom-publish-pypi.result == 'success') }}
+    if: ${{ always() && needs.host.result == 'success' && needs.release-gate.result == 'success' && (needs.custom-publish-pypi.result == 'skipped' || needs.custom-publish-pypi.result == 'success') && (needs.custom-publish-wasm.result == 'skipped' || needs.custom-publish-wasm.result == 'success') }}
     runs-on: ubuntu-latest
     permissions:
       "attestations": "write"
@@ -329,3 +347,50 @@ jobs:
           echo "$ANNOUNCEMENT_BODY" > $RUNNER_TEMP/notes.txt
 
           gh release create "${{ needs.plan.outputs.tag }}" --target "$RELEASE_COMMIT" $PRERELEASE_FLAG --title "$ANNOUNCEMENT_TITLE" --notes-file "$RUNNER_TEMP/notes.txt" artifacts/*
+
+  custom-notify-dependents:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/notify-dependents.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+
+  custom-publish-docs:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/publish-docs.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+
+  custom-publish-playground:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/publish-playground.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+
+  custom-publish-versions:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/publish-versions.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+
+  custom-publish-mirror:
+    needs:
+      - plan
+      - announce
+    uses: ./.github/workflows/publish-mirror.yml
+    with:
+      plan: ${{ needs.plan.outputs.val }}
+    secrets: inherit
+    permissions:
+      "contents": "read"

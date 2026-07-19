@@ -59,11 +59,10 @@ github-attestations-filters = ["*.json", "*.sh", "*.ps1", "*.zip", "*.tar.gz"]
 build-local-artifacts = false
 # Local artifacts jobs to run in CI
 local-artifacts-jobs = ["./build-binaries", "./build-docker", "./build-wasm"]
-# Publish jobs backed by fork-owned registries. The upstream WASM scope is intentionally excluded
-# until Scruff has an npm namespace.
-publish-jobs = ["./publish-pypi", "./publish-crates"]
-# Upstream's post-announce jobs require Astral repositories and secrets that this fork does not own.
-post-announce-jobs = []
+# Publish jobs to run in CI
+publish-jobs = ["./publish-pypi", "./publish-wasm", "./publish-crates"]
+# Post-announce jobs to run in CI
+post-announce-jobs = ["./notify-dependents", "./publish-docs", "./publish-playground", "./publish-versions", "./publish-mirror"]
 # Custom permissions for GitHub Jobs
 github-custom-job-permissions = { "build-docker" = { packages = "write", contents = "read", id-token = "write", attestations = "write" }, "publish-wasm" = { contents = "read", id-token = "write", packages = "write" }, "publish-crates" = { contents = "read" }, "publish-mirror" = { contents = "read" } }
 # Whether to install an updater program
