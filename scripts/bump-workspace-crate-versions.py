@@ -1,6 +1,6 @@
 # Naively increment the patch version of each crate in the workspace.
 #
-# This excludes crates which are versioned with Ruff's command-line interface.
+# This excludes crates which are versioned with Scruff's command-line interface.
 #
 # After incrementing the version in each member `Cargo.toml`, it updates the version pins in the
 # root `Cargo.toml` to match.
@@ -18,7 +18,7 @@ import pathlib
 import subprocess
 import tomllib
 
-NO_BUMP_CRATES = {"ruff", "ruff_linter", "ruff_wasm"}
+NO_BUMP_CRATES = {"scruff", "ruff_linter", "ruff_wasm"}
 
 
 def main() -> None:
@@ -44,10 +44,11 @@ def main() -> None:
         if manifest_dependency is None:
             continue
         manifest_version = manifest_dependency["version"]
-        if manifest_version != crate_version:
+        if manifest_version.removeprefix("=") != crate_version:
+            version_prefix = "=" if manifest_version.startswith("=") else ""
             workspace_manifest_contents = workspace_manifest_contents.replace(
                 f'{crate_name} = {{ version = "{manifest_version}"',
-                f'{crate_name} = {{ version = "{crate_version}"',
+                f'{crate_name} = {{ version = "{version_prefix}{crate_version}"',
             )
 
     workspace_manifest.write_text(workspace_manifest_contents)
@@ -87,7 +88,7 @@ def main() -> None:
                 continue
             manifest_version = manifest_dependency["version"]
             metadata_version = packages[workspace_member]["version"]
-            if manifest_version != metadata_version:
+            if manifest_version.removeprefix("=") != metadata_version:
                 version_changes[name] = (manifest_version, metadata_version)
             continue
 
