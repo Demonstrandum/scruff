@@ -1,6 +1,6 @@
 use ruff_formatter::prelude::format_with;
 use ruff_formatter::format_element::TextWidth;
-use ruff_formatter::FormatContext;
+use ruff_formatter::{FormatContext, FormatOptions};
 use ruff_python_ast::{AnyNodeRef, Expr, ExprList, Number};
 use ruff_source_file::LineRanges;
 use ruff_text_size::{Ranged, TextRange, TextSlice};
