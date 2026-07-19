@@ -60,7 +60,7 @@ fn aligned_column_widths(
 
     let first_shape = nested_sequence_shape(&elements[0], context)?;
 
-    if !first_shape.first().is_some_and(|columns| *columns >= 2)
+    if first_shape.first().is_none_or(|columns| *columns < 2)
         || !elements[1..]
             .iter()
             .all(|element| nested_sequence_shape(element, context).as_ref() == Some(&first_shape))
@@ -182,7 +182,7 @@ fn formatted_scalar_width(expression: &Expr, context: &PyFormatContext) -> Optio
 fn text_width(text: &str, context: &PyFormatContext) -> Option<u32> {
     TextWidth::from_text(text, context.options().indent_width())
         .width()
-        .map(|width| width.value())
+        .map(ruff_formatter::format_element::Width::value)
 }
 
 #[derive(Copy, Clone)]
