@@ -164,7 +164,7 @@ fn formatted_scalar_width(expression: &Expr, context: &PyFormatContext) -> Optio
                 Number::Complex { .. } => {
                     let normalized =
                         normalize_floating_number(source.trim_end_matches(['j', 'J']));
-                    text_width(&format!("{normalized}j"), context)?
+                    text_width(&std::format!("{normalized}j"), context)?
                 }
             }
         }
