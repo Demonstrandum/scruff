@@ -74,9 +74,11 @@ def positional_only(
 
 ## Rectangular data
 
-Tali mode preserves manual column alignment in comment-free, rectangular nested list literals;
-rows may be lists or tuples. This works recursively for two-dimensional and higher-dimensional
-data. Ragged sequences continue to use the standard formatter layout.
+When any row in a comment-free, rectangular nested list uses extra whitespace to align columns,
+Tali mode formats every cell normally and then enforces consistent column widths across the entire
+expression. Rows may be lists or tuples, and this works recursively for two-dimensional and
+higher-dimensional data. Unaligned or ragged sequences continue to use the standard formatter
+layout.
 
 ## Current limitations
 

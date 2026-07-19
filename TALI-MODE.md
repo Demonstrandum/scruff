@@ -8,7 +8,7 @@
     - [ ] Triple-single quote strings when containing a `"` double quote.
 - [x] Imports for side-effects allowed by `import x as _` instead of comments.
 - [x] Preserve manually grouped multiline function parameters, including groups around `/` and `*`.
-- [x] Preserve column-aligned rectangular 2-D and N-D list literals.
+- [x] Detect and consistently enforce column alignment in rectangular 2-D and N-D list literals.
 - [ ] Horizontal white-space alignment:
     - [ ] Allow aligning trailing comments to the right.
         - [ ] Auto-align with surrounding comments when more than 3 spaces away already.

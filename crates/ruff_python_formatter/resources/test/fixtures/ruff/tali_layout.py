@@ -18,6 +18,18 @@ matrix = [
 ]
 
 
+normalized_matrix = [
+    [1.E2,  3],
+    [40.0, 500],
+]
+
+
+unaligned_matrix = [
+    [1, 20],
+    [300, 4],
+]
+
+
 tensor = [
     [
         [1,  20],
