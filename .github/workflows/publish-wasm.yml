@@ -13,6 +13,8 @@ on:
 
 jobs:
   publish:
+    # Built packages still become workflow artifacts, but this fork does not own the Astral npm scope.
+    if: ${{ github.repository != 'Demonstrandum/scruff' }}
     runs-on: ubuntu-latest
     environment: release
     permissions:

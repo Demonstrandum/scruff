@@ -14,6 +14,8 @@ permissions: {}
 
 jobs:
   publish-mirror:
+    # The configured R2 mirror is an upstream publishing destination.
+    if: ${{ github.repository != 'Demonstrandum/scruff' }}
     runs-on: ubuntu-latest
     environment:
       name: release

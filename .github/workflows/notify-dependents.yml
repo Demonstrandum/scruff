@@ -14,6 +14,8 @@ on:
 jobs:
   update-dependents:
     name: Notify dependents
+    # Demonstrandum/ruff-pre-commit is not available for this fork.
+    if: ${{ github.repository != 'Demonstrandum/scruff' }}
     environment:
       name: release
     runs-on: ubuntu-latest

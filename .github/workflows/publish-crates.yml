@@ -14,6 +14,8 @@ on:
 jobs:
   crates-publish-scruff:
     name: Upload Scruff to crates.io
+    # No `scruff` crate or trusted publisher is configured on crates.io yet.
+    if: ${{ github.repository != 'Demonstrandum/scruff' }}
     runs-on: ubuntu-latest
     environment:
       name: release
