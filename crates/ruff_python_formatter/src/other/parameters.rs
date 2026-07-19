@@ -101,6 +101,14 @@ impl FormatNodeRule<Parameters> for FormatParameters {
         // argument separators, e.g., `*` or `/`).
         let (parenthesis_dangling, parameters_dangling) =
             dangling.split_at(parenthesis_comments_end);
+        let tali_first_parameter_on_new_line = f.options().is_tali_mode()
+            && parameter_item_ranges(item, slash.as_ref(), star.as_ref())
+                .first()
+                .is_some_and(|first| {
+                    f.context()
+                        .source()
+                        .contains_line_break(TextRange::new(item.start(), first.start()))
+                });
 
         let format_inner = format_with(|f: &mut PyFormatter| {
             let tali_group_breaks = if f.options().is_tali_mode()
@@ -285,6 +293,23 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                     token("("),
                     dangling_open_parenthesis_comments(parenthesis_dangling),
                     soft_block_indent(&format_inner),
+                    token(")")
+                ]
+            )
+        } else if f.options().is_tali_mode() && parenthesis_dangling.is_empty() {
+            let leading_break = format_with(|f| {
+                if tali_first_parameter_on_new_line {
+                    hard_line_break().fmt(f)
+                } else {
+                    Ok(())
+                }
+            });
+            let mut f = WithNodeLevel::new(NodeLevel::ParenthesizedExpression, f);
+            write!(
+                f,
+                [
+                    token("("),
+                    indent(&format_args![leading_break, group(&format_inner)]),
                     token(")")
                 ]
             )
