@@ -53,6 +53,31 @@ import package as _
 
 This applies only to module imports. `from package import member as _` remains an unused import.
 
+## Grouped signatures
+
+Tali mode preserves deliberate parameter groups in multiline function signatures:
+
+```python
+def keyword_only(self, *,
+    first,
+    second,
+):
+    ...
+
+
+def positional_only(
+    a, b, /,
+    c, d,
+):
+    ...
+```
+
+## Rectangular data
+
+Tali mode preserves manual column alignment in comment-free, rectangular nested list literals;
+rows may be lists or tuples. This works recursively for two-dimensional and higher-dimensional
+data. Ragged sequences continue to use the standard formatter layout.
+
 ## Current limitations
 
 The following Tali behavior is planned but not implemented:
