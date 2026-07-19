@@ -1,0 +1,31 @@
+---
+source: crates/ruff_linter/src/rules/pyflakes/mod.rs
+---
+F401 [*] `sys` imported but unused
+ --> <filename>:2:8
+  |
+1 | import os as _
+2 | import sys
+  |        ^^^
+3 | from pathlib import Path as _
+  |
+help: Remove unused import: `sys`
+  |
+1 | import os as _
+  - import sys
+2 | from pathlib import Path as _
+  |
+
+F401 [*] `pathlib.Path` imported but unused
+ --> <filename>:3:29
+  |
+1 | import os as _
+2 | import sys
+3 | from pathlib import Path as _
+  |                             ^
+  |
+help: Remove unused import: `pathlib.Path`
+  |
+2 | import sys
+  - from pathlib import Path as _
+  |

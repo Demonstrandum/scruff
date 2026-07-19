@@ -3537,6 +3537,7 @@ impl PyflakesOptions {
         pyflakes::settings::Settings {
             extend_generics: self.extend_generics.unwrap_or_default(),
             allowed_unused_imports: self.allowed_unused_imports.unwrap_or_default(),
+            allow_side_effect_imports_as_underscore: false,
         }
     }
 }
