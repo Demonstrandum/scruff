@@ -109,6 +109,13 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                         .source()
                         .contains_line_break(TextRange::new(item.start(), first.start()))
                 });
+        let tali_magic_trailing_comma = f.options().is_tali_mode()
+            && f.options().magic_trailing_comma().is_respect()
+            && has_trailing_comma(
+                item,
+                last_parameter_node(item),
+                f.context().source(),
+            );
 
         let format_inner = format_with(|f: &mut PyFormatter| {
             let tali_group_breaks = if f.options().is_tali_mode()
@@ -266,6 +273,7 @@ impl FormatNodeRule<Parameters> for FormatParameters {
 
                 if f.options().magic_trailing_comma().is_respect()
                     && has_trailing_comma(item, last_node, f.context().source())
+                    && !f.options().is_tali_mode()
                 {
                     // Make the magic trailing comma expand the group
                     write!(f, [hard_line_break()])?;
@@ -305,11 +313,19 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                 }
             });
             let mut f = WithNodeLevel::new(NodeLevel::ParenthesizedExpression, f);
+            let closing_break = format_with(|f| {
+                if tali_magic_trailing_comma {
+                    hard_line_break().fmt(f)
+                } else {
+                    if_group_breaks(&hard_line_break()).fmt(f)
+                }
+            });
             write!(
                 f,
                 [
                     token("("),
                     indent(&format_args![leading_break, group(&format_inner)]),
+                    closing_break,
                     token(")")
                 ]
             )
@@ -350,6 +366,17 @@ fn parameter_item_ranges(
     ranges.extend(parameters.kwonlyargs.iter().map(Ranged::range));
     ranges.extend(parameters.kwarg.as_deref().map(Ranged::range));
     ranges
+}
+
+fn last_parameter_node(parameters: &Parameters) -> Option<AnyNodeRef<'_>> {
+    parameters
+        .kwarg
+        .as_deref()
+        .map(AnyNodeRef::from)
+        .or_else(|| parameters.kwonlyargs.last().map(AnyNodeRef::from))
+        .or_else(|| parameters.vararg.as_deref().map(AnyNodeRef::from))
+        .or_else(|| parameters.args.last().map(AnyNodeRef::from))
+        .or_else(|| parameters.posonlyargs.last().map(AnyNodeRef::from))
 }
 
 struct CommentsAroundText<'a> {

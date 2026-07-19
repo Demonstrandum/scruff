@@ -60,18 +60,17 @@ nested-string-quote-style  = alternating
 ```
 
 ```python
-def keyword_groups(
-    self, *,
+def keyword_groups(self, *,
     first,
     second,
-):
+    ):
     pass
 
 
 def positional_groups(
     a, b, /,
     c, d,
-):
+    ):
     pass
 
 
