@@ -18,8 +18,7 @@ impl fmt::Display for Settings {
             namespace = "linter.pyflakes",
             fields = [
                 self.extend_generics | debug,
-                self.allowed_unused_imports | debug,
-                self.allow_side_effect_imports_as_underscore
+                self.allowed_unused_imports | debug
             ]
         }
         Ok(())
