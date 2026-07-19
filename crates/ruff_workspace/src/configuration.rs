@@ -236,6 +236,10 @@ impl Mode {
     const fn allows_side_effect_imports_as_underscore(&self) -> bool {
         matches!(self, Self::Tali)
     }
+
+    const fn is_tali(&self) -> bool {
+        matches!(self, Self::Tali)
+    }
 }
 
 #[derive(Debug, Default, Clone)]
@@ -332,6 +336,7 @@ impl Configuration {
             nested_string_quote_style: format
                 .nested_string_quote_style
                 .unwrap_or(format_defaults.nested_string_quote_style),
+            tali_mode: mode.is_tali(),
             magic_trailing_comma: format
                 .magic_trailing_comma
                 .unwrap_or(format_defaults.magic_trailing_comma),
@@ -1964,6 +1969,7 @@ mod tests {
                 .pyflakes
                 .allow_side_effect_imports_as_underscore
         );
+        assert!(settings.formatter.tali_mode);
         Ok(())
     }
 

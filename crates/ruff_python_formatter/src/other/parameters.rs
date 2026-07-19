@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use ruff_formatter::{FormatRuleWithOptions, format_args, write};
 use ruff_python_ast::{AnyNodeRef, Parameters};
 use ruff_python_trivia::{CommentLinePosition, SimpleToken, SimpleTokenKind, SimpleTokenizer};
@@ -100,10 +102,36 @@ impl FormatNodeRule<Parameters> for FormatParameters {
             dangling.split_at(parenthesis_comments_end);
 
         let format_inner = format_with(|f: &mut PyFormatter| {
+            let tali_group_breaks = if f.options().is_tali_mode()
+                && self.parentheses != ParametersParentheses::Never
+            {
+                let ranges = parameter_item_ranges(item, slash.as_ref(), star.as_ref());
+                Some(
+                    ranges
+                        .windows(2)
+                        .map(|pair| {
+                            f.context()
+                                .source()
+                                .contains_line_break(TextRange::new(pair[0].end(), pair[1].start()))
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            } else {
+                None
+            };
+            let separator_index = Cell::new(0);
             let separator = format_with(|f: &mut PyFormatter| {
                 token(",").fmt(f)?;
 
-                if f.context().node_level().is_parenthesized() {
+                if let Some(group_breaks) = &tali_group_breaks {
+                    let index = separator_index.get();
+                    separator_index.set(index + 1);
+                    if group_breaks[index] {
+                        hard_line_break().fmt(f)?;
+                    } else {
+                        space().fmt(f)?;
+                    }
+                } else if f.context().node_level().is_parenthesized() {
                     soft_line_break_or_space().fmt(f)
                 } else {
                     space().fmt(f)
@@ -275,6 +303,27 @@ impl FormatNodeRule<Parameters> for FormatParameters {
             )
         }
     }
+}
+
+fn parameter_item_ranges(
+    parameters: &Parameters,
+    slash: Option<&ParameterSeparator>,
+    star: Option<&ParameterSeparator>,
+) -> Vec<TextRange> {
+    let mut ranges = Vec::with_capacity(parameters.len() + 2);
+    ranges.extend(parameters.posonlyargs.iter().map(Ranged::range));
+    ranges.extend(slash.map(|slash| slash.separator));
+    ranges.extend(parameters.args.iter().map(Ranged::range));
+
+    if let Some(vararg) = &parameters.vararg {
+        ranges.push(vararg.range());
+    } else {
+        ranges.extend(star.map(|star| star.separator));
+    }
+
+    ranges.extend(parameters.kwonlyargs.iter().map(Ranged::range));
+    ranges.extend(parameters.kwarg.iter().map(Ranged::range));
+    ranges
 }
 
 struct CommentsAroundText<'a> {
