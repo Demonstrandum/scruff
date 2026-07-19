@@ -1,18 +1,20 @@
-# Configuring Ruff
+# Configuring Scruff
 
-Ruff can be configured through a `pyproject.toml`, `ruff.toml`, or `.ruff.toml` file.
+Scruff can be configured through a `pyproject.toml`, `scruff.toml`, or `.scruff.toml` file.
+The Ruff file and table names remain accepted as compatibility aliases.
 
-Whether you're using Ruff as a linter, formatter, or both, the underlying configuration strategy and
+Whether you're using Scruff as a linter, formatter, or both, the underlying configuration strategy and
 semantics are the same.
 
 For a complete enumeration of the available configuration options, see [_Settings_](settings.md).
+Fork-specific behavior is described in [_Tali mode_](tali.md).
 
-If left unspecified, Ruff's default configuration is equivalent to:
+If left unspecified, Scruff's default configuration is equivalent to:
 
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff]
+    [tool.scruff]
     # Exclude a variety of commonly ignored directories.
     exclude = [
         ".bzr",
@@ -50,7 +52,7 @@ If left unspecified, Ruff's default configuration is equivalent to:
     # Assume Python 3.10
     target-version = "py310"
 
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
     # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
     # McCabe complexity (`C901`) by default.
@@ -64,7 +66,7 @@ If left unspecified, Ruff's default configuration is equivalent to:
     # Allow unused variables when underscore-prefixed.
     dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-    [tool.ruff.format]
+    [tool.scruff.format]
     # Like Black, use double quotes for strings.
     quote-style = "double"
 

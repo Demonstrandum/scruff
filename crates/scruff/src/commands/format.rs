@@ -624,7 +624,7 @@ impl<'a> FormatResults<'a> {
             .collect();
 
         let context = EmitterContext::new(&notebook_index);
-        let config = DisplayDiagnosticConfig::new("ruff")
+        let config = DisplayDiagnosticConfig::new("scruff")
             .hide_severity(true)
             .show_fix_diff(true)
             .color(!cfg!(test) && colored::control::SHOULD_COLORIZE.should_colorize());
@@ -1028,9 +1028,9 @@ impl Display for FormatCommandError {
                 }
             }
             Self::Panic(path, err) => {
-                let message = r"This indicates a bug in Ruff. If you could open an issue at:
+                let message = r"This indicates a bug in Scruff. If you could open an issue at:
 
-    https://github.com/astral-sh/ruff/issues/new?title=%5BFormatter%20panic%5D
+    https://github.com/Demonstrandum/scruff/issues/new?title=%5BFormatter%20panic%5D
 
 ...with the relevant file contents, the `pyproject.toml` settings, and the following stack trace, we'd be very appreciative!
 ";
@@ -1377,8 +1377,8 @@ mod tests {
 
         panic: Panicked at <location> when checking `test.py`: `Test panic for FormatCommandError`
         --> test.py:1:1
-        info: This indicates a bug in Ruff.
-        info: If you could open an issue at https://github.com/astral-sh/ruff/issues/new?title=%5Bpanic%5D, we'd be very appreciative!
+        info: This indicates a bug in Scruff.
+        info: If you could open an issue at https://github.com/Demonstrandum/scruff/issues/new?title=%5Bpanic%5D, we'd be very appreciative!
         info: run with `RUST_BACKTRACE=1` environment variable to show the full backtrace information
         ");
 

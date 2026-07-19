@@ -1,8 +1,8 @@
-//! Code for representing Ruff's release version number.
+//! Code for representing Scruff's release version number.
 use serde::Serialize;
 use std::fmt;
 
-/// Information about the git repository where Ruff was built from.
+/// Information about the git repository where Scruff was built from.
 #[derive(Serialize)]
 pub(crate) struct CommitInfo {
     short_commit_hash: String,
@@ -12,10 +12,10 @@ pub(crate) struct CommitInfo {
     commits_since_last_tag: u32,
 }
 
-/// Ruff's version.
+/// Scruff's version.
 #[derive(Serialize)]
 pub(crate) struct VersionInfo {
-    /// Ruff's version, such as "0.5.1"
+    /// Scruff's version, such as "0.5.1"
     version: String,
     /// Information about the git commit we may have been built from.
     ///
@@ -39,7 +39,7 @@ impl fmt::Display for VersionInfo {
     }
 }
 
-/// Returns information about Ruff's version.
+/// Returns information about Scruff's version.
 pub(crate) fn version() -> VersionInfo {
     // Environment variables are only read at compile-time
     macro_rules! option_env_str {

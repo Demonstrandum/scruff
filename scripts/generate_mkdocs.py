@@ -29,9 +29,9 @@ class Section(NamedTuple):
 SECTIONS: list[Section] = [
     Section("Overview", "index.md", generated=True),
     Section("Tutorial", "tutorial.md", generated=False),
-    Section("Installing Ruff", "installation.md", generated=False),
-    Section("The Ruff Linter", "linter.md", generated=False),
-    Section("The Ruff Formatter", "formatter.md", generated=False),
+    Section("Installing Scruff", "installation.md", generated=False),
+    Section("The Scruff Linter", "linter.md", generated=False),
+    Section("The Scruff Formatter", "formatter.md", generated=False),
     Section(
         "Editors",
         "",
@@ -44,7 +44,8 @@ SECTIONS: list[Section] = [
             Section("Migrating from ruff-lsp", "editors/migration.md", generated=False),
         ],
     ),
-    Section("Configuring Ruff", "configuration.md", generated=False),
+    Section("Configuring Scruff", "configuration.md", generated=False),
+    Section("Tali mode", "tali.md", generated=False),
     Section("Preview", "preview.md", generated=False),
     Section("Rules", "rules.md", generated=True),
     Section("Settings", "settings.md", generated=True),
@@ -55,6 +56,9 @@ SECTIONS: list[Section] = [
 ]
 
 LINK_REWRITES: dict[str, str] = {
+    "TALI-MODE.md": "https://github.com/Demonstrandum/scruff/blob/master/TALI-MODE.md",
+    "examples/": "https://github.com/Demonstrandum/scruff/tree/master/examples",
+    "CONTRIBUTING.md": "contributing.md",
     "https://docs.astral.sh/ruff/": "index.md",
     "https://docs.astral.sh/ruff/configuration/": "configuration.md",
     "https://docs.astral.sh/ruff/configuration/#config-file-discovery": (
@@ -181,12 +185,7 @@ def main() -> None:
 
     # Rewrite links to the documentation.
     for src, dst in LINK_REWRITES.items():
-        before = content
-        after = content.replace(f"({src})", f"({dst})")
-        if before == after:
-            msg = f"Unexpected link rewrite in README.md: {src}"
-            raise ValueError(msg)
-        content = after
+        content = content.replace(f"({src})", f"({dst})")
 
     if m := re.search(r"\(https://docs.astral.sh/ruff/.*\)", content):
         msg = f"Unexpected absolute link to documentation: {m.group(0)}"
@@ -210,6 +209,13 @@ def main() -> None:
                     ["cargo", "dev", "generate-options"],
                     encoding="utf-8",
                 )
+            elif filename == "index.md":
+                file_content = content
+            elif filename == "rules.md":
+                file_content = subprocess.check_output(
+                    ["cargo", "dev", "generate-rules-table"],
+                    encoding="utf-8",
+                )
             else:
                 block = content.split(f"<!-- Begin section: {title} -->\n\n")
                 if len(block) != 2:
@@ -222,12 +228,6 @@ def main() -> None:
                     raise ValueError(msg)
 
                 file_content = block[0]
-
-                if filename == "rules.md":
-                    file_content += "\n" + subprocess.check_output(
-                        ["cargo", "dev", "generate-rules-table"],
-                        encoding="utf-8",
-                    )
 
             f.write(clean_file_content(file_content, title))
 

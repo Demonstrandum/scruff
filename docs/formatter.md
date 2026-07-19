@@ -1,30 +1,29 @@
-# The Ruff Formatter
+# The Scruff Formatter
 
-The Ruff formatter is an extremely fast Python code formatter designed as a drop-in replacement for
-[Black](https://pypi.org/project/black/), available as part of the `ruff` CLI via `ruff format`.
+The Scruff formatter builds on Ruff's extremely fast Python formatter and is designed as a
+replacement for [Black](https://pypi.org/project/black/). It is available through `scruff format`.
 
-## `ruff format`
+## `scruff format`
 
-`ruff format` is the primary entrypoint to the formatter. It accepts a list of files or
+`scruff format` is the primary entrypoint to the formatter. It accepts a list of files or
 directories, and formats all discovered Python files:
 
 ```shell
-ruff format                   # Format all files in the current directory.
-ruff format path/to/code/     # Format all files in `path/to/code` (and any subdirectories).
-ruff format path/to/file.py   # Format a single file.
+scruff format                   # Format all files in the current directory.
+scruff format path/to/code/     # Format all files in `path/to/code` (and any subdirectories).
+scruff format path/to/file.py   # Format a single file.
 ```
 
-Similar to Black, running `ruff format /path/to/file.py` will format the given file or directory
-in-place, while `ruff format --check /path/to/file.py` will avoid writing any formatted files back,
+Similar to Black, running `scruff format /path/to/file.py` will format the given file or directory
+in-place, while `scruff format --check /path/to/file.py` will avoid writing any formatted files back,
 and instead exit with a non-zero status code upon detecting any unformatted files.
 
-For the full list of supported options, run `ruff format --help`.
+For the full list of supported options, run `scruff format --help`.
 
 ## Philosophy
 
-The initial goal of the Ruff formatter is _not_ to innovate on code style, but rather, to innovate
-on performance, and provide a unified toolchain across Ruff's linter, formatter, and any and all
-future tools.
+Scruff retains Ruff's performance-focused formatter while adding opt-in, opinionated behavior such
+as [Tali mode](tali.md) and symbol-aware quote selection.
 
 As such, the formatter is designed as a drop-in replacement for [Black](https://github.com/psf/black),
 but with an excessive focus on performance and direct integration with Ruff. Given Black's

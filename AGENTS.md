@@ -73,10 +73,10 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 
 Use debug builds (not `--release`) when developing, as release builds lack debug assertions and have slower compile times.
 
-Run Ruff:
+Run Scruff:
 
 ```sh
-cargo run --bin ruff -- check path/to/file.py
+cargo run --bin scruff -- check path/to/file.py
 ```
 
 Run ty:

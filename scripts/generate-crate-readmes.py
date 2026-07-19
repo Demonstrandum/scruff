@@ -13,40 +13,33 @@ GENERATED_HEADER = "<!-- This file is generated. DO NOT EDIT -->"
 GENERATED_SECTION_START = "<!-- BEGIN GENERATED CRATE VERSIONING -->"
 GENERATED_SECTION_END = "<!-- END GENERATED CRATE VERSIONING -->"
 
-RUFF_TEMPLATE = """{GENERATED_HEADER}
+SCRUFF_TEMPLATE = """{GENERATED_HEADER}
 
-# Ruff
+# Scruff
 
-Ruff is an extremely fast Python linter and code formatter.
+Scruff is a fork of Ruff with additional, opinionated linting and formatting modes.
 
-See the [documentation](https://docs.astral.sh/ruff/) or
-[repository](https://github.com/astral-sh/ruff) for more information.
+See the [repository](https://github.com/Demonstrandum/scruff) for more information.
 
-This crate is the entry point to the Ruff command-line interface. The Rust API exposed here is not
+This crate is the entry point to the Scruff command-line interface. The Rust API exposed here is not
 considered public interface.
 
-This is version {ruff_version}. The source can be found [here]({source_url}).
+This is version {scruff_version}. The source can be found [here]({source_url}).
 
-The following Ruff workspace members are also available:
+The following Scruff workspace members are also available:
 
 {WORKSPACE_MEMBERS}
 
-Ruff's workspace members are considered internal and will have frequent breaking changes.
-
-See Ruff's [crate versioning policy](https://docs.astral.sh/ruff/versioning/#crate-versioning) for
-details on versioning.
+Scruff's workspace members are considered internal and will have frequent breaking changes.
 """
 
 
 MEMBER_VERSIONING_TEMPLATE = """\
-This crate is an internal component of [Ruff](https://crates.io/crates/ruff). The Rust API exposed
+This crate is an internal component of [Scruff](https://crates.io/crates/scruff). The Rust API exposed
 here is unstable and will have frequent breaking changes.
 
-This version ({crate_version}) is a component of [Ruff {ruff_version}]({ruff_crates_io_url}). The
+This version ({crate_version}) is a component of [Scruff {scruff_version}]({scruff_crates_io_url}). The
 source can be found [here]({source_url}).
-
-See Ruff's [crate versioning policy](https://docs.astral.sh/ruff/versioning/#crate-versioning) for
-details on versioning.
 """
 
 MEMBER_TEMPLATE = """{GENERATED_HEADER}
@@ -56,7 +49,7 @@ MEMBER_TEMPLATE = """{GENERATED_HEADER}
 {versioning}"""
 
 
-REPO_URL = "https://github.com/astral-sh/ruff"
+REPO_URL = "https://github.com/Demonstrandum/scruff"
 PRETTIER_VERSION = "3.8.3"
 
 
@@ -86,24 +79,24 @@ def main() -> None:
     content = json.loads(result.stdout)
     packages = {package["id"]: package for package in content["packages"]}
 
-    # Find the Ruff version from the ruff crate.
-    ruff_version = None
+    # Find the Scruff version from the main crate.
+    scruff_version = None
     for package in content["packages"]:
-        if package["name"] == "ruff":
-            ruff_version = package["version"]
+        if package["name"] == "scruff":
+            scruff_version = package["version"]
             break
-    if ruff_version is None:
-        raise RuntimeError("Could not find ruff crate")
+    if scruff_version is None:
+        raise RuntimeError("Could not find scruff crate")
 
     workspace_root = pathlib.Path(content["workspace_root"])
-    readme_path = workspace_root / "crates" / "ruff" / "README.md"
+    readme_path = workspace_root / "crates" / "scruff" / "README.md"
 
     workspace_members = []
     for workspace_member in content["workspace_members"]:
         package = packages[workspace_member]
         name = package["name"]
-        # Skip the main Ruff crate.
-        if name == "ruff":
+        # Skip the main Scruff crate.
+        if name == "scruff":
             continue
         # Skip crates with publish = false.
         if package.get("publish") == []:
@@ -116,13 +109,13 @@ def main() -> None:
         f"- [{name}](https://crates.io/crates/{name})" for name in workspace_members
     )
 
-    # Generate the README for the main Ruff crate.
-    ruff_source_url = f"{REPO_URL}/blob/{ruff_version}/crates/ruff"
-    readme_content = RUFF_TEMPLATE.format(
+    # Generate the README for the main Scruff crate.
+    scruff_source_url = f"{REPO_URL}/blob/{scruff_version}/crates/scruff"
+    readme_content = SCRUFF_TEMPLATE.format(
         GENERATED_HEADER=GENERATED_HEADER,
         WORKSPACE_MEMBERS=members_list,
-        ruff_version=ruff_version,
-        source_url=ruff_source_url,
+        scruff_version=scruff_version,
+        source_url=scruff_source_url,
     )
     readme_path.write_text(readme_content)
 
@@ -134,8 +127,8 @@ def main() -> None:
         package = packages[workspace_member]
         name = package["name"]
 
-        # Skip the main Ruff crate (already handled above).
-        if name == "ruff":
+        # Skip the main Scruff crate (already handled above).
+        if name == "scruff":
             continue
         # Skip crates that aren't released to crates.io.
         if package.get("publish") == []:
@@ -160,13 +153,13 @@ def main() -> None:
 
         crate_version = package["version"]
         relative_crate_path = crate_dir.relative_to(workspace_root)
-        source_url = f"{REPO_URL}/blob/{ruff_version}/{relative_crate_path}"
+        source_url = f"{REPO_URL}/blob/{scruff_version}/{relative_crate_path}"
 
-        ruff_crates_io_url = f"https://crates.io/crates/ruff/{ruff_version}"
+        scruff_crates_io_url = f"https://crates.io/crates/scruff/{scruff_version}"
         member_versioning_content = MEMBER_VERSIONING_TEMPLATE.format(
             crate_version=crate_version,
-            ruff_version=ruff_version,
-            ruff_crates_io_url=ruff_crates_io_url,
+            scruff_version=scruff_version,
+            scruff_crates_io_url=scruff_crates_io_url,
             source_url=source_url,
         )
         if handwritten_readme is None:

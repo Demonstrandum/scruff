@@ -48,19 +48,18 @@ def main(target: str) -> None:
     """Modify the README.md to support the given target."""
     with Path("README.md").open(encoding="utf8") as fp:
         content = fp.read()
-        if GITHUB not in content:
-            msg = "README.md is not in the expected format."
-            raise ValueError(msg)
 
     if target == "pypi":
-        with Path("README.md").open("w", encoding="utf8") as fp:
-            fp.write(content.replace(GITHUB, PYPI))
+        replacement = PYPI
     elif target == "mkdocs":
-        with Path("README.md").open("w", encoding="utf8") as fp:
-            fp.write(content.replace(GITHUB, MK_DOCS))
+        replacement = MK_DOCS
     else:
         msg = f"Unknown target: {target}"
         raise ValueError(msg)
+
+    if GITHUB in content:
+        with Path("README.md").open("w", encoding="utf8") as fp:
+            fp.write(content.replace(GITHUB, replacement))
 
 
 if __name__ == "__main__":

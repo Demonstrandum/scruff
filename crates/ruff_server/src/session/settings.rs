@@ -41,7 +41,7 @@ impl GlobalClientSettings {
                 Ok(settings) => settings,
                 Err(settings) => {
                     self.client.show_error_message(
-                        "Ruff received invalid settings from the editor. Refer to the logs for more information."
+                        "Scruff received invalid settings from the editor. Refer to the logs for more information."
                     );
                     settings
                 }

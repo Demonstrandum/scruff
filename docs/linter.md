@@ -1,32 +1,32 @@
-# The Ruff Linter
+# The Scruff Linter
 
-The Ruff Linter is an extremely fast Python linter designed as a drop-in replacement for [Flake8](https://pypi.org/project/flake8/)
+The Scruff linter builds on Ruff's extremely fast Python linter and can replace [Flake8](https://pypi.org/project/flake8/)
 (plus dozens of plugins), [isort](https://pypi.org/project/isort/), [pydocstyle](https://pypi.org/project/pydocstyle/),
 [pyupgrade](https://pypi.org/project/pyupgrade/), [autoflake](https://pypi.org/project/autoflake/),
 and more.
 
-## `ruff check`
+## `scruff check`
 
-`ruff check` is the primary entrypoint to the Ruff linter. It accepts a list of files or
+`scruff check` is the primary entrypoint to the Scruff linter. It accepts a list of files or
 directories, and lints all discovered Python files, optionally fixing any fixable errors.
-When linting a directory, Ruff searches for Python files recursively in that directory
+When linting a directory, Scruff searches for Python files recursively in that directory
 and all its subdirectories:
 
 ```console
-$ ruff check                  # Lint files in the current directory.
-$ ruff check --fix            # Lint files in the current directory and fix any fixable errors.
-$ ruff check --watch          # Lint files in the current directory and re-lint on change.
-$ ruff check path/to/code/    # Lint files in `path/to/code`.
+$ scruff check                  # Lint files in the current directory.
+$ scruff check --fix            # Lint files in the current directory and fix any fixable errors.
+$ scruff check --watch          # Lint files in the current directory and re-lint on change.
+$ scruff check path/to/code/    # Lint files in `path/to/code`.
 ```
 
-For the full list of supported options, run `ruff check --help`.
+For the full list of supported options, run `scruff check --help`.
 
 ## Rule selection
 
 The set of enabled rules is controlled via the [`lint.select`](settings.md#lint_select),
 [`lint.extend-select`](settings.md#lint_extend-select), and [`lint.ignore`](settings.md#lint_ignore) settings.
 
-Ruff's linter mirrors Flake8's rule code system, in which each rule code consists of a one-to-three
+Scruff's linter mirrors Flake8's rule code system, in which each rule code consists of a one-to-three
 letter prefix, followed by three digits (e.g., `F401`). The prefix indicates that "source" of the rule
 (e.g., `F` for Pyflakes, `E` for pycodestyle, `ANN` for flake8-annotations).
 
@@ -37,12 +37,12 @@ configuration file:
 === "pyproject.toml"
 
     ```toml
-    [tool.ruff.lint]
+    [tool.scruff.lint]
     select = ["E", "F"]
     ignore = ["F401"]
     ```
 
-=== "ruff.toml"
+=== "scruff.toml"
 
     ```toml
     [lint]
@@ -50,14 +50,14 @@ configuration file:
     ignore = ["F401"]
     ```
 
-Ruff would enable all rules with the `E` (pycodestyle) or `F` (Pyflakes) prefix, with the exception
-of `F401`. For more on configuring Ruff via `pyproject.toml`, see [_Configuring Ruff_](configuration.md).
+Scruff would enable all rules with the `E` (pycodestyle) or `F` (Pyflakes) prefix, with the exception
+of `F401`. For more on configuring Scruff via `pyproject.toml`, see [_Configuring Scruff_](configuration.md).
 
 As a special-case, Ruff also supports the `ALL` code, which enables all rules. Note that some
 pydocstyle rules conflict (e.g., `D203` and `D211`) as they represent alternative docstring
 formats. Ruff will automatically disable any conflicting rules when `ALL` is enabled.
 
-If you're wondering how to configure Ruff, here are some **recommended guidelines**:
+If you're wondering how to configure Scruff, here are some **recommended guidelines**:
 
 - Prefer [`lint.select`](settings.md#lint_select) over [`lint.extend-select`](settings.md#lint_extend-select) to make your rule set explicit.
 - Use `ALL` with discretion. Enabling `ALL` will implicitly enable new rules whenever you upgrade.

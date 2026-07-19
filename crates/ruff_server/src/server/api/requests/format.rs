@@ -143,7 +143,7 @@ fn format_text_document(
         FormatResult::PreviewOnly { file_format } => {
             client.show_warning_message(
                 format_args!(
-                    "{file_format} formatting is available only in preview mode. Enable `format.preview = true` in your Ruff configuration."
+                    "{file_format} formatting is available only in preview mode. Enable `format.preview = true` in your Scruff configuration."
                 ),
             );
             return Ok(None);
