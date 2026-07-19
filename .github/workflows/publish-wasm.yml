@@ -13,8 +13,8 @@ on:
 
 jobs:
   publish:
-    # Built packages still become workflow artifacts, but this fork does not own the Astral npm scope.
-    if: ${{ github.repository != 'Demonstrandum/scruff' }}
+    # Built packages still become workflow artifacts; publishing is limited to the Astral npm scope owner.
+    if: ${{ github.repository == 'astral-sh/ruff' }}
     runs-on: ubuntu-latest
     environment: release
     permissions:

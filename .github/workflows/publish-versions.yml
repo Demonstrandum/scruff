@@ -15,8 +15,8 @@ permissions: {}
 
 jobs:
   publish-versions:
-    # This workflow publishes to astral-sh/versions, which this fork does not own.
-    if: ${{ github.repository != 'Demonstrandum/scruff' }}
+    # This workflow publishes to astral-sh/versions.
+    if: ${{ github.repository == 'astral-sh/ruff' }}
     runs-on: ubuntu-latest
     environment: release
     env:

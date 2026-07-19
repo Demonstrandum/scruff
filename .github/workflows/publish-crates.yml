@@ -14,8 +14,8 @@ on:
 jobs:
   crates-publish-scruff:
     name: Upload Scruff to crates.io
-    # No `scruff` crate or trusted publisher is configured on crates.io yet.
-    if: ${{ github.repository != 'Demonstrandum/scruff' }}
+    # Opt in after the `scruff` crate and trusted publisher are configured on crates.io.
+    if: ${{ vars.ENABLE_CRATES_IO_PUBLISH == 'true' }}
     runs-on: ubuntu-latest
     environment:
       name: release
