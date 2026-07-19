@@ -62,38 +62,6 @@ markdown_extensions:
 plugins:
   - search
   - gh-admonitions
-  - llmstxt:
-      markdown_description: |
-        Scruff is an opinionated fork of Ruff, the fast Python linter and code formatter
-        written in Rust. It adds Tali mode and symbol-aware quote formatting while retaining
-        Ruff compatibility where practical.
-
-        Scruff includes both a linter (`scruff check`) and a formatter (`scruff format`).
-      sections:
-        Getting started:
-          - installation.md
-          - tutorial.md
-        Configuration:
-          - configuration.md
-          - tali.md
-        Linter:
-          - linter.md
-        Formatter:
-          - formatter.md
-          - formatter/black.md
-        Editors:
-          - editors/index.md
-          - editors/setup.md
-          - editors/settings.md
-          - editors/features.md
-          - editors/migration.md
-        Integrations:
-          - integrations.md
-        Concepts:
-          - preview.md
-          - versioning.md
-        Reference:
-          - faq.md
 extra_css:
   - stylesheets/extra.css
 extra_javascript:

@@ -698,7 +698,7 @@ fn config_file_and_isolated() -> Result<()> {
       Cause: The argument `--config=ruff.toml` cannot be used with `--isolated`
 
       tip: You cannot specify a configuration file and also specify `--isolated`,
-           as `--isolated` causes ruff to ignore all configuration files.
+           as `--isolated` causes Scruff to ignore all configuration files.
            For more information, try `--help`.
     ");
     Ok(())
@@ -4540,9 +4540,9 @@ fn rule_panic_mixed_results_concise() -> Result<()> {
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
 
     ----- stderr -----
-    error: Panic during linting indicates a bug in Ruff. If you could open an issue at:
+    error: Panic during linting indicates a bug in Scruff. If you could open an issue at:
 
-    https://github.com/astral-sh/ruff/issues/new?title=%5BLinter%20panic%5D
+    https://github.com/Demonstrandum/scruff/issues/new?title=%5BLinter%20panic%5D
 
     ...with the relevant file contents, the `pyproject.toml` settings, and the stack trace above, we'd be very appreciative!
     ");
@@ -4588,17 +4588,17 @@ fn rule_panic_mixed_results_full() -> Result<()> {
 
     panic: Panicked at <location> when checking `[TMP]/panic.py`: `This is a fake panic for testing.`
     --> panic.py:1:1
-    info: This indicates a bug in Ruff.
-    info: If you could open an issue at https://github.com/astral-sh/ruff/issues/new?title=%5Bpanic%5D, we'd be very appreciative!
+    info: This indicates a bug in Scruff.
+    info: If you could open an issue at https://github.com/Demonstrandum/scruff/issues/new?title=%5Bpanic%5D, we'd be very appreciative!
     info: run with `RUST_BACKTRACE=1` environment variable to show the full backtrace information
 
     Found 7 errors.
     [*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
 
     ----- stderr -----
-    error: Panic during linting indicates a bug in Ruff. If you could open an issue at:
+    error: Panic during linting indicates a bug in Scruff. If you could open an issue at:
 
-    https://github.com/astral-sh/ruff/issues/new?title=%5BLinter%20panic%5D
+    https://github.com/Demonstrandum/scruff/issues/new?title=%5BLinter%20panic%5D
 
     ...with the relevant file contents, the `pyproject.toml` settings, and the stack trace above, we'd be very appreciative!
     ");

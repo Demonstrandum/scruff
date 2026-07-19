@@ -8,10 +8,10 @@ The fork currently adds:
 
 - `mode = "tali"`, an evolving opinionated formatting and linting mode.
 - `quote-style = "symbol"`, which uses single quotes for symbol-like strings and double quotes for
-  natural-language text.
+    natural-language text.
 - `quote-symbol-regex`, for customizing which strings are treated as symbols.
 - `[tool.scruff]`, `scruff.toml`, and `.scruff.toml` configuration, while retaining Ruff
-  configuration names as compatibility aliases.
+    configuration names as compatibility aliases.
 
 See [TALI-MODE.md](TALI-MODE.md) for the Tali roadmap and [examples](examples/) for complete
 configurations.

@@ -525,20 +525,20 @@ See `ruff help` for the full list of Ruff's top-level commands:
 <!-- Begin auto-generated command help. -->
 
 ```text
-Ruff: An extremely fast Python linter and code formatter.
+Scruff: An opinionated Python linter and code formatter.
 
-Usage: ruff [OPTIONS] <COMMAND>
+Usage: scruff [OPTIONS] <COMMAND>
 
 Commands:
-  check    Run Ruff on the given files or directories
+  check    Run Scruff on the given files or directories
   rule     Explain a rule (or all rules)
   config   List or describe the available configuration options
   linter   List all supported upstream linters
   clean    Clear any caches in the current directory and any subdirectories
-  format   Run the Ruff formatter on the given files or directories
+  format   Run the Scruff formatter on the given files or directories
   server   Run the language server
   analyze  Run analysis over Python source code
-  version  Display Ruff's version
+  version  Display Scruff's version
   help     Print this message or the help of the given subcommand(s)
 
 Options:
@@ -567,7 +567,7 @@ Global options:
           Control when colored output is used [possible values: auto, always,
           never]
 
-For help with a specific command, see: `ruff help <command>`.
+For help with a specific command, see: `scruff help <command>`.
 ```
 
 <!-- End auto-generated command help. -->
@@ -577,9 +577,9 @@ Or `ruff help check` for more on the linting command:
 <!-- Begin auto-generated check help. -->
 
 ```text
-Run Ruff on the given files or directories
+Run Scruff on the given files or directories
 
-Usage: ruff check [OPTIONS] [FILES]...
+Usage: scruff check [OPTIONS] [FILES]...
 
 Arguments:
   [FILES]...  List of files or directories to check, or `-` to read from stdin
@@ -636,9 +636,9 @@ Options:
           lines. Optionally provide a reason to append after the rule names.
           Requires preview mode
       --show-files
-          See the files Ruff will be run against with the current settings
+          See the files Scruff will be run against with the current settings
       --show-settings
-          See the settings Ruff will use to lint a given Python file
+          See the settings Scruff will use to lint a given Python file
   -h, --help
           Print help (see more with '--help')
 
@@ -676,7 +676,7 @@ File selection:
           Respect file exclusions via `.gitignore` and other standard ignore
           files. Use `--no-respect-gitignore` to disable
       --force-exclude
-          Enforce exclusions, even for paths passed to Ruff directly on the
+          Enforce exclusions, even for paths passed to Scruff directly on the
           command-line. Use `--no-force-exclude` to disable
 
 Miscellaneous:
@@ -722,9 +722,9 @@ Or `ruff help format` for more on the formatting command:
 <!-- Begin auto-generated format help. -->
 
 ```text
-Run the Ruff formatter on the given files or directories
+Run the Scruff formatter on the given files or directories
 
-Usage: ruff format [OPTIONS] [FILES]...
+Usage: scruff format [OPTIONS] [FILES]...
 
 Arguments:
   [FILES]...  List of files or directories to format, or `-` to read from stdin
@@ -777,15 +777,15 @@ File selection:
           Like --exclude, but adds additional files and directories on top of
           those already excluded
       --force-exclude
-          Enforce exclusions, even for paths passed to Ruff directly on the
+          Enforce exclusions, even for paths passed to Scruff directly on the
           command-line. Use `--no-force-exclude` to disable
 
 Format configuration:
       --line-length <LINE_LENGTH>  Set the line-length
 
 Editor options:
-      --range <RANGE>  When specified, Ruff will try to only format the code in
-                       the given range.
+      --range <RANGE>  When specified, Scruff will try to only format the code
+                       in the given range.
                        It might be necessary to extend the start backwards or
                        the end forwards, to fully enclose a logical line.
                        The `<RANGE>` uses the format

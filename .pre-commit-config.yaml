@@ -52,6 +52,7 @@ repos:
         entry: rustfmt
         language: system
         types: [rust]
+        require_serial: true
         priority: 0
       - id: scruff-format
         name: scruff format

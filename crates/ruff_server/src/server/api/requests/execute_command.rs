@@ -153,7 +153,8 @@ fn apply_edit(
                     .failure_reason
                     .unwrap_or_else(|| String::from("unspecified reason"));
                 tracing::error!("Failed to apply workspace edit: {reason}");
-                client.show_error_message(format_args!("Scruff was unable to apply edits: {reason}"));
+                client
+                    .show_error_message(format_args!("Scruff was unable to apply edits: {reason}"));
             }
         },
     )

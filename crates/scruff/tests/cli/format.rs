@@ -178,7 +178,7 @@ fn config_file_and_isolated() -> Result<()> {
       Cause: The argument `--config=ruff.toml` cannot be used with `--isolated`
 
       tip: You cannot specify a configuration file and also specify `--isolated`,
-           as `--isolated` causes ruff to ignore all configuration files.
+           as `--isolated` causes Scruff to ignore all configuration files.
            For more information, try `--help`.
     ");
     Ok(())
