@@ -1,5 +1,5 @@
-use ruff_formatter::prelude::format_with;
 use ruff_formatter::format_element::TextWidth;
+use ruff_formatter::prelude::format_with;
 use ruff_formatter::{FormatContext, FormatOptions};
 use ruff_python_ast::{AnyNodeRef, Expr, ExprList, Number};
 use ruff_source_file::LineRanges;
@@ -50,10 +50,7 @@ impl FormatNodeRule<ExprList> for FormatExprList {
     }
 }
 
-fn aligned_column_widths(
-    elements: &[Expr],
-    context: &PyFormatContext,
-) -> Option<Vec<u32>> {
+fn aligned_column_widths(elements: &[Expr], context: &PyFormatContext) -> Option<Vec<u32>> {
     if elements.len() < 2 {
         return None;
     }
@@ -73,7 +70,10 @@ fn aligned_column_widths(
         collect_leaf_rows(element, context, &mut rows)?;
     }
 
-    if !rows.iter().any(|row| row_has_alignment_intent(row, context)) {
+    if !rows
+        .iter()
+        .any(|row| row_has_alignment_intent(row, context))
+    {
         return None;
     }
 
@@ -163,14 +163,17 @@ fn formatted_scalar_width(expression: &Expr, context: &PyFormatContext) -> Optio
                 Number::Int(_) => text_width(&normalize_integer(source), context)?,
                 Number::Float(_) => text_width(&normalize_floating_number(source), context)?,
                 Number::Complex { .. } => {
-                    let normalized =
-                        normalize_floating_number(source.trim_end_matches(['j', 'J']));
+                    let normalized = normalize_floating_number(source.trim_end_matches(['j', 'J']));
                     text_width(&std::format!("{normalized}j"), context)?
                 }
             }
         }
         Expr::BooleanLiteral(boolean) => {
-            if boolean.value { 4 } else { 5 }
+            if boolean.value {
+                4
+            } else {
+                5
+            }
         }
         Expr::NoneLiteral(_) => 4,
         Expr::Name(name) => text_width(name.id.as_str(), context)?,
