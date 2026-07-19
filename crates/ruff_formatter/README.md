@@ -2,8 +2,11 @@
 
 # ruff_formatter
 
-This crate is an internal component of [Scruff](https://crates.io/crates/scruff). The Rust API exposed
+This crate is an internal component of [Ruff](https://crates.io/crates/ruff). The Rust API exposed
 here is unstable and will have frequent breaking changes.
 
-This version (0.0.4) is a component of [Scruff 0.15.21](https://crates.io/crates/scruff/0.15.21). The
-source can be found [here](https://github.com/Demonstrandum/scruff/blob/0.15.21/crates/ruff_formatter).
+This version (0.0.4) is a component of [Ruff 0.15.21](https://crates.io/crates/ruff/0.15.21). The
+source can be found [here](https://github.com/astral-sh/ruff/blob/0.15.21/crates/ruff_formatter).
+
+See Ruff's [crate versioning policy](https://docs.astral.sh/ruff/versioning/#crate-versioning) for
+details on versioning.

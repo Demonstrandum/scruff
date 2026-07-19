@@ -2,7 +2,7 @@
 
 # Scruff
 
-Scruff is a fork of Ruff with additional, opinionated linting and formatting modes.
+Scruff is an opinionated fork of Ruff with additional linting and formatting modes.
 
 See the [repository](https://github.com/Demonstrandum/scruff) for more information.
 
@@ -11,7 +11,7 @@ considered public interface.
 
 This is version 0.15.21. The source can be found [here](https://github.com/Demonstrandum/scruff/blob/0.15.21/crates/scruff).
 
-The following Scruff workspace members are also available:
+The following Ruff workspace members are also available:
 
 - [ruff_annotate_snippets](https://crates.io/crates/ruff_annotate_snippets)
 - [ruff_cache](https://crates.io/crates/ruff_cache)
@@ -50,4 +50,7 @@ The following Scruff workspace members are also available:
 - [ty_static](https://crates.io/crates/ty_static)
 - [ty_vendored](https://crates.io/crates/ty_vendored)
 
-Scruff's workspace members are considered internal and will have frequent breaking changes.
+Ruff's workspace members are considered internal and will have frequent breaking changes.
+
+See Ruff's [crate versioning policy](https://docs.astral.sh/ruff/versioning/#crate-versioning) for
+details on versioning.
