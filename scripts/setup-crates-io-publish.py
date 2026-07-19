@@ -37,12 +37,13 @@ import tomllib
 import httpx
 
 CRATES_IO_API = "https://crates.io/api/v1"
-USER_AGENT = "ruff-crates-io-publish-setup (github.com/astral-sh/ruff)"
+USER_AGENT = "scruff-crates-io-publish-setup (github.com/Demonstrandum/scruff)"
 
-REPOSITORY_OWNER = "astral-sh"
-REPOSITORY_NAME = "ruff"
+REPOSITORY_OWNER = "Demonstrandum"
+REPOSITORY_NAME = "scruff"
 WORKFLOW_FILENAME = "release.yml"
 ENVIRONMENT = "release"
+PUBLISH_CRATE = "scruff"
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 WORKSPACE_MANIFEST_PATH = REPO_ROOT / "Cargo.toml"
@@ -68,7 +69,10 @@ def get_publishable_crates() -> list[dict[str, str]]:
     workspace_member_ids = set(metadata["workspace_members"])
     crates = []
     for package in metadata["packages"]:
-        if package["id"] not in workspace_member_ids:
+        if (
+            package["id"] not in workspace_member_ids
+            or package["name"] != PUBLISH_CRATE
+        ):
             continue
         # ``publish = false`` is represented as an empty list in cargo metadata.
         if package.get("publish") == []:

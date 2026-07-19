@@ -1,9 +1,8 @@
-# Publish workspace crates to crates.io idempotently.
+# Publish the Scruff crate to crates.io idempotently.
 #
-# `cargo publish --workspace` fails if any selected crate version already exists on crates.io. That
-# makes release re-runs fail after a previous partial publish. This script queries crates.io first,
-# excludes package versions that already exist, then delegates to `cargo publish --workspace` for the
-# remaining packages so Cargo still handles package ordering.
+# This script queries crates.io first so release re-runs succeed if the version already exists.
+# Internal `ruff_*` and `ty_*` workspace crates are maintained and published by upstream; this fork
+# only publishes its `scruff` entry-point crate.
 #
 # Usage:
 #
@@ -23,7 +22,8 @@ import urllib.parse
 import urllib.request
 
 CRATES_IO_API = "https://crates.io/api/v1"
-USER_AGENT = "ruff-crates-io-publish (github.com/astral-sh/ruff)"
+USER_AGENT = "scruff-crates-io-publish (github.com/Demonstrandum/scruff)"
+PUBLISH_CRATE = "scruff"
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -54,7 +54,10 @@ def get_publishable_crates(cargo: list[str]) -> list[Crate]:
     workspace_member_ids = set(metadata["workspace_members"])
     crates = []
     for package in metadata["packages"]:
-        if package["id"] not in workspace_member_ids:
+        if (
+            package["id"] not in workspace_member_ids
+            or package["name"] != PUBLISH_CRATE
+        ):
             continue
         # `publish = false` is represented as an empty list in cargo metadata.
         if package.get("publish") == []:
@@ -108,12 +111,10 @@ def existing_crate_versions(crates: list[Crate], api_url: str) -> set[str]:
 
 
 def build_cargo_publish_command(
-    cargo: list[str], existing: set[str], cargo_publish_args: list[str]
+    cargo: list[str], cargo_publish_args: list[str]
 ) -> list[str]:
-    """Build the `cargo publish` command for all not-yet-published workspace crates."""
-    command = [*cargo, "publish", "--workspace"]
-    for crate_name in sorted(existing):
-        command.extend(["--exclude", crate_name])
+    """Build the `cargo publish` command for Scruff."""
+    command = [*cargo, "publish", "--package", PUBLISH_CRATE]
     command.extend(cargo_publish_args)
     return command
 
@@ -132,13 +133,13 @@ def publish_workspace(
     for crate in missing:
         print(f"  {crate.pretty()}")
 
-    command = build_cargo_publish_command(cargo, existing, cargo_publish_args)
+    command = build_cargo_publish_command(cargo, cargo_publish_args)
     return subprocess.run(command, cwd=REPO_ROOT).returncode
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Publish workspace crates to crates.io idempotently."
+        description="Publish Scruff to crates.io idempotently."
     )
     parser.add_argument(
         "--api-url",

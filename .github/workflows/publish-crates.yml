@@ -12,8 +12,8 @@ on:
         type: string
 
 jobs:
-  crates-publish-ruff:
-    name: Upload Ruff to crates.io
+  crates-publish-scruff:
+    name: Upload Scruff to crates.io
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -31,7 +31,7 @@ jobs:
         # raise the per-crate wait above the 60s default. crates.io indexing has been
         # known to lag long enough to exceed that during workspace publishes.
         run: rustup toolchain install nightly-2026-06-12 --profile minimal --no-self-update
-      - name: Publish workspace crates
+      - name: Publish Scruff
         # Note `--no-verify` is safe because we do a publish dry-run elsewhere in CI
         run: python3 scripts/publish-crates.py --cargo cargo +nightly-2026-06-12 --no-verify -- -Zpublish-timeout --config 'publish.timeout=600'
         env:

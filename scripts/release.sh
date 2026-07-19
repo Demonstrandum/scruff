@@ -21,7 +21,7 @@ echo "Updating crate READMEs..."
 uv run --script "$project_root/scripts/generate-crate-readmes.py"
 
 echo "Updating lockfiles..."
-cargo update -p ruff
+cargo update -p scruff
 uv lock --no-config
 
 echo "Checking crates.io publish setup..."

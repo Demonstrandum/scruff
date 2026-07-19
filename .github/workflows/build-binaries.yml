@@ -149,7 +149,7 @@ jobs:
       - name: "Archive binary"
         run: |
           TARGET=aarch64-apple-darwin
-          ARCHIVE_NAME=sruff-$TARGET
+          ARCHIVE_NAME=scruff-$TARGET
           ARCHIVE_FILE=$ARCHIVE_NAME.tar.gz
 
           mkdir -p $ARCHIVE_NAME

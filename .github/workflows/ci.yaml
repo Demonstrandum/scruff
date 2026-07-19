@@ -4,7 +4,7 @@ permissions: {}
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -63,7 +63,7 @@ jobs:
       - name: Determine merge base
         id: merge_base
         env:
-          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'master' }}
         run: |
           sha=$(git merge-base HEAD "origin/${BASE_REF}")
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
@@ -622,8 +622,8 @@ jobs:
       # Lint/format/type-check py-fuzzer
       # (dogfooding with ty is done in a separate job)
       - run: uv run --directory=./python/py-fuzzer mypy
-      - run: uv run --directory=./python/py-fuzzer ruff format --check
-      - run: uv run --directory=./python/py-fuzzer ruff check
+      - run: cargo run -p scruff -- format --check python/py-fuzzer
+      - run: cargo run -p scruff -- check python/py-fuzzer
 
   ecosystem:
     name: "ecosystem"
