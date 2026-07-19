@@ -6,7 +6,7 @@
     - [x] Symbols and identifiers get single quotes, natural language double quotes.
     - [ ] Respected in f-strings.
     - [ ] Triple-single quote strings when containing a `"` double quote.
-- [ ] Imports for side-effects allowed by `import x as _` instead of comments.
+- [x] Imports for side-effects allowed by `import x as _` instead of comments.
 - [ ] Horizontal white-space alignment:
     - [ ] Allow aligning trailing comments to the right.
         - [ ] Auto-align with surrounding comments when more than 3 spaces away already.

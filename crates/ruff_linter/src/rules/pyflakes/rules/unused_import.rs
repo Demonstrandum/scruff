@@ -363,6 +363,17 @@ pub(crate) fn unused_import(checker: &Checker, scope: &Scope) {
             continue;
         }
 
+        if checker
+            .settings()
+            .pyflakes
+            .allow_side_effect_imports_as_underscore
+            && name == "_"
+            && binding.is_alias()
+            && matches!(binding.kind, BindingKind::Import(_))
+        {
+            continue;
+        }
+
         let import = ImportBinding {
             name,
             import,

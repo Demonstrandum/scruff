@@ -43,13 +43,22 @@ The setting is also available on the command line:
 scruff format --config "format.quote-style = 'symbol'" .
 ```
 
+## Side-effect imports
+
+Tali mode treats an underscore alias as an explicit side-effect import:
+
+```python
+import package as _
+```
+
+This applies only to module imports. `from package import member as _` remains an unused import.
+
 ## Current limitations
 
 The following Tali behavior is planned but not implemented:
 
 - Applying symbol quote selection to f-strings.
 - Selecting triple-single quotes for strings containing double quotes.
-- Allowing `import package as _` as an explicit side-effect import.
 - Optional alignment of comments, annotations, and assignments.
 - Comment-aware line wrapping and nested-bracket hugging.
 
