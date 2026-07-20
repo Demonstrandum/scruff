@@ -13,6 +13,7 @@ use crate::context::{NodeLevel, WithNodeLevel};
 use crate::expression::expr_lambda::ExprLambdaLayout;
 use crate::expression::parentheses::{
     NeedsParentheses, OptionalParentheses, Parentheses, Parenthesize, optional_parentheses,
+    tali_parenthesized,
 };
 use crate::expression::{
     can_omit_optional_parentheses, has_own_parentheses, has_parentheses,
@@ -403,15 +404,19 @@ impl Format<PyFormatContext<'_>> for FormatStatementsLastExpression<'_> {
                         //      "testmorelong" # comment
                         // )
                         // ```
-                        let joined_parenthesized = format_with(|f| {
-                            group(&format_args![
-                                token("("),
-                                soft_block_indent(&format_args![flat, inline_comments]),
-                                token(")"),
-                            ])
-                            .with_id(Some(group_id))
-                            .should_expand(true)
-                            .fmt(f)
+                        let joined_parenthesized = format_with(|f: &mut PyFormatter| {
+                            if f.options().is_tali_mode() && inline_comments.is_empty() {
+                                tali_parenthesized(&flat, f)
+                            } else {
+                                group(&format_args![
+                                    token("("),
+                                    soft_block_indent(&format_args![flat, inline_comments]),
+                                    token(")"),
+                                ])
+                                .with_id(Some(group_id))
+                                .should_expand(true)
+                                .fmt(f)
+                            }
                         });
 
                         // Keep the implicit concatenated string multiline and don't inline the comment.
@@ -422,16 +427,26 @@ impl Format<PyFormatContext<'_>> for FormatStatementsLastExpression<'_> {
                         //      "long"
                         // ) # comment
                         // ```
-                        let implicit_expanded = format_with(|f| {
-                            group(&format_args![
-                                token("("),
-                                block_indent(&expanded),
-                                token(")"),
-                                inline_comments,
-                            ])
-                            .with_id(Some(group_id))
-                            .should_expand(true)
-                            .fmt(f)
+                        let implicit_expanded = format_with(|f: &mut PyFormatter| {
+                            if f.options().is_tali_mode() && inline_comments.is_empty() {
+                                tali_parenthesized(
+                                    &FormatImplicitConcatenatedStringExpanded::new(
+                                        string,
+                                        ImplicitConcatenatedLayout::MaybeFlat,
+                                    ),
+                                    f,
+                                )
+                            } else {
+                                group(&format_args![
+                                    token("("),
+                                    block_indent(&expanded),
+                                    token(")"),
+                                    inline_comments,
+                                ])
+                                .with_id(Some(group_id))
+                                .should_expand(true)
+                                .fmt(f)
+                            }
                         });
 
                         // We can't use `optional_parentheses` here because the `inline_comments` contains

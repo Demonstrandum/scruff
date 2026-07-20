@@ -16,7 +16,7 @@ use crate::comments::{LeadingDanglingTrailingComments, leading_comments, trailin
 use crate::context::{NodeLevel, WithNodeLevel};
 use crate::expression::parentheses::{
     NeedsParentheses, OptionalParentheses, Parentheses, Parenthesize, optional_parentheses,
-    parenthesized,
+    parenthesized, tali_parenthesize_if_expands,
 };
 use crate::prelude::*;
 use crate::preview::is_hug_parens_with_braces_and_square_brackets_enabled;
@@ -368,6 +368,8 @@ impl Format<PyFormatContext<'_>> for MaybeParenthesizeExpression<'_> {
         if node_comments.has_leading() || node_comments.has_trailing_own_line() {
             return expression.format().with_options(Parentheses::Always).fmt(f);
         }
+        let tali_contains_comments =
+            f.options().is_tali_mode() && comments.contains_comments((*expression).into());
 
         let needs_parentheses = match expression.needs_parentheses(*parent, f.context()) {
             OptionalParentheses::Always => OptionalParentheses::Always,
@@ -399,6 +401,8 @@ impl Format<PyFormatContext<'_>> for MaybeParenthesizeExpression<'_> {
                 | Parenthesize::IfBreaksParenthesizedNested => {
                     if can_omit_optional_parentheses(expression, f.context()) {
                         optional_parentheses(&unparenthesized).fmt(f)
+                    } else if f.options().is_tali_mode() && !tali_contains_comments {
+                        tali_parenthesize_if_expands(&unparenthesized, f)
                     } else {
                         parenthesize_if_expands(&unparenthesized).fmt(f)
                     }
@@ -420,6 +424,12 @@ impl Format<PyFormatContext<'_>> for MaybeParenthesizeExpression<'_> {
                 Parenthesize::IfBreaks => {
                     if node_comments.has_trailing() {
                         expression.format().with_options(Parentheses::Always).fmt(f)
+                    } else if f.options().is_tali_mode()
+                        && can_omit_optional_parentheses(expression, f.context())
+                    {
+                        optional_parentheses(&unparenthesized).fmt(f)
+                    } else if f.options().is_tali_mode() && !tali_contains_comments {
+                        tali_parenthesize_if_expands(&unparenthesized, f)
                     } else {
                         // The group id is necessary because the nested expressions may reference it.
                         let group_id = f.group_id("optional_parentheses");

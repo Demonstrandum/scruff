@@ -1,5 +1,5 @@
 use ruff_formatter::prelude::tag::Condition;
-use ruff_formatter::{Argument, Arguments, format_args, write};
+use ruff_formatter::{Argument, Arguments, RemoveSoftLinesBuffer, format_args, write};
 use ruff_python_ast::AnyNodeRef;
 use ruff_text_size::{Ranged, TextRange};
 
@@ -121,6 +121,79 @@ where
         content: Argument::new(content),
         right,
     }
+}
+
+/// Parenthesizes content in Tali mode only when it expands, without dedicating lines to both
+/// delimiters.
+///
+/// The compact layout first lets the content use its own split points while keeping the opening
+/// delimiter beside the first token and the closing delimiter beside the last token. If that does
+/// not fit, the hanging layout moves the content after the opening delimiter but still keeps the
+/// closing delimiter on the content's final line.
+pub(crate) fn tali_parenthesize_if_expands<'ast>(
+    content: &impl Format<PyFormatContext<'ast>>,
+    f: &mut PyFormatter<'ast, '_>,
+) -> FormatResult<()> {
+    best_fitting![
+        content,
+        tali_parenthesized_compact(content),
+        tali_parenthesized_hanging(content)
+    ]
+    .with_mode(BestFittingMode::AllLines)
+    .fmt(f)
+}
+
+/// Parenthesizes content in Tali mode using a compact or hanging layout.
+pub(crate) fn tali_parenthesized<'ast>(
+    content: &impl Format<PyFormatContext<'ast>>,
+    f: &mut PyFormatter<'ast, '_>,
+) -> FormatResult<()> {
+    best_fitting![
+        tali_parenthesized_flat(content),
+        tali_parenthesized_compact(content),
+        tali_parenthesized_hanging(content)
+    ]
+    .with_mode(BestFittingMode::AllLines)
+    .fmt(f)
+}
+
+fn tali_parenthesized_flat<'ast>(
+    content: &impl Format<PyFormatContext<'ast>>,
+) -> impl Format<PyFormatContext<'ast>> {
+    format_with(move |f| {
+        let mut buffer = RemoveSoftLinesBuffer::new(f);
+        let mut buffer = WithNodeLevel::new(NodeLevel::ParenthesizedExpression, &mut buffer);
+        write!(buffer, [token("("), content, token(")")])
+    })
+}
+
+fn tali_parenthesized_compact<'ast>(
+    content: &impl Format<PyFormatContext<'ast>>,
+) -> impl Format<PyFormatContext<'ast>> {
+    format_with(|f| {
+        let mut f = WithNodeLevel::new(NodeLevel::ParenthesizedExpression, f);
+        group(&format_args![
+            token("("),
+            indent(&group(content).should_expand(true)),
+            token(")")
+        ])
+        .fmt(&mut f)
+    })
+}
+
+fn tali_parenthesized_hanging<'ast>(
+    content: &impl Format<PyFormatContext<'ast>>,
+) -> impl Format<PyFormatContext<'ast>> {
+    format_with(|f| {
+        let mut f = WithNodeLevel::new(NodeLevel::ParenthesizedExpression, f);
+        group(&format_args![
+            token("("),
+            soft_line_indent_or_space(content),
+            token(")")
+        ])
+        .should_expand(true)
+        .fmt(&mut f)
+    })
 }
 
 pub(crate) struct FormatParenthesized<'content, 'ast> {
