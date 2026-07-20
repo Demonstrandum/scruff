@@ -1,0 +1,73 @@
+# Expressions should use their own split points before adding vertical parentheses.
+total = first_component_with_a_long_name + second_component_with_a_long_name + third_component
+
+
+def calculate():
+    return first_component_with_a_long_name * second_component_with_a_long_name
+
+
+if first_condition_with_a_long_name and second_condition_with_a_long_name:
+    pass
+
+
+while first_condition_with_a_long_name or second_condition_with_a_long_name:
+    pass
+
+
+assert first_condition_with_a_long_name and second_condition_with_a_long_name
+
+
+# Calls and subscripts already provide legal split points.
+result = function_with_a_long_name(first_argument_with_a_long_name, second_argument)
+selected = collection_with_a_long_name[first_index_with_a_long_name:second_index_with_a_long_name]
+mapping[first_key_with_a_long_name] = first_component_with_a_long_name + second_component
+first_target = second_target = first_component_with_a_long_name + second_component
+
+
+# Unsplittable expressions use the compact hanging layout.
+alias = an_identifier_that_is_deliberately_far_too_long_for_the_configured_line_width
+value_with_a_long_target_name = first_component_with_a_long_name + second_component
+
+
+# Implicit strings split without standalone delimiter lines.
+message = "first fragment with several words " "and a second fragment with several words"
+
+
+# Existing delimiters, tuples, and generators retain their syntax.
+items = [first_item_with_a_long_name, second_item_with_a_long_name]
+pair = first_item_with_a_long_name, second_item_with_a_long_name
+single = (first_item_with_a_long_name,)
+short_pair = (1, 2)
+short_generator = (item for item in items)
+generated = (item for item in collection_with_a_long_name if item.is_relevant)
+magic_pair = (
+    first_item_with_a_long_name,
+    second_item_with_a_long_name,
+)
+precedence = (first_component_with_a_long_name + second_component) * multiplier
+
+
+# A magic trailing comma still forces the expression's own expansion.
+magic = function_with_a_long_name(
+    first_argument,
+)
+
+
+# Parentheses and comments required by the source remain intact.
+commented = (
+    first_component_with_a_long_name
+    # Keep this comment with the expression.
+    + second_component_with_a_long_name
+)
+trailing = first_component_with_a_long_name + second_component  # Retain this comment.
+
+
+async def coroutine():
+    return await function_with_a_long_name(
+        first_argument_with_a_long_name,
+        second_argument_with_a_long_name,
+    )
+
+
+def describe():
+    return "first returned fragment with words " "and a second returned fragment with words"

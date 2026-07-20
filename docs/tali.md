@@ -104,6 +104,26 @@ render([
 ])
 ```
 
+## Compact parentheses
+
+When an expression exceeds the line width, Tali uses the expression's existing split points before
+adding an outer pair of parentheses on separate lines. If parentheses are needed, Tali keeps their
+delimiters beside the expression when possible, or uses a compact hanging layout:
+
+```python
+total = (first_component
+    + second_component
+    + third_component)
+
+value_with_a_long_target = (
+    first_component
+    + second_component)
+```
+
+The same layout applies to conditions, returns, tuples, generators, and implicitly concatenated
+strings. Comments, required parentheses, tuple and generator syntax, and magic trailing commas are
+preserved. Standard Ruff mode retains its existing layout.
+
 ## Horizontal alignment and comments
 
 Tali preserves deliberate horizontal layout across consecutive, related statements. Extra source
