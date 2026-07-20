@@ -204,11 +204,7 @@ fn formatted_scalar_metrics(expression: &Expr, context: &PyFormatContext) -> Opt
             }
         }
         Expr::BooleanLiteral(boolean) => Some(ScalarMetrics {
-            width: if boolean.value {
-                4
-            } else {
-                5
-            },
+            width: if boolean.value { 4 } else { 5 },
             decimal: None,
         }),
         Expr::NoneLiteral(_) => Some(ScalarMetrics {
@@ -240,10 +236,7 @@ fn numeric_metrics(text: &str, context: &PyFormatContext) -> Option<ScalarMetric
 #[derive(Copy, Clone)]
 enum ColumnLayout {
     Left { width: u32 },
-    Decimal {
-        left_width: u32,
-        right_width: u32,
-    },
+    Decimal { left_width: u32, right_width: u32 },
 }
 
 impl ColumnLayout {
