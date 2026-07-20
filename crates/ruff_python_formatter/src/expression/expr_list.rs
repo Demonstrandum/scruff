@@ -326,10 +326,10 @@ fn format_aligned_sequence(
             element.format().fmt(f)?;
 
             if index + 1 < elements.len() {
-                let trailing_padding = " ".repeat(layout.trailing_padding(metrics) as usize);
-                text(&trailing_padding).fmt(f)?;
                 token(",").fmt(f)?;
-                space().fmt(f)?;
+                let separator_width = layout.trailing_padding(metrics) + 1;
+                let separator = " ".repeat(separator_width as usize);
+                text(&separator).fmt(f)?;
             }
         }
     } else {
