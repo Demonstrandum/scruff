@@ -375,8 +375,7 @@ fn parameter_block_breaks(parameters: &Parameters) -> Vec<bool> {
     }
 
     if has_star {
-        let star =
-            parameters.posonlyargs.len() + usize::from(has_slash) + parameters.args.len();
+        let star = parameters.posonlyargs.len() + usize::from(has_slash) + parameters.args.len();
         if star < breaks.len() {
             breaks[star] = true;
         }
