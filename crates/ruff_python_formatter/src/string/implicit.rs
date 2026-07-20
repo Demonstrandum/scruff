@@ -17,6 +17,7 @@ use crate::expression::parentheses::in_parentheses_only_soft_line_break_or_space
 use crate::other::interpolated_string::{InterpolatedStringContext, InterpolatedStringLayout};
 use crate::other::interpolated_string_element::FormatInterpolatedElement;
 use crate::prelude::*;
+use crate::QuoteStyle;
 use crate::string::docstring::needs_chaperone_space;
 use crate::string::normalize::{
     QuoteMetadata, is_fstring_with_quoted_debug_expression,
