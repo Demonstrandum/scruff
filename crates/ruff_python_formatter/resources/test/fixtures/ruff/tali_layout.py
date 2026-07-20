@@ -78,14 +78,18 @@ ragged = [
 ]
 
 
-render([
-    1,
-    2,
-    3,
-])
+render(
+    [
+        1,
+        2,
+        3,
+    ]
+)
 
 
-configure({
-    "enabled": True,
-    "options": ["a", "b"],
-})
+configure(
+    {
+        "enabled": True,
+        "options": ["a", "b"],
+    }
+)
