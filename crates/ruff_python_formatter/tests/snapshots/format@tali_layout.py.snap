@@ -18,6 +18,19 @@ def positional_groups(
     pass
 
 
+def semantic_groups(
+    a,
+    b,
+    /,
+    c,
+    d,
+    *,
+    e,
+    f,
+):
+    pass
+
+
 matrix = [
     [1,   20, 300],
     [400, 5,  6],
@@ -79,8 +92,7 @@ nested-string-quote-style  = alternating
 
 ```python
 def keyword_groups(self, *,
-    first,
-    second,
+    first, second,
 ):
     pass
 
@@ -88,6 +100,14 @@ def keyword_groups(self, *,
 def positional_groups(
     a, b, /,
     c, d,
+):
+    pass
+
+
+def semantic_groups(
+    a, b, /,
+    c, d, *,
+    e, f,
 ):
     pass
 
