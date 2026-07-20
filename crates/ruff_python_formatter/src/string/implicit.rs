@@ -240,9 +240,11 @@ impl<'a> FormatImplicitConcatenatedStringFlat<'a> {
             } else {
                 // Only determining the preferred quote for the first string is sufficient
                 // because we don't support joining triple quoted strings with non triple quoted strings.
-                if let Ok(preferred_quote) =
-                    Quote::try_from(normalizer.preferred_quote_style(first_part))
-                {
+                let preferred_style = match normalizer.preferred_quote_style(first_part) {
+                    QuoteStyle::Symbol => normalizer.resolve_symbol_quote_style(first_part),
+                    style => style,
+                };
+                if let Ok(preferred_quote) = Quote::try_from(preferred_style) {
                     for part in string.parts() {
                         let part_quote_metadata =
                             QuoteMetadata::from_part(part, context, preferred_quote);
