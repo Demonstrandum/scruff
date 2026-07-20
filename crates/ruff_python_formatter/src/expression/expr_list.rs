@@ -317,12 +317,12 @@ fn format_aligned_sequence(
             let leading_padding = " ".repeat(layout.leading_padding(metrics) as usize);
             text(&leading_padding).fmt(f)?;
             element.format().fmt(f)?;
+            let trailing_padding = " ".repeat(layout.trailing_padding(metrics) as usize);
+            text(&trailing_padding).fmt(f)?;
 
             if index + 1 < elements.len() {
                 token(",").fmt(f)?;
-                let separator_width = layout.trailing_padding(metrics) + 1;
-                let separator = " ".repeat(separator_width as usize);
-                text(&separator).fmt(f)?;
+                space().fmt(f)?;
             }
         }
     } else {
