@@ -87,11 +87,23 @@ higher-dimensional data. Unaligned or ragged sequences continue to use the stand
 layout. Numeric columns align on their decimal point (or the implied ones-place boundary for
 integers).
 
+## Nested container arguments
+
+When a call's only argument is a multiline list, tuple, set, or dictionary, Tali mode hugs the
+container delimiters instead of adding another indentation layer:
+
+```python
+render([
+    first,
+    second,
+])
+```
+
 ## Current limitations
 
 The following Tali behavior is planned but not implemented:
 - Optional alignment of comments, annotations, and assignments.
-- Comment-aware line wrapping and nested-bracket hugging.
+- Comment-aware line wrapping.
 
 The implementation checklist is maintained in
 [`TALI-MODE.md`](https://github.com/Demonstrandum/scruff/blob/master/TALI-MODE.md).

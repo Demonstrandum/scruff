@@ -42,6 +42,17 @@ def adjacent_markers(
     pass
 
 
+def width_aware_blocks(
+    first_positional_parameter_with_a_long_name,
+    second_positional_parameter_with_a_long_name,
+    /,
+    *,
+    first_keyword_parameter_with_a_long_name,
+    second_keyword_parameter_with_a_long_name,
+):
+    pass
+
+
 matrix = [
     [1,   20, 300],
     [400, 5,  6],
@@ -84,17 +95,21 @@ ragged = [
 ]
 
 
-render([
-    1,
-    2,
-    3,
-])
+render(
+    [
+        1,
+        2,
+        3,
+    ]
+)
 
 
-configure({
-    "enabled": True,
-    "options": ["a", "b"],
-})
+configure(
+    {
+        "enabled": True,
+        "options": ["a", "b"],
+    }
+)
 ```
 
 ## Outputs
@@ -139,6 +154,15 @@ def semantic_groups(
 def adjacent_markers(
     a, b, /, *,
     c, d,
+):
+    pass
+
+
+def width_aware_blocks(
+    first_positional_parameter_with_a_long_name,
+    second_positional_parameter_with_a_long_name, /, *,
+    first_keyword_parameter_with_a_long_name,
+    second_keyword_parameter_with_a_long_name,
 ):
     pass
 

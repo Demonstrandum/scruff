@@ -20,6 +20,6 @@
 - [ ] Fix silly line-length issues:
     - [ ] Never ever drop something on its own line just to add an extra two lines containing
         surrounding `(` and `)`. Horizontal space is not more precious than vertical space.
-- [ ] Nested brackets hug:
-    - [ ] If the only argument to a function is a list, set, dict, etc. literal, do *NOT* cause an extra
+- [x] Nested brackets hug:
+    - [x] If the only argument to a function is a list, set, dict, etc. literal, do *NOT* cause an extra
         layer of indent along with the opening and closing delimiters dropping to their own line!
