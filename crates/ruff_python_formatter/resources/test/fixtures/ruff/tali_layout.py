@@ -24,6 +24,12 @@ normalized_matrix = [
 ]
 
 
+decimal_matrix = [
+    [1.2,   30.45],
+    [100, 4.0],
+]
+
+
 unaligned_matrix = [
     [1, 20],
     [300, 4],

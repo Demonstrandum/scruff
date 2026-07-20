@@ -33,9 +33,9 @@ impl FormatNodeRule<ExprList> for FormatExprList {
         if f.options().is_tali_mode()
             && dangling.is_empty()
             && f.context().source().contains_line_break(item.range())
-            && let Some(column_widths) = aligned_column_widths(elts, f.context())
+            && let Some(column_layouts) = aligned_column_layouts(elts, f.context())
         {
-            return format_aligned_sequence(SequenceKind::List, elts, &column_widths, f);
+            return format_aligned_sequence(SequenceKind::List, elts, &column_layouts, f);
         }
 
         let items = format_with(|f| {
@@ -50,7 +50,10 @@ impl FormatNodeRule<ExprList> for FormatExprList {
     }
 }
 
-fn aligned_column_widths(elements: &[Expr], context: &PyFormatContext) -> Option<Vec<u32>> {
+fn aligned_column_layouts(
+    elements: &[Expr],
+    context: &PyFormatContext,
+) -> Option<Vec<ColumnLayout>> {
     if elements.len() < 2 {
         return None;
     }
@@ -77,14 +80,34 @@ fn aligned_column_widths(elements: &[Expr], context: &PyFormatContext) -> Option
         return None;
     }
 
-    let mut column_widths = vec![0; rows.first()?.len()];
-    for row in rows {
-        for (column, expression) in row.iter().enumerate() {
-            column_widths[column] =
-                column_widths[column].max(formatted_scalar_width(expression, context)?);
+    let mut column_layouts = Vec::with_capacity(rows.first()?.len());
+    for column in 0..rows[0].len() {
+        let mut width = 0;
+        let mut left_width = 0;
+        let mut right_width = 0;
+        let mut all_numeric = true;
+
+        for row in &rows {
+            let metrics = formatted_scalar_metrics(&row[column], context)?;
+            width = width.max(metrics.width);
+            if let Some(decimal) = metrics.decimal {
+                left_width = left_width.max(decimal.left_width);
+                right_width = right_width.max(decimal.right_width);
+            } else {
+                all_numeric = false;
+            }
         }
+
+        column_layouts.push(if all_numeric {
+            ColumnLayout::Decimal {
+                left_width,
+                right_width,
+            }
+        } else {
+            ColumnLayout::Left { width }
+        });
     }
-    Some(column_widths)
+    Some(column_layouts)
 }
 
 fn nested_sequence_shape(expression: &Expr, context: &PyFormatContext) -> Option<Vec<usize>> {
@@ -129,7 +152,7 @@ fn collect_leaf_rows<'a>(
 
     if elements
         .iter()
-        .all(|element| formatted_scalar_width(element, context).is_some())
+        .all(|element| formatted_scalar_metrics(element, context).is_some())
     {
         rows.push(elements);
         return Some(());
@@ -155,31 +178,101 @@ fn row_has_alignment_intent(row: &[Expr], context: &PyFormatContext) -> bool {
     })
 }
 
-fn formatted_scalar_width(expression: &Expr, context: &PyFormatContext) -> Option<u32> {
-    let width = match expression {
+#[derive(Copy, Clone)]
+struct ScalarMetrics {
+    width: u32,
+    decimal: Option<DecimalMetrics>,
+}
+
+#[derive(Copy, Clone)]
+struct DecimalMetrics {
+    left_width: u32,
+    right_width: u32,
+}
+
+fn formatted_scalar_metrics(expression: &Expr, context: &PyFormatContext) -> Option<ScalarMetrics> {
+    match expression {
         Expr::NumberLiteral(number) => {
             let source = context.source().slice(number);
             match number.value {
-                Number::Int(_) => text_width(&normalize_integer(source), context)?,
-                Number::Float(_) => text_width(&normalize_floating_number(source), context)?,
+                Number::Int(_) => numeric_metrics(&normalize_integer(source), context),
+                Number::Float(_) => numeric_metrics(&normalize_floating_number(source), context),
                 Number::Complex { .. } => {
                     let normalized = normalize_floating_number(source.trim_end_matches(['j', 'J']));
-                    text_width(&std::format!("{normalized}j"), context)?
+                    numeric_metrics(&std::format!("{normalized}j"), context)
                 }
             }
         }
-        Expr::BooleanLiteral(boolean) => {
-            if boolean.value {
+        Expr::BooleanLiteral(boolean) => Some(ScalarMetrics {
+            width: if boolean.value {
                 4
             } else {
                 5
-            }
+            },
+            decimal: None,
+        }),
+        Expr::NoneLiteral(_) => Some(ScalarMetrics {
+            width: 4,
+            decimal: None,
+        }),
+        Expr::Name(name) => Some(ScalarMetrics {
+            width: text_width(name.id.as_str(), context)?,
+            decimal: None,
+        }),
+        _ => None,
+    }
+}
+
+fn numeric_metrics(text: &str, context: &PyFormatContext) -> Option<ScalarMetrics> {
+    let width = text_width(text, context)?;
+    let (left, right) = text
+        .find('.')
+        .map_or((text, ""), |decimal| (&text[..decimal], &text[decimal..]));
+    Some(ScalarMetrics {
+        width,
+        decimal: Some(DecimalMetrics {
+            left_width: text_width(left, context)?,
+            right_width: text_width(right, context)?,
+        }),
+    })
+}
+
+#[derive(Copy, Clone)]
+enum ColumnLayout {
+    Left { width: u32 },
+    Decimal {
+        left_width: u32,
+        right_width: u32,
+    },
+}
+
+impl ColumnLayout {
+    const fn leading_padding(self, metrics: ScalarMetrics) -> u32 {
+        match (self, metrics.decimal) {
+            (
+                Self::Decimal { left_width, .. },
+                Some(DecimalMetrics {
+                    left_width: cell_left,
+                    ..
+                }),
+            ) => left_width - cell_left,
+            (Self::Left { .. } | Self::Decimal { .. }, _) => 0,
         }
-        Expr::NoneLiteral(_) => 4,
-        Expr::Name(name) => text_width(name.id.as_str(), context)?,
-        _ => return None,
-    };
-    Some(width)
+    }
+
+    const fn trailing_padding(self, metrics: ScalarMetrics) -> u32 {
+        match (self, metrics.decimal) {
+            (Self::Left { width }, _) => width - metrics.width,
+            (
+                Self::Decimal { right_width, .. },
+                Some(DecimalMetrics {
+                    right_width: cell_right,
+                    ..
+                }),
+            ) => right_width - cell_right,
+            (Self::Decimal { .. }, None) => 0,
+        }
+    }
 }
 
 fn text_width(text: &str, context: &PyFormatContext) -> Option<u32> {
@@ -214,26 +307,29 @@ fn sequence_elements(expression: &Expr) -> Option<(SequenceKind, &[Expr])> {
 fn format_aligned_sequence(
     kind: SequenceKind,
     elements: &[Expr],
-    column_widths: &[u32],
+    column_layouts: &[ColumnLayout],
     f: &mut PyFormatter,
 ) -> FormatResult<()> {
     let (open, close) = kind.delimiters();
     let is_leaf_row = elements
         .iter()
-        .all(|element| formatted_scalar_width(element, f.context()).is_some());
+        .all(|element| formatted_scalar_metrics(element, f.context()).is_some());
 
     token(open).fmt(f)?;
     if is_leaf_row {
         for (index, element) in elements.iter().enumerate() {
-            let width = formatted_scalar_width(element, f.context())
+            let metrics = formatted_scalar_metrics(element, f.context())
                 .expect("Aligned scalar width should have been validated");
+            let layout = column_layouts[index];
+            let leading_padding = " ".repeat(layout.leading_padding(metrics) as usize);
+            text(&leading_padding).fmt(f)?;
             element.format().fmt(f)?;
 
             if index + 1 < elements.len() {
+                let trailing_padding = " ".repeat(layout.trailing_padding(metrics) as usize);
+                text(&trailing_padding).fmt(f)?;
                 token(",").fmt(f)?;
-                let padding = column_widths[index] - width + 1;
-                let padding = " ".repeat(padding as usize);
-                text(&padding).fmt(f)?;
+                space().fmt(f)?;
             }
         }
     } else {
@@ -245,7 +341,7 @@ fn format_aligned_sequence(
                 }
                 let (nested_kind, nested_elements) = sequence_elements(element)
                     .expect("Aligned nested sequence should have been validated");
-                format_aligned_sequence(nested_kind, nested_elements, column_widths, f)?;
+                format_aligned_sequence(nested_kind, nested_elements, column_layouts, f)?;
                 token(",").fmt(f)?;
             }
             Ok(())
