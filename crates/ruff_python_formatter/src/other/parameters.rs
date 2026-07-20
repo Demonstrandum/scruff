@@ -408,9 +408,7 @@ fn parameter_separator_breaks(
         for index in 0..breaks.len() {
             let next_width = widths[index + 1];
             if breaks[index]
-                || current_width
-                    .saturating_add(2)
-                    .saturating_add(next_width)
+                || current_width.saturating_add(2).saturating_add(next_width)
                     > u32::from(available_width)
             {
                 breaks[index] = true;
