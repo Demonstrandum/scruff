@@ -367,7 +367,7 @@ fn parameter_block_breaks(parameters: &Parameters) -> Vec<bool> {
         + usize::from(parameters.kwarg.is_some());
     let mut breaks = vec![false; entry_count.saturating_sub(1)];
 
-    if has_slash {
+    if has_slash && !(parameters.args.is_empty() && has_star) {
         let slash = parameters.posonlyargs.len();
         if slash < breaks.len() {
             breaks[slash] = true;

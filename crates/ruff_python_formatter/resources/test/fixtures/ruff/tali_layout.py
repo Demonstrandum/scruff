@@ -25,6 +25,17 @@ def semantic_groups(
     pass
 
 
+def adjacent_markers(
+    a,
+    b,
+    /,
+    *,
+    c,
+    d,
+):
+    pass
+
+
 matrix = [
     [1,   20, 300],
     [400, 5,  6],
