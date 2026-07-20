@@ -36,6 +36,17 @@ def adjacent_markers(
     pass
 
 
+def width_aware_blocks(
+    first_positional_parameter_with_a_long_name,
+    second_positional_parameter_with_a_long_name,
+    /,
+    *,
+    first_keyword_parameter_with_a_long_name,
+    second_keyword_parameter_with_a_long_name,
+):
+    pass
+
+
 matrix = [
     [1,   20, 300],
     [400, 5,  6],

@@ -1,10 +1,11 @@
 use std::cell::Cell;
 
-use ruff_formatter::{FormatRuleWithOptions, format_args, write};
+use ruff_formatter::format_element::TextWidth;
+use ruff_formatter::{FormatOptions, FormatRuleWithOptions, format_args, write};
 use ruff_python_ast::{AnyNodeRef, Parameters};
 use ruff_python_trivia::{CommentLinePosition, SimpleToken, SimpleTokenKind, SimpleTokenizer};
 use ruff_source_file::LineRanges;
-use ruff_text_size::{Ranged, TextRange, TextSize};
+use ruff_text_size::{Ranged, TextRange, TextSize, TextSlice};
 
 use crate::comments::{
     SourceComment, dangling_comments, dangling_open_parenthesis_comments, leading_comments,
@@ -119,7 +120,14 @@ impl FormatNodeRule<Parameters> for FormatParameters {
 
         let format_inner = format_with(|f: &mut PyFormatter| {
             let tali_group_breaks = if tali_semantic_layout {
-                Some(parameter_block_breaks(item))
+                let ranges = parameter_item_ranges(item, slash.as_ref(), star.as_ref());
+                Some(parameter_separator_breaks(
+                    item,
+                    &ranges,
+                    f.context().source(),
+                    f.options().line_width().value().saturating_sub(12),
+                    f.options().indent_width(),
+                ))
             } else {
                 None
             };
@@ -356,7 +364,13 @@ fn parameter_item_ranges(
     ranges
 }
 
-fn parameter_block_breaks(parameters: &Parameters) -> Vec<bool> {
+fn parameter_separator_breaks(
+    parameters: &Parameters,
+    ranges: &[TextRange],
+    source: &str,
+    available_width: u16,
+    indent_width: ruff_formatter::IndentWidth,
+) -> Vec<bool> {
     let has_slash = !parameters.posonlyargs.is_empty();
     let has_star = parameters.vararg.is_some() || !parameters.kwonlyargs.is_empty();
     let entry_count = parameters.posonlyargs.len()
@@ -378,6 +392,32 @@ fn parameter_block_breaks(parameters: &Parameters) -> Vec<bool> {
         let star = parameters.posonlyargs.len() + usize::from(has_slash) + parameters.args.len();
         if star < breaks.len() {
             breaks[star] = true;
+        }
+    }
+
+    let widths = ranges
+        .iter()
+        .map(|range| {
+            TextWidth::from_text(source.slice(*range), indent_width)
+                .width()
+                .map_or(u32::MAX, ruff_formatter::format_element::Width::value)
+        })
+        .collect::<Vec<_>>();
+    if let Some(first) = widths.first() {
+        let mut current_width = *first;
+        for index in 0..breaks.len() {
+            let next_width = widths[index + 1];
+            if breaks[index]
+                || current_width
+                    .saturating_add(2)
+                    .saturating_add(next_width)
+                    > u32::from(available_width)
+            {
+                breaks[index] = true;
+                current_width = next_width;
+            } else {
+                current_width += 2 + next_width;
+            }
         }
     }
 
