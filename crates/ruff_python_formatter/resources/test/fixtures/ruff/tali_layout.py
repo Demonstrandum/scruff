@@ -12,6 +12,19 @@ def positional_groups(
     pass
 
 
+def semantic_groups(
+    a,
+    b,
+    /,
+    c,
+    d,
+    *,
+    e,
+    f,
+):
+    pass
+
+
 matrix = [
     [1,   20, 300],
     [400, 5,  6],

@@ -55,7 +55,8 @@ This applies only to module imports. `from package import member as _` remains a
 
 ## Grouped signatures
 
-Tali mode preserves deliberate parameter groups in multiline function signatures:
+Tali mode treats `/` and `*` as semantic block delimiters in multiline function signatures. It
+formats parameters normally, then packs parameters within each block:
 
 ```python
 def keyword_only(self, *,

@@ -101,7 +101,11 @@ impl FormatNodeRule<Parameters> for FormatParameters {
         // argument separators, e.g., `*` or `/`).
         let (parenthesis_dangling, parameters_dangling) =
             dangling.split_at(parenthesis_comments_end);
-        let tali_first_parameter_on_new_line = f.options().is_tali_mode()
+        let tali_semantic_layout = f.options().is_tali_mode()
+            && self.parentheses != ParametersParentheses::Never
+            && parameters_dangling.is_empty()
+            && f.context().source().contains_line_break(item.range());
+        let tali_first_parameter_on_new_line = tali_semantic_layout
             && parameter_item_ranges(item, slash.as_ref(), star.as_ref())
                 .first()
                 .is_some_and(|first| {
@@ -109,25 +113,13 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                         .source()
                         .contains_line_break(TextRange::new(item.start(), first.start()))
                 });
-        let tali_magic_trailing_comma = f.options().is_tali_mode()
+        let tali_magic_trailing_comma = tali_semantic_layout
             && f.options().magic_trailing_comma().is_respect()
             && has_trailing_comma(item, last_parameter_node(item), f.context().source());
 
         let format_inner = format_with(|f: &mut PyFormatter| {
-            let tali_group_breaks = if f.options().is_tali_mode()
-                && self.parentheses != ParametersParentheses::Never
-            {
-                let ranges = parameter_item_ranges(item, slash.as_ref(), star.as_ref());
-                Some(
-                    ranges
-                        .windows(2)
-                        .map(|pair| {
-                            f.context()
-                                .source()
-                                .contains_line_break(TextRange::new(pair[0].end(), pair[1].start()))
-                        })
-                        .collect::<Vec<_>>(),
-                )
+            let tali_group_breaks = if tali_semantic_layout {
+                Some(parameter_block_breaks(item))
             } else {
                 None
             };
@@ -269,7 +261,7 @@ impl FormatNodeRule<Parameters> for FormatParameters {
 
                 if f.options().magic_trailing_comma().is_respect()
                     && has_trailing_comma(item, last_node, f.context().source())
-                    && !f.options().is_tali_mode()
+                    && !tali_semantic_layout
                 {
                     // Make the magic trailing comma expand the group
                     write!(f, [hard_line_break()])?;
@@ -300,7 +292,7 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                     token(")")
                 ]
             )
-        } else if f.options().is_tali_mode() && parenthesis_dangling.is_empty() {
+        } else if tali_semantic_layout && parenthesis_dangling.is_empty() {
             let leading_break = format_with(|f| {
                 if tali_first_parameter_on_new_line {
                     hard_line_break().fmt(f)
@@ -362,6 +354,35 @@ fn parameter_item_ranges(
     ranges.extend(parameters.kwonlyargs.iter().map(Ranged::range));
     ranges.extend(parameters.kwarg.as_deref().map(Ranged::range));
     ranges
+}
+
+fn parameter_block_breaks(parameters: &Parameters) -> Vec<bool> {
+    let has_slash = !parameters.posonlyargs.is_empty();
+    let has_star = parameters.vararg.is_some() || !parameters.kwonlyargs.is_empty();
+    let entry_count = parameters.posonlyargs.len()
+        + usize::from(has_slash)
+        + parameters.args.len()
+        + usize::from(has_star)
+        + parameters.kwonlyargs.len()
+        + usize::from(parameters.kwarg.is_some());
+    let mut breaks = vec![false; entry_count.saturating_sub(1)];
+
+    if has_slash {
+        let slash = parameters.posonlyargs.len();
+        if slash < breaks.len() {
+            breaks[slash] = true;
+        }
+    }
+
+    if has_star {
+        let star =
+            parameters.posonlyargs.len() + usize::from(has_slash) + parameters.args.len();
+        if star < breaks.len() {
+            breaks[star] = true;
+        }
+    }
+
+    breaks
 }
 
 fn last_parameter_node(parameters: &Parameters) -> Option<AnyNodeRef<'_>> {
