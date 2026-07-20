@@ -378,6 +378,39 @@ impl Format<PyFormatContext<'_>> for FormatTrailingEndOfLineComment<'_> {
 
         let normalized_comment = normalize_comment(self.comment, source)?;
 
+        if f.options().is_tali_mode()
+            && !is_pragma_comment(&normalized_comment)
+            && find_trailing_pragma_offset(&normalized_comment).is_none()
+            && crate::tali::comment_exceeds_line_width(
+                self.comment,
+                f.context().source(),
+                f.options().line_width().value(),
+            )
+        {
+            let content = normalized_comment
+                .strip_prefix('#')
+                .unwrap_or(&normalized_comment)
+                .trim_start();
+            let pointer_comment = if content.is_empty() {
+                Cow::Borrowed("# ^")
+            } else {
+                Cow::Owned(std::format!("# ^ {content}"))
+            };
+            return write!(
+                f,
+                [
+                    line_suffix(
+                        &format_args![
+                            hard_line_break(),
+                            format_normalized_comment(pointer_comment, slice.range())
+                        ],
+                        0
+                    ),
+                    expand_parent()
+                ]
+            );
+        }
+
         // Don't reserve width for pragma comments. In preview, comments
         // containing a trailing pragma (e.g., `# comment # noqa: F401`) only
         // reserve width for the non-pragma prefix.
@@ -392,7 +425,7 @@ impl Format<PyFormatContext<'_>> for FormatTrailingEndOfLineComment<'_> {
             &normalized_comment
         };
 
-        let reserved_width = if non_pragma_comment_part.is_empty() {
+        let reserved_width = if f.options().is_tali_mode() || non_pragma_comment_part.is_empty() {
             0
         } else {
             // Start with 2 because of the two leading spaces.
@@ -404,13 +437,18 @@ impl Format<PyFormatContext<'_>> for FormatTrailingEndOfLineComment<'_> {
             )
         };
 
+        let spaces = f.context().tali_comment_spaces(self.comment.start());
         write!(
             f,
             [
                 line_suffix(
                     &format_args![
-                        space(),
-                        space(),
+                        format_with(|f| {
+                            for _ in 0..spaces {
+                                space().fmt(f)?;
+                            }
+                            Ok(())
+                        }),
                         format_normalized_comment(normalized_comment, slice.range())
                     ],
                     reserved_width

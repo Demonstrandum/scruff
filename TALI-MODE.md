@@ -10,14 +10,14 @@
 - [x] Pack multiline function parameters within semantic blocks delimited by `/` and `*`.
 - [x] Detect and consistently enforce column alignment in rectangular 2-D and N-D list or tuple
     literals, including normally formatted single-line cells and trailing row comments.
-- [ ] Horizontal white-space alignment:
-    - [ ] Allow aligning trailing comments to the right.
-        - [ ] Auto-align with surrounding comments when more than 3 spaces away already.
-        - [ ] Must not force alignment (comments could be unrelated)
-    - [ ] Align annotations by spaces *after* `:` (same ideas as above)
-    - [ ] Align assignments by spaces *before* `=` (same ideas as above)
-- [ ] Trailing comments should never affect line-length reformats:
-    - [ ] Comments that exceed line length should be dropped a line by themself `# ^ ...`
+- [x] Horizontal white-space alignment:
+    - [x] Allow aligning trailing comments to the right.
+        - [x] Auto-align with surrounding comments when more than 3 spaces away already.
+        - [x] Must not force alignment (comments could be unrelated)
+    - [x] Align annotations by spaces *after* `:` (same ideas as above)
+    - [x] Align assignments by spaces *before* `=` (same ideas as above)
+- [x] Trailing comments should never affect line-length reformats:
+    - [x] Comments that exceed line length should be dropped a line by themself `# ^ ...`
 - [ ] Fix silly line-length issues:
     - [ ] Never ever drop something on its own line just to add an extra two lines containing
         surrounding `(` and `)`. Horizontal space is not more precious than vertical space.

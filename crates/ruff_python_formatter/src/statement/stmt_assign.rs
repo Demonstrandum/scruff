@@ -3,6 +3,7 @@ use ruff_python_ast::{
     AnyNodeRef, Expr, ExprAttribute, ExprCall, FString, Operator, StmtAssign, StringLike, TString,
     TypeParams,
 };
+use ruff_text_size::Ranged;
 
 use crate::builders::parenthesize_if_expands;
 use crate::comments::{
@@ -46,6 +47,11 @@ impl FormatNodeRule<StmtAssign> for FormatStmtAssign {
         let format_first = FormatTargetWithEqualOperator {
             target: first,
             preserve_parentheses: true,
+            spaces_before_equal: if rest.is_empty() {
+                f.context().tali_assignment_spaces(item.start())
+            } else {
+                1
+            },
         };
 
         // Avoid parenthesizing the value if the last target before the assigned value expands.
@@ -56,6 +62,7 @@ impl FormatNodeRule<StmtAssign> for FormatStmtAssign {
                 FormatTargetWithEqualOperator {
                     target,
                     preserve_parentheses: false,
+                    spaces_before_equal: 1,
                 }
                 .fmt(f)?;
             }
@@ -107,6 +114,7 @@ struct FormatTargetWithEqualOperator<'a> {
     /// Whether parentheses should be preserved as in the source or if the target
     /// should only be parenthesized if necessary (because of comments or because it doesn't fit).
     preserve_parentheses: bool,
+    spaces_before_equal: u16,
 }
 
 impl Format<PyFormatContext<'_>> for FormatTargetWithEqualOperator<'_> {
@@ -127,7 +135,10 @@ impl Format<PyFormatContext<'_>> for FormatTargetWithEqualOperator<'_> {
                 .fmt(f)?;
         }
 
-        write!(f, [space(), token("="), space()])
+        for _ in 0..self.spaces_before_equal {
+            space().fmt(f)?;
+        }
+        write!(f, [token("="), space()])
     }
 }
 

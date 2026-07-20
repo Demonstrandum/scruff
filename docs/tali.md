@@ -104,11 +104,42 @@ render([
 ])
 ```
 
+## Horizontal alignment and comments
+
+Tali preserves deliberate horizontal layout across consecutive, related statements. Extra source
+spacing opts a group into alignment: assignment operators align before `=`, annotation content
+aligns after `:`, and trailing comments align when at least one comment has four or more spaces
+before it.
+
+```python
+short     = 1
+long_name = 2
+
+x:    int
+long: str
+
+first = 1   # first value
+second = 2  # second value
+```
+
+Blank lines, intervening statement kinds, and statements without the relevant syntax end a group,
+so isolated or unrelated lines keep the standard formatter spacing. The same detection applies
+inside nested suites.
+
+In Tali mode, trailing comments do not reserve line width and therefore never cause the code before
+them to wrap. If the complete source line exceeds the configured width, the comment moves below the
+statement in pointer form:
+
+```python
+result = compute(argument)
+# ^ Explanation that made the original line too wide.
+```
+
 ## Current limitations
 
-The following Tali behavior is planned but not implemented:
-- Optional alignment of comments, annotations, and assignments.
-- Comment-aware line wrapping.
+Alignment currently applies to single-line assignments and annotated assignments. It deliberately
+does not align augmented or chained assignments, multiline statement bodies, or groups separated by
+comments or blank lines.
 
 The implementation checklist is maintained in
 [`TALI-MODE.md`](https://github.com/Demonstrandum/scruff/blob/master/TALI-MODE.md).

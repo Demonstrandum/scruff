@@ -42,6 +42,7 @@ mod range;
 mod shared_traits;
 pub(crate) mod statement;
 pub(crate) mod string;
+mod tali;
 pub(crate) mod type_param;
 mod verbatim;
 
