@@ -4,8 +4,8 @@
 
 - [x] `quote-style = "symbol"`:
     - [x] Symbols and identifiers get single quotes, natural language double quotes.
-    - [ ] Respected in f-strings.
-    - [ ] Triple-single quote strings when containing a `"` double quote.
+    - [x] Respected in f-strings.
+    - [x] Triple-single quote strings when containing a `"` double quote.
 - [x] Imports for side-effects allowed by `import x as _` instead of comments.
 - [x] Pack multiline function parameters within semantic blocks delimited by `/` and `*`.
 - [x] Detect and consistently enforce column alignment in rectangular 2-D and N-D list literals.

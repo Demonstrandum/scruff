@@ -43,6 +43,11 @@ The setting is also available on the command line:
 scruff format --config "format.quote-style = 'symbol'" .
 ```
 
+Symbol classification also applies to nested strings in f-string expressions. On Python 3.12 and
+newer, PEP 701 allows the selected quote to match the outer f-string delimiter; older targets use
+the opposite delimiter when required for valid syntax. Triple-quoted strings containing `"` use
+triple-single delimiters when doing so is safe.
+
 ## Side-effect imports
 
 Tali mode treats an underscore alias as an explicit side-effect import:
@@ -85,9 +90,6 @@ integers).
 ## Current limitations
 
 The following Tali behavior is planned but not implemented:
-
-- Applying symbol quote selection to f-strings.
-- Selecting triple-single quotes for strings containing double quotes.
 - Optional alignment of comments, annotations, and assignments.
 - Comment-aware line wrapping and nested-bracket hugging.
 
