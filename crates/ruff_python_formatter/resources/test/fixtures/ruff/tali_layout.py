@@ -76,3 +76,16 @@ ragged = [
     [1,   2],
     [3, 4, 5],
 ]
+
+
+render([
+    1,
+    2,
+    3,
+])
+
+
+configure({
+    "enabled": True,
+    "options": ["a", "b"],
+})
