@@ -10,7 +10,7 @@ use ruff_formatter::FormatContext;
 use crate::PyFormatContext;
 
 /// Returns `true` if the [`hug_parens_with_braces_and_square_brackets`](https://github.com/astral-sh/ruff/issues/8279) preview style is enabled.
-pub(crate) const fn is_hug_parens_with_braces_and_square_brackets_enabled(
+pub(crate) fn is_hug_parens_with_braces_and_square_brackets_enabled(
     context: &PyFormatContext,
 ) -> bool {
     context.is_preview() || context.options().is_tali_mode()
