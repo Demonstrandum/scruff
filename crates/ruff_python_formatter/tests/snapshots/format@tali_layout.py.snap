@@ -71,6 +71,66 @@ decimal_matrix = [
 ]
 
 
+string_matrix = [
+    ['short',         r"raw"],
+    ["a longer value", 'symbol'],
+]
+
+
+unary_matrix = [
+    [-1.2,    +30],
+    [+100, -4.0],
+]
+
+
+expression_matrix = [
+    [point.x,          factory(1), values[0], left + right],
+    [longer_point.x, build("item"), mapping['key'], first or second],
+]
+
+
+literal_matrix = [
+    [None,         ..., b"bytes", {"key": 1}],
+    [True, a_name, b"longer", {"other": 2}],
+]
+
+
+tuple_matrix = (
+    (1,    20, 300),
+    (400, 5,   6),
+)
+
+
+commented_tuple_matrix = (
+    (1, 20),       #first tuple row
+    (300, 4),      # second tuple row
+)
+
+
+mixed_row_matrix = [
+    (first,    second),
+    [long_name, value],
+]
+
+
+comment_aligned_matrix = [
+    [1, 20],       #first row
+    [300, 4],      # second row
+]
+
+
+partly_commented_matrix = [
+    [1,   20],  # first row
+    [300, 4],
+]
+
+
+formatted_comment_matrix = [
+    [1,    20],  #comment needs formatting
+    [300, 4],    #  deliberately spaced
+]
+
+
 unaligned_matrix = [
     [1, 20],
     [300, 4],
@@ -92,6 +152,33 @@ tensor = [
 ragged = [
     [1,   2],
     [3, 4, 5],
+]
+
+
+unsafe_multiline_cell = [
+    [
+        call(
+            first,
+            second,
+        ),
+        2,
+    ],
+    [short_call(), 3],
+]
+
+
+too_wide_matrix = [
+    ["first value that fits alone but not beside another value",   "second value that also fits by itself but not in the row"],
+    ["third value that fits alone but not beside another value", "fourth value that also fits by itself but not in the row"],
+]
+
+
+commented_cell = [
+    [
+        first,  # Cell comments use the normal formatter.
+        second,
+    ],
+    [third, fourth],
 ]
 
 
@@ -185,6 +272,66 @@ decimal_matrix = [
 ]
 
 
+string_matrix = [
+    ["short"         , r"raw"  ],
+    ["a longer value", "symbol"],
+]
+
+
+unary_matrix = [
+    [  -1.2, +30  ],
+    [+100  ,  -4.0],
+]
+
+
+expression_matrix = [
+    [point.x       , factory(1)   , values[0]     , left + right   ],
+    [longer_point.x, build("item"), mapping["key"], first or second],
+]
+
+
+literal_matrix = [
+    [None, ...   , b"bytes" , {"key": 1}  ],
+    [True, a_name, b"longer", {"other": 2}],
+]
+
+
+tuple_matrix = (
+    (  1, 20, 300),
+    (400,  5,   6),
+)
+
+
+commented_tuple_matrix = (
+    (  1, 20),  # first tuple row
+    (300,  4),  # second tuple row
+)
+
+
+mixed_row_matrix = [
+    (first    , second),
+    [long_name, value ],
+]
+
+
+comment_aligned_matrix = [
+    [  1, 20],  # first row
+    [300,  4],  # second row
+]
+
+
+partly_commented_matrix = [
+    [  1, 20],  # first row
+    [300,  4],
+]
+
+
+formatted_comment_matrix = [
+    [  1, 20],  # comment needs formatting
+    [300,  4],  #  deliberately spaced
+]
+
+
 unaligned_matrix = [
     [1, 20],
     [300, 4],
@@ -206,6 +353,39 @@ tensor = [
 ragged = [
     [1, 2],
     [3, 4, 5],
+]
+
+
+unsafe_multiline_cell = [
+    [
+        call(
+            first,
+            second,
+        ),
+        2,
+    ],
+    [short_call(), 3],
+]
+
+
+too_wide_matrix = [
+    [
+        "first value that fits alone but not beside another value",
+        "second value that also fits by itself but not in the row",
+    ],
+    [
+        "third value that fits alone but not beside another value",
+        "fourth value that also fits by itself but not in the row",
+    ],
+]
+
+
+commented_cell = [
+    [
+        first,  # Cell comments use the normal formatter.
+        second,
+    ],
+    [third, fourth],
 ]
 
 

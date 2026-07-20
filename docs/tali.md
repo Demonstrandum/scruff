@@ -80,12 +80,17 @@ def positional_only(
 
 ## Rectangular data
 
-When any row in a comment-free, rectangular nested list uses extra whitespace to align columns,
-Tali mode formats every cell normally and then enforces consistent column widths across the entire
-expression. Rows may be lists or tuples, and this works recursively for two-dimensional and
-higher-dimensional data. Unaligned or ragged sequences continue to use the standard formatter
-layout. Numeric columns align on their decimal point (or the implied ones-place boundary for
-integers).
+When a rectangular nested list or tuple uses extra whitespace to align columns, Tali mode formats
+every cell normally and then enforces consistent column widths across the entire expression. This
+supports normally formatted single-line expressions such as strings, unary numbers, attributes,
+calls, and subscripts. Rows may be lists or tuples, and this works recursively for two-dimensional
+and higher-dimensional data. Numeric columns align on their decimal point (or the implied
+ones-place boundary for integers).
+
+End-of-line comments on rows are retained and formatted normally. Whitespace used to line up row
+comments also counts as alignment intent; the formatted comments remain aligned after cell widths
+change. Unaligned, ragged, or multiline-cell sequences continue to use the standard formatter
+layout.
 
 ## Nested container arguments
 
