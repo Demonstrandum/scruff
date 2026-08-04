@@ -693,9 +693,9 @@ fn report_failed_to_converge_error(path: &Path, transformed: &str, diagnostics: 
             r#"
 {}{} Failed to converge after {} iterations.
 
-This indicates a bug in Ruff. If you could open an issue at:
+This indicates a bug in Scruff. If you could open an issue at:
 
-    https://github.com/astral-sh/ruff/issues/new?title=%5BInfinite%20loop%5D
+    https://github.com/Demonstrandum/scruff/issues/new?title=%5BInfinite%20loop%5D
 
 ...quoting the contents of `{}`, the rule codes {}, along with the `pyproject.toml` settings and executed command, we'd be very appreciative!
 "#,
@@ -731,9 +731,9 @@ fn report_fix_syntax_error<'a>(
             r#"
 {}{} Fix introduced a syntax error. Reverting all changes.
 
-This indicates a bug in Ruff. If you could open an issue at:
+This indicates a bug in Scruff. If you could open an issue at:
 
-    https://github.com/astral-sh/ruff/issues/new?title=%5BFix%20error%5D
+    https://github.com/Demonstrandum/scruff/issues/new?title=%5BFix%20error%5D
 
 ...quoting the contents of `{}`, the rule codes {}, along with the `pyproject.toml` settings and executed command, we'd be very appreciative!
 "#,

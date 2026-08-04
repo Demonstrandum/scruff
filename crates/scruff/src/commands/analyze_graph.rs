@@ -26,7 +26,7 @@ pub(crate) fn analyze_graph(
     // files are present, or files are injected from outside the hierarchy.
     let pyproject_config = resolve(config_arguments, None)?;
     if pyproject_config.settings.analyze.preview.is_disabled() {
-        warn_user!("`ruff analyze graph` is experimental and may change without warning");
+        warn_user!("`scruff analyze graph` is experimental and may change without warning");
     }
 
     // Write all paths relative to the current working directory.

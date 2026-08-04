@@ -384,7 +384,7 @@ pub(crate) fn init(path: &Path) -> Result<()> {
         .create_new(true)
         .open(path.join(".gitignore"))
     {
-        Ok(mut file) => file.write_all(b"# Automatically created by ruff.\n*\n")?,
+        Ok(mut file) => file.write_all(b"# Automatically created by scruff.\n*\n")?,
         Err(err) if err.kind() == io::ErrorKind::AlreadyExists => (),
         Err(err) => return Err(err.into()),
     }

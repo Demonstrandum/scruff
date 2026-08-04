@@ -1,11 +1,14 @@
 use ruff_formatter::{FormatRuleWithOptions, format_args};
 use ruff_python_ast::AnyNodeRef;
 use ruff_python_ast::ExprTuple;
+use ruff_source_file::LineRanges;
 use ruff_text_size::{Ranged, TextRange};
 
 use crate::builders::parenthesize_if_expands;
+use crate::expression::expr_list::{SequenceKind, aligned_column_layouts, format_aligned_sequence};
 use crate::expression::parentheses::{
-    NeedsParentheses, OptionalParentheses, empty_parenthesized, optional_parentheses, parenthesized,
+    NeedsParentheses, OptionalParentheses, empty_parenthesized, optional_parentheses,
+    parenthesized, tali_parenthesize_if_expands, tali_parenthesized,
 };
 use crate::other::commas::has_trailing_comma;
 use crate::prelude::*;
@@ -123,6 +126,16 @@ impl FormatNodeRule<ExprTuple> for FormatExprTuple {
         let comments = f.context().comments().clone();
         let dangling = comments.dangling(item);
 
+        if f.options().is_tali_mode()
+            && self.parentheses == TupleParentheses::Default
+            && *is_parenthesized
+            && dangling.is_empty()
+            && f.context().source().contains_line_break(item.range())
+            && let Some(column_layouts) = aligned_column_layouts(elts, f.context())
+        {
+            return format_aligned_sequence(SequenceKind::Tuple, elts, &column_layouts, f);
+        }
+
         // Handle the edge cases of an empty tuple and a tuple with one element
         //
         // there can be dangling comments, and they can be in two
@@ -176,9 +189,16 @@ impl FormatNodeRule<ExprTuple> for FormatExprTuple {
                 && !(self.parentheses == TupleParentheses::NeverPreserve
                     && dangling.is_empty()) =>
             {
-                parenthesized("(", &ExprSequence::new(item), ")")
-                    .with_dangling_comments(dangling)
-                    .fmt(f)
+                if f.options().is_tali_mode()
+                    && dangling.is_empty()
+                    && !comments.contains_comments(item.into())
+                {
+                    tali_parenthesized(&ExprSequence::new(item), f)
+                } else {
+                    parenthesized("(", &ExprSequence::new(item), ")")
+                        .with_dangling_comments(dangling)
+                        .fmt(f)
+                }
             }
             _ => match self.parentheses {
                 TupleParentheses::Never => {
@@ -193,10 +213,18 @@ impl FormatNodeRule<ExprTuple> for FormatExprTuple {
                     optional_parentheses(&ExprSequence::new(item)).fmt(f)
                 }
                 TupleParentheses::OptionalParentheses if item.len() == 2 => {
-                    optional_parentheses(&ExprSequence::new(item)).fmt(f)
+                    if f.options().is_tali_mode() && !comments.contains_comments(item.into()) {
+                        tali_parenthesize_if_expands(&ExprSequence::new(item), f)
+                    } else {
+                        optional_parentheses(&ExprSequence::new(item)).fmt(f)
+                    }
                 }
                 TupleParentheses::Default | TupleParentheses::OptionalParentheses => {
-                    parenthesize_if_expands(&ExprSequence::new(item)).fmt(f)
+                    if f.options().is_tali_mode() && !comments.contains_comments(item.into()) {
+                        tali_parenthesize_if_expands(&ExprSequence::new(item), f)
+                    } else {
+                        parenthesize_if_expands(&ExprSequence::new(item)).fmt(f)
+                    }
                 }
             },
         }

@@ -94,6 +94,8 @@ pub struct FormatSuite {
 
 impl FormatRule<Suite, PyFormatContext<'_>> for FormatSuite {
     fn fmt(&self, statements: &Suite, f: &mut PyFormatter) -> FormatResult<()> {
+        f.context_mut().prepare_tali_horizontal_layout(statements);
+
         let mut iter = statements.iter();
         let Some(first) = iter.next() else {
             return Ok(());

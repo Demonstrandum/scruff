@@ -278,7 +278,7 @@ mod test {
         )
         .unwrap();
 
-        let config = DisplayDiagnosticConfig::new("ruff")
+        let config = DisplayDiagnosticConfig::new("scruff")
             .format(DiagnosticFormat::Concise)
             .hide_severity(true);
         let messages = DisplayDiagnostics::new(

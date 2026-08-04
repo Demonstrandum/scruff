@@ -1,5 +1,6 @@
 use ruff_formatter::write;
 use ruff_python_ast::StmtAnnAssign;
+use ruff_text_size::Ranged;
 
 use crate::expression::is_splittable_expression;
 use crate::expression::parentheses::{NeedsParentheses, OptionalParentheses, Parentheses};
@@ -27,11 +28,15 @@ impl FormatNodeRule<StmtAnnAssign> for FormatStmtAnnAssign {
             .as_ref()
             .needs_parentheses(item.into(), f.context());
 
-        write!(f, [target.format(), token(":"), space()])?;
+        write!(f, [target.format(), token(":")])?;
+        for _ in 0..f.context().tali_annotation_spaces(item.start()) {
+            space().fmt(f)?;
+        }
 
         if let Some(value) = value {
             if annotation_parentheses != OptionalParentheses::Always
                 && is_splittable_expression(annotation, f.context())
+                && f.context().tali_assignment_spaces(item.start()) == 1
             {
                 FormatStatementsLastExpression::RightToLeft {
                     before_operator: AnyBeforeOperator::Expression(annotation),
@@ -54,10 +59,12 @@ impl FormatNodeRule<StmtAnnAssign> for FormatStmtAnnAssign {
 
                 annotation.format().with_options(parentheses).fmt(f)?;
 
+                for _ in 0..f.context().tali_assignment_spaces(item.start()) {
+                    space().fmt(f)?;
+                }
                 write!(
                     f,
                     [
-                        space(),
                         token("="),
                         space(),
                         FormatStatementsLastExpression::left_to_right(value, item)

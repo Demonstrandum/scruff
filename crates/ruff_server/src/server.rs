@@ -369,7 +369,7 @@ impl ServerPanicHookHandler {
             if let Some(client) = hook_client.upgrade() {
                 client
                     .show_message(
-                        "The Ruff language server exited with a panic. See the logs for more details.",
+                        "The Scruff language server exited with a panic. See the logs for more details.",
                         MessageType::Error,
                     )
                     .ok();

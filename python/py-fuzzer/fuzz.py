@@ -1,24 +1,24 @@
 """
-Run a Ruff executable on randomly generated (but syntactically valid)
+Run a Scruff executable on randomly generated (but syntactically valid)
 Python source-code files.
 
 This script can be installed into a virtual environment using
-`uv pip install -e ./python/py-fuzzer` from the Ruff repository root,
+`uv pip install -e ./python/py-fuzzer` from the Scruff repository root,
 or can be run using `uv run --project=./python/py-fuzzer fuzz`
 (in which case the virtual environment does not need to be activated).
 Note that using `uv run --project` rather than `uvx --from` means that
 uv will respect the script's lockfile.
 
 Example invocations of the script using `uv`:
-- Run the fuzzer on Ruff's parser using seeds 0, 1, 2, 78 and 93 to generate the code:
-  `uv run --project=./python/py-fuzzer fuzz --bin ruff 0-2 78 93`
+- Run the fuzzer on Scruff's parser using seeds 0, 1, 2, 78 and 93 to generate the code:
+  `uv run --project=./python/py-fuzzer fuzz --bin scruff 0-2 78 93`
 - Run the fuzzer concurrently using seeds in range 0-10 inclusive,
   but only reporting bugs that are new on your branch:
-  `uv run --project=./python/py-fuzzer fuzz --bin ruff 0-10 --only-new-bugs`
+  `uv run --project=./python/py-fuzzer fuzz --bin scruff 0-10 --only-new-bugs`
 - Run the fuzzer concurrently on 10,000 different Python source-code files,
   using a random selection of seeds, and only print a summary at the end
   (the `shuf` command is Unix-specific):
-  `uv run --project=./python/py-fuzzer fuzz --bin ruff $(shuf -i 0-1000000 -n 10000) --quiet
+  `uv run --project=./python/py-fuzzer fuzz --bin scruff $(shuf -i 0-1000000 -n 10000) --quiet
 """
 
 from __future__ import annotations

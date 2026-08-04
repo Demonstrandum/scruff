@@ -14,6 +14,8 @@ on:
 jobs:
   update-dependents:
     name: Notify dependents
+    # Opt in after a Scruff pre-commit repository is available.
+    if: ${{ vars.ENABLE_PRE_COMMIT_PUBLISH == 'true' }}
     environment:
       name: release
     runs-on: ubuntu-latest

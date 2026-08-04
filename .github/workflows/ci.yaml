@@ -4,7 +4,7 @@ permissions: {}
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -63,7 +63,7 @@ jobs:
       - name: Determine merge base
         id: merge_base
         env:
-          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'master' }}
         run: |
           sha=$(git merge-base HEAD "origin/${BASE_REF}")
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
@@ -258,7 +258,7 @@ jobs:
   shellcheck:
     name: "shellcheck"
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: ${{ github.repository == 'astral-sh/ruff' && 5 || 15 }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -429,7 +429,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     needs: determine_changes
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-test') && (needs.determine_changes.outputs.code == 'true' || github.ref == 'refs/heads/master') }}
-    timeout-minutes: 20
+    timeout-minutes: ${{ github.repository == 'astral-sh/ruff' && 20 || 40 }}
     env:
       # Line-tables-only debug info: faster builds, backtraces still work.
       CARGO_PROFILE_DEV_DEBUG: line-tables-only
@@ -622,8 +622,8 @@ jobs:
       # Lint/format/type-check py-fuzzer
       # (dogfooding with ty is done in a separate job)
       - run: uv run --directory=./python/py-fuzzer mypy
-      - run: uv run --directory=./python/py-fuzzer ruff format --check
-      - run: uv run --directory=./python/py-fuzzer ruff check
+      - run: cargo run -p scruff -- format --check python/py-fuzzer
+      - run: cargo run -p scruff -- check python/py-fuzzer
 
   ecosystem:
     name: "ecosystem"

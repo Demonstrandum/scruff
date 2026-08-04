@@ -422,6 +422,21 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn f401_side_effect_import_as_underscore() {
+        let diagnostics = test_snippet(
+            "import os as _\nimport sys\nfrom pathlib import Path as _",
+            &LinterSettings {
+                pyflakes: pyflakes::settings::Settings {
+                    allow_side_effect_imports_as_underscore: true,
+                    ..pyflakes::settings::Settings::default()
+                },
+                ..LinterSettings::for_rule(Rule::UnusedImport)
+            },
+        );
+        assert_diagnostics!(diagnostics);
+    }
+
     #[test_case(Rule::UnusedImport, Path::new("F401_35.py"))]
     fn f401_allowed_unused_imports_top_level_module(rule_code: Rule, path: &Path) -> Result<()> {
         let diagnostics = test_path(

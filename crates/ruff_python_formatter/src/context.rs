@@ -1,12 +1,13 @@
+use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 
 use ruff_formatter::{Buffer, FormatContext, GroupId, IndentWidth, SourceCode};
-use ruff_python_ast::ExprRef;
 use ruff_python_ast::str::Quote;
 use ruff_python_ast::token::Tokens;
+use ruff_python_ast::{ExprRef, Suite};
 use ruff_python_trivia::TriviaRanges;
-use ruff_text_size::Ranged;
+use ruff_text_size::{Ranged, TextSize};
 
 use crate::PyFormatOptions;
 use crate::comments::Comments;
@@ -31,6 +32,9 @@ pub struct PyFormatContext<'a> {
     docstring: Option<Quote>,
     /// The state of the formatter with respect to f-strings and t-strings.
     interpolated_string_state: InterpolatedStringState,
+    tali_assignment_spaces: HashMap<TextSize, u16>,
+    tali_annotation_spaces: HashMap<TextSize, u16>,
+    tali_comment_spaces: HashMap<TextSize, u16>,
 }
 
 impl<'a> PyFormatContext<'a> {
@@ -51,11 +55,43 @@ impl<'a> PyFormatContext<'a> {
             indent_level: IndentLevel::new(0),
             docstring: None,
             interpolated_string_state: InterpolatedStringState::Outside,
+            tali_assignment_spaces: HashMap::new(),
+            tali_annotation_spaces: HashMap::new(),
+            tali_comment_spaces: HashMap::new(),
         }
     }
 
     pub(crate) fn source(&self) -> &'a str {
         self.contents
+    }
+
+    pub(crate) fn prepare_tali_horizontal_layout(&mut self, statements: &Suite) {
+        if !self.options.is_tali_mode() {
+            return;
+        }
+
+        let layout = crate::tali::horizontal_layout(statements, self.contents, &self.comments);
+        self.tali_assignment_spaces.extend(layout.assignments);
+        self.tali_annotation_spaces.extend(layout.annotations);
+        self.tali_comment_spaces.extend(layout.comments);
+    }
+
+    pub(crate) fn tali_assignment_spaces(&self, start: TextSize) -> u16 {
+        self.tali_assignment_spaces
+            .get(&start)
+            .copied()
+            .unwrap_or(1)
+    }
+
+    pub(crate) fn tali_annotation_spaces(&self, start: TextSize) -> u16 {
+        self.tali_annotation_spaces
+            .get(&start)
+            .copied()
+            .unwrap_or(1)
+    }
+
+    pub(crate) fn tali_comment_spaces(&self, start: TextSize) -> u16 {
+        self.tali_comment_spaces.get(&start).copied().unwrap_or(2)
     }
 
     pub(crate) fn set_node_level(&mut self, level: NodeLevel) {

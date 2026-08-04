@@ -115,9 +115,9 @@ const STYLES: Styles = Styles::styled()
 #[derive(Debug, Parser)]
 #[command(
     author,
-    name = "ruff",
-    about = "Ruff: An extremely fast Python linter and code formatter.",
-    after_help = "For help with a specific command, see: `ruff help <command>`."
+    name = "scruff",
+    about = "Scruff: An opinionated Python linter and code formatter.",
+    after_help = "For help with a specific command, see: `scruff help <command>`."
 )]
 #[command(version)]
 #[command(styles = STYLES)]
@@ -131,7 +131,7 @@ pub struct Args {
 #[expect(clippy::large_enum_variant)]
 #[derive(Debug, clap::Subcommand)]
 pub enum Command {
-    /// Run Ruff on the given files or directories.
+    /// Run Scruff on the given files or directories.
     Check(CheckCommand),
     /// Explain a rule (or all rules).
     #[command(group = clap::ArgGroup::new("selector").multiple(false).required(true))]
@@ -171,14 +171,14 @@ pub enum Command {
     /// Generate shell completion.
     #[clap(hide = true)]
     GenerateShellCompletion { shell: clap_complete_command::Shell },
-    /// Run the Ruff formatter on the given files or directories.
+    /// Run the Scruff formatter on the given files or directories.
     Format(FormatCommand),
     /// Run the language server.
     Server(ServerCommand),
     /// Run analysis over Python source code.
     #[clap(subcommand)]
     Analyze(AnalyzeCommand),
-    /// Display Ruff's version
+    /// Display Scruff's version
     Version {
         #[arg(long, value_enum, default_value = "text")]
         output_format: HelpFormat,
@@ -398,7 +398,7 @@ pub struct CheckCommand {
     respect_gitignore: bool,
     #[clap(long, overrides_with("respect_gitignore"), hide = true)]
     no_respect_gitignore: bool,
-    /// Enforce exclusions, even for paths passed to Ruff directly on the command-line.
+    /// Enforce exclusions, even for paths passed to Scruff directly on the command-line.
     /// Use `--no-force-exclude` to disable.
     #[arg(
         long,
@@ -489,7 +489,7 @@ pub struct CheckCommand {
         conflicts_with = "diff",
     )]
     pub add_ignore: Option<String>,
-    /// See the files Ruff will be run against with the current settings.
+    /// See the files Scruff will be run against with the current settings.
     #[arg(
         long,
         // Fake subcommands.
@@ -503,7 +503,7 @@ pub struct CheckCommand {
         conflicts_with = "watch",
     )]
     pub show_files: bool,
-    /// See the settings Ruff will use to lint a given Python file.
+    /// See the settings Scruff will use to lint a given Python file.
     #[arg(
         long,
         // Fake subcommands.
@@ -570,7 +570,7 @@ pub struct FormatCommand {
     )]
     pub extend_exclude: Option<Vec<FilePattern>>,
 
-    /// Enforce exclusions, even for paths passed to Ruff directly on the command-line.
+    /// Enforce exclusions, even for paths passed to Scruff directly on the command-line.
     /// Use `--no-force-exclude` to disable.
     #[arg(
         long,
@@ -600,7 +600,7 @@ pub struct FormatCommand {
     #[clap(long, overrides_with("preview"), hide = true)]
     no_preview: bool,
 
-    /// When specified, Ruff will try to only format the code in the given range.
+    /// When specified, Scruff will try to only format the code in the given range.
     /// It might be necessary to extend the start backwards or the end forwards, to fully enclose a logical line.
     /// The `<RANGE>` uses the format `<start_line>:<start_column>-<end_line>:<end_column>`.
     ///
@@ -750,7 +750,7 @@ impl ConfigArguments {
 The argument `--config={}` cannot be used with `--isolated`
 
   tip: You cannot specify a configuration file and also specify `--isolated`,
-       as `--isolated` causes ruff to ignore all configuration files.
+       as `--isolated` causes Scruff to ignore all configuration files.
        For more information, try `--help`.
 ",
                             path.display()

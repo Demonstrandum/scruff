@@ -1,7 +1,7 @@
 ---
-source: crates/ruff/tests/cli/format.rs
+source: crates/scruff/tests/cli/format.rs
 info:
-  program: ruff
+  program: scruff
   args:
     - format
     - "--no-cache"
@@ -14,6 +14,6 @@ info:
 success: false
 exit_code: 1
 ----- stdout -----
-::error title=ruff (unformatted),file=[TMP]/input.py,line=1,endLine=2::input.py:1:1: unformatted: File would be reformatted
+::error title=scruff (unformatted),file=[TMP]/input.py,line=1,endLine=2::input.py:1:1: unformatted: File would be reformatted
 
 ----- stderr -----

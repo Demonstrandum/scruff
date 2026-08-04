@@ -36,10 +36,10 @@ pub fn create_panic_diagnostic(error: &PanicError, path: Option<&Path>) -> Diagn
 
     diagnostic.sub(SubDiagnostic::new(
         SubDiagnosticSeverity::Info,
-        "This indicates a bug in Ruff.",
+        "This indicates a bug in Scruff.",
     ));
     let report_message = "If you could open an issue at \
-                            https://github.com/astral-sh/ruff/issues/new?title=%5Bpanic%5D, \
+                            https://github.com/Demonstrandum/scruff/issues/new?title=%5Bpanic%5D, \
                             we'd be very appreciative!";
     diagnostic.sub(SubDiagnostic::new(
         SubDiagnosticSeverity::Info,

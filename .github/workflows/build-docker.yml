@@ -18,7 +18,7 @@ on:
       - .github/workflows/build-docker.yml
 
 env:
-  RUFF_BASE_IMG: ghcr.io/demonstrandum/scruff
+  SCRUFF_BASE_IMG: ghcr.io/demonstrandum/scruff
 
 permissions:
   contents: read
@@ -72,7 +72,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
-          images: ${{ env.RUFF_BASE_IMG }}
+          images: ${{ env.SCRUFF_BASE_IMG }}
           # Defining this makes sure the org.opencontainers.image.version OCI label becomes the actual release version and not the branch name
           tags: |
             type=raw,value=dry-run,enable=${{ inputs.plan == '' || fromJson(inputs.plan).announcement_tag_is_implicit }}
@@ -90,10 +90,10 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
-          cache-from: type=gha,scope=ruff-${{ env.PLATFORM_TUPLE }}
-          cache-to: type=gha,mode=min,scope=ruff-${{ env.PLATFORM_TUPLE }}
+          cache-from: type=gha,scope=scruff-${{ env.PLATFORM_TUPLE }}
+          cache-to: type=gha,mode=min,scope=scruff-${{ env.PLATFORM_TUPLE }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.RUFF_BASE_IMG }},push-by-digest=true,name-canonical=true,push=${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
+          outputs: type=image,name=${{ env.SCRUFF_BASE_IMG }},push-by-digest=true,name-canonical=true,push=${{ inputs.plan != '' && !fromJson(inputs.plan).announcement_tag_is_implicit }}
 
       - name: Export digests
         env:
@@ -136,7 +136,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
-          images: ${{ env.RUFF_BASE_IMG }}
+          images: ${{ env.SCRUFF_BASE_IMG }}
           # Order is on purpose such that the label org.opencontainers.image.version has the first pattern with the full version
           tags: |
             type=pep440,pattern={{ version }},value=${{ fromJson(inputs.plan).announcement_tag }}
@@ -152,18 +152,17 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         # The jq command expands the docker/metadata json "tags" array entry to `-t tag1 -t tag2 ...` for each tag in the array
-        # The printf will expand the base image with the `<RUFF_BASE_IMG>@sha256:<sha256> ...` for each sha256 in the directory
-        # The final command becomes `docker buildx imagetools create -t tag1 -t tag2 ... <RUFF_BASE_IMG>@sha256:<sha256_1> <RUFF_BASE_IMG>@sha256:<sha256_2> ...`
+        # The printf expands the base image with `<SCRUFF_BASE_IMG>@sha256:<sha256> ...`.
         run: |
           # shellcheck disable=SC2046
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf "${RUFF_BASE_IMG}@sha256:%s " *)
+            $(printf "${SCRUFF_BASE_IMG}@sha256:%s " *)
 
       - name: Export manifest digest
         id: manifest-digest
         env:
-          IMAGE: ${{ env.RUFF_BASE_IMG }}
+          IMAGE: ${{ env.SCRUFF_BASE_IMG }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           digest="$(
@@ -177,7 +176,7 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
-          subject-name: ${{ env.RUFF_BASE_IMG }}
+          subject-name: ${{ env.SCRUFF_BASE_IMG }}
           subject-digest: ${{ steps.manifest-digest.outputs.digest }}
 
   docker-publish-extra:
@@ -223,9 +222,9 @@ jobs:
           # Generate Dockerfile content
           cat <<EOF > Dockerfile
           FROM ${BASE_IMAGE}
-          COPY --from=${RUFF_BASE_IMG}:latest /ruff /usr/local/bin/ruff
+          COPY --from=${SCRUFF_BASE_IMG}:latest /scruff /usr/local/bin/scruff
           ENTRYPOINT []
-          CMD ["/usr/local/bin/ruff"]
+          CMD ["/usr/local/bin/scruff"]
           EOF
 
           # Initialize a variable to store all tag docker metadata patterns
@@ -259,7 +258,7 @@ jobs:
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
-          images: ${{ env.RUFF_BASE_IMG }}
+          images: ${{ env.SCRUFF_BASE_IMG }}
           flavor: |
             latest=false
           tags: |
@@ -272,8 +271,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           # We do not really need to cache here as the Dockerfile is tiny
-          #cache-from: type=gha,scope=ruff-${{ env.IMAGE_REF }}
-          #cache-to: type=gha,mode=min,scope=ruff-${{ env.IMAGE_REF }}
+          #cache-from: type=gha,scope=scruff-${{ env.IMAGE_REF }}
+          #cache-to: type=gha,mode=min,scope=scruff-${{ env.IMAGE_REF }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -282,10 +281,10 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
-          subject-name: ${{ env.RUFF_BASE_IMG }}
+          subject-name: ${{ env.SCRUFF_BASE_IMG }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
 
-  # This is effectively a duplicate of `docker-publish` to make https://github.com/astral-sh/ruff/pkgs/container/ruff
+  # This is effectively a duplicate of `docker-publish` that also publishes the `latest` tag.
   # show the ruff base image first since GitHub always shows the last updated image digests
   # This works by annotating the original digests (previously non-annotated) which triggers an update to ghcr.io
   docker-republish:
@@ -316,7 +315,7 @@ jobs:
         env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: index
         with:
-          images: ${{ env.RUFF_BASE_IMG }}
+          images: ${{ env.SCRUFF_BASE_IMG }}
           # Order is on purpose such that the label org.opencontainers.image.version has the first pattern with the full version
           tags: |
             type=pep440,pattern={{ version }},value=${{ fromJson(inputs.plan).announcement_tag }}
@@ -333,8 +332,7 @@ jobs:
         working-directory: /tmp/digests
         # The readarray part is used to make sure the quoting and special characters are preserved on expansion (e.g. spaces)
         # The jq command expands the docker/metadata json "tags" array entry to `-t tag1 -t tag2 ...` for each tag in the array
-        # The printf will expand the base image with the `<RUFF_BASE_IMG>@sha256:<sha256> ...` for each sha256 in the directory
-        # The final command becomes `docker buildx imagetools create -t tag1 -t tag2 ... <RUFF_BASE_IMG>@sha256:<sha256_1> <RUFF_BASE_IMG>@sha256:<sha256_2> ...`
+        # The printf expands the base image with `<SCRUFF_BASE_IMG>@sha256:<sha256> ...`.
         run: |
           readarray -t lines <<< "$DOCKER_METADATA_OUTPUT_ANNOTATIONS"; annotations=(); for line in "${lines[@]}"; do annotations+=(--annotation "$line"); done
 
@@ -342,12 +340,12 @@ jobs:
           docker buildx imagetools create \
             "${annotations[@]}" \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf "${RUFF_BASE_IMG}@sha256:%s " *)
+            $(printf "${SCRUFF_BASE_IMG}@sha256:%s " *)
 
       - name: Export manifest digest
         id: manifest-digest
         env:
-          IMAGE: ${{ env.RUFF_BASE_IMG }}
+          IMAGE: ${{ env.SCRUFF_BASE_IMG }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           digest="$(
@@ -361,5 +359,5 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
         with:
-          subject-name: ${{ env.RUFF_BASE_IMG }}
+          subject-name: ${{ env.SCRUFF_BASE_IMG }}
           subject-digest: ${{ steps.manifest-digest.outputs.digest }}

@@ -26,10 +26,10 @@ impl super::BackgroundRequestHandler for CodeActionResolve {
         let data = action
             .data
             .clone()
-            .ok_or_else(|| "it doesn't contain Ruff's document URI payload".to_string())?;
+            .ok_or_else(|| "it doesn't contain Scruff's document URI payload".to_string())?;
 
         let uri: lsp_types::Uri = serde_json::from_value(data)
-            .map_err(|err| format!("its Ruff document URI payload is invalid: {err}"))?;
+            .map_err(|err| format!("its Scruff document URI payload is invalid: {err}"))?;
 
         session
             .take_snapshot(uri.clone())

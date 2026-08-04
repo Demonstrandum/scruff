@@ -1,7 +1,11 @@
-use ruff_formatter::{FormatRuleWithOptions, format_args, write};
+use std::cell::Cell;
+
+use ruff_formatter::format_element::TextWidth;
+use ruff_formatter::{FormatOptions, FormatRuleWithOptions, format_args, write};
 use ruff_python_ast::{AnyNodeRef, Parameters};
 use ruff_python_trivia::{CommentLinePosition, SimpleToken, SimpleTokenKind, SimpleTokenizer};
-use ruff_text_size::{Ranged, TextRange, TextSize};
+use ruff_source_file::LineRanges;
+use ruff_text_size::{Ranged, TextRange, TextSize, TextSlice};
 
 use crate::comments::{
     SourceComment, dangling_comments, dangling_open_parenthesis_comments, leading_comments,
@@ -98,12 +102,48 @@ impl FormatNodeRule<Parameters> for FormatParameters {
         // argument separators, e.g., `*` or `/`).
         let (parenthesis_dangling, parameters_dangling) =
             dangling.split_at(parenthesis_comments_end);
+        let tali_semantic_layout = f.options().is_tali_mode()
+            && self.parentheses != ParametersParentheses::Never
+            && parameters_dangling.is_empty()
+            && f.context().source().contains_line_break(item.range());
+        let tali_first_parameter_on_new_line = tali_semantic_layout
+            && parameter_item_ranges(item, slash.as_ref(), star.as_ref())
+                .first()
+                .is_some_and(|first| {
+                    f.context()
+                        .source()
+                        .contains_line_break(TextRange::new(item.start(), first.start()))
+                });
+        let tali_magic_trailing_comma = tali_semantic_layout
+            && f.options().magic_trailing_comma().is_respect()
+            && has_trailing_comma(item, last_parameter_node(item), f.context().source());
 
         let format_inner = format_with(|f: &mut PyFormatter| {
+            let tali_group_breaks = if tali_semantic_layout {
+                let ranges = parameter_item_ranges(item, slash.as_ref(), star.as_ref());
+                Some(parameter_separator_breaks(
+                    item,
+                    &ranges,
+                    f.context().source(),
+                    f.options().line_width().value().saturating_sub(12),
+                    f.options().indent_width(),
+                ))
+            } else {
+                None
+            };
+            let separator_index = Cell::new(0);
             let separator = format_with(|f: &mut PyFormatter| {
                 token(",").fmt(f)?;
 
-                if f.context().node_level().is_parenthesized() {
+                if let Some(group_breaks) = &tali_group_breaks {
+                    let index = separator_index.get();
+                    separator_index.set(index + 1);
+                    if group_breaks[index] {
+                        hard_line_break().fmt(f)
+                    } else {
+                        space().fmt(f)
+                    }
+                } else if f.context().node_level().is_parenthesized() {
                     soft_line_break_or_space().fmt(f)
                 } else {
                     space().fmt(f)
@@ -229,6 +269,7 @@ impl FormatNodeRule<Parameters> for FormatParameters {
 
                 if f.options().magic_trailing_comma().is_respect()
                     && has_trailing_comma(item, last_node, f.context().source())
+                    && !tali_semantic_layout
                 {
                     // Make the magic trailing comma expand the group
                     write!(f, [hard_line_break()])?;
@@ -259,6 +300,31 @@ impl FormatNodeRule<Parameters> for FormatParameters {
                     token(")")
                 ]
             )
+        } else if tali_semantic_layout && parenthesis_dangling.is_empty() {
+            let leading_break = format_with(|f| {
+                if tali_first_parameter_on_new_line {
+                    hard_line_break().fmt(f)
+                } else {
+                    Ok(())
+                }
+            });
+            let mut f = WithNodeLevel::new(NodeLevel::ParenthesizedExpression, f);
+            let closing_break = format_with(|f| {
+                if tali_magic_trailing_comma {
+                    hard_line_break().fmt(f)
+                } else {
+                    if_group_breaks(&hard_line_break()).fmt(f)
+                }
+            });
+            write!(
+                f,
+                [
+                    token("("),
+                    indent(&format_args![leading_break, group(&format_inner)]),
+                    closing_break,
+                    token(")")
+                ]
+            )
         } else {
             // Intentionally avoid `parenthesized`, which groups the entire formatted contents.
             // We want parameters to be grouped alongside return types, one level up, so we
@@ -275,6 +341,96 @@ impl FormatNodeRule<Parameters> for FormatParameters {
             )
         }
     }
+}
+
+fn parameter_item_ranges(
+    parameters: &Parameters,
+    slash: Option<&ParameterSeparator>,
+    star: Option<&ParameterSeparator>,
+) -> Vec<TextRange> {
+    let mut ranges = Vec::with_capacity(parameters.len() + 2);
+    ranges.extend(parameters.posonlyargs.iter().map(Ranged::range));
+    ranges.extend(slash.map(|slash| slash.separator));
+    ranges.extend(parameters.args.iter().map(Ranged::range));
+
+    if let Some(vararg) = &parameters.vararg {
+        ranges.push(vararg.range());
+    } else {
+        ranges.extend(star.map(|star| star.separator));
+    }
+
+    ranges.extend(parameters.kwonlyargs.iter().map(Ranged::range));
+    ranges.extend(parameters.kwarg.as_deref().map(Ranged::range));
+    ranges
+}
+
+fn parameter_separator_breaks(
+    parameters: &Parameters,
+    ranges: &[TextRange],
+    source: &str,
+    available_width: u16,
+    indent_width: ruff_formatter::IndentWidth,
+) -> Vec<bool> {
+    let has_slash = !parameters.posonlyargs.is_empty();
+    let has_star = parameters.vararg.is_some() || !parameters.kwonlyargs.is_empty();
+    let entry_count = parameters.posonlyargs.len()
+        + usize::from(has_slash)
+        + parameters.args.len()
+        + usize::from(has_star)
+        + parameters.kwonlyargs.len()
+        + usize::from(parameters.kwarg.is_some());
+    let mut breaks = vec![false; entry_count.saturating_sub(1)];
+
+    if has_slash && !(parameters.args.is_empty() && has_star) {
+        let slash = parameters.posonlyargs.len();
+        if slash < breaks.len() {
+            breaks[slash] = true;
+        }
+    }
+
+    if has_star {
+        let star = parameters.posonlyargs.len() + usize::from(has_slash) + parameters.args.len();
+        if star < breaks.len() {
+            breaks[star] = true;
+        }
+    }
+
+    let widths = ranges
+        .iter()
+        .map(|range| {
+            TextWidth::from_text(source.slice(*range), indent_width)
+                .width()
+                .map_or(u32::MAX, ruff_formatter::format_element::Width::value)
+        })
+        .collect::<Vec<_>>();
+    if let Some(first) = widths.first() {
+        let mut current_width = *first;
+        for index in 0..breaks.len() {
+            let next_width = widths[index + 1];
+            if breaks[index]
+                || current_width.saturating_add(2).saturating_add(next_width)
+                    > u32::from(available_width)
+            {
+                breaks[index] = true;
+                current_width = next_width;
+            } else {
+                current_width += 2 + next_width;
+            }
+        }
+    }
+
+    breaks
+}
+
+fn last_parameter_node(parameters: &Parameters) -> Option<AnyNodeRef<'_>> {
+    parameters
+        .kwarg
+        .as_deref()
+        .map(AnyNodeRef::from)
+        .or_else(|| parameters.kwonlyargs.last().map(AnyNodeRef::from))
+        .or_else(|| parameters.vararg.as_deref().map(AnyNodeRef::from))
+        .or_else(|| parameters.args.last().map(AnyNodeRef::from))
+        .or_else(|| parameters.posonlyargs.last().map(AnyNodeRef::from))
 }
 
 struct CommentsAroundText<'a> {

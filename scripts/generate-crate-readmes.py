@@ -15,14 +15,13 @@ GENERATED_SECTION_END = "<!-- END GENERATED CRATE VERSIONING -->"
 
 RUFF_TEMPLATE = """{GENERATED_HEADER}
 
-# Ruff
+# Scruff
 
-Ruff is an extremely fast Python linter and code formatter.
+Scruff is an opinionated fork of Ruff with additional linting and formatting modes.
 
-See the [documentation](https://docs.astral.sh/ruff/) or
-[repository](https://github.com/astral-sh/ruff) for more information.
+See the [repository](https://github.com/Demonstrandum/scruff) for more information.
 
-This crate is the entry point to the Ruff command-line interface. The Rust API exposed here is not
+This crate is the entry point to the Scruff command-line interface. The Rust API exposed here is not
 considered public interface.
 
 This is version {ruff_version}. The source can be found [here]({source_url}).
@@ -57,6 +56,7 @@ MEMBER_TEMPLATE = """{GENERATED_HEADER}
 
 
 REPO_URL = "https://github.com/astral-sh/ruff"
+SCRUFF_REPO_URL = "https://github.com/Demonstrandum/scruff"
 PRETTIER_VERSION = "3.8.3"
 
 
@@ -86,24 +86,24 @@ def main() -> None:
     content = json.loads(result.stdout)
     packages = {package["id"]: package for package in content["packages"]}
 
-    # Find the Ruff version from the ruff crate.
+    # Find the Ruff version from the Scruff crate.
     ruff_version = None
     for package in content["packages"]:
-        if package["name"] == "ruff":
+        if package["name"] == "scruff":
             ruff_version = package["version"]
             break
     if ruff_version is None:
-        raise RuntimeError("Could not find ruff crate")
+        raise RuntimeError("Could not find scruff crate")
 
     workspace_root = pathlib.Path(content["workspace_root"])
-    readme_path = workspace_root / "crates" / "ruff" / "README.md"
+    readme_path = workspace_root / "crates" / "scruff" / "README.md"
 
     workspace_members = []
     for workspace_member in content["workspace_members"]:
         package = packages[workspace_member]
         name = package["name"]
         # Skip the main Ruff crate.
-        if name == "ruff":
+        if name == "scruff":
             continue
         # Skip crates with publish = false.
         if package.get("publish") == []:
@@ -117,7 +117,7 @@ def main() -> None:
     )
 
     # Generate the README for the main Ruff crate.
-    ruff_source_url = f"{REPO_URL}/blob/{ruff_version}/crates/ruff"
+    ruff_source_url = f"{SCRUFF_REPO_URL}/blob/{ruff_version}/crates/scruff"
     readme_content = RUFF_TEMPLATE.format(
         GENERATED_HEADER=GENERATED_HEADER,
         WORKSPACE_MEMBERS=members_list,
@@ -135,7 +135,7 @@ def main() -> None:
         name = package["name"]
 
         # Skip the main Ruff crate (already handled above).
-        if name == "ruff":
+        if name == "scruff":
             continue
         # Skip crates that aren't released to crates.io.
         if package.get("publish") == []:

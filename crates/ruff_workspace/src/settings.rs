@@ -192,6 +192,7 @@ pub struct FormatterSettings {
     pub quote_style: QuoteStyle,
     pub quote_symbol_regex: Option<regex::Regex>,
     pub nested_string_quote_style: NestedStringQuoteStyle,
+    pub tali_mode: bool,
 
     pub magic_trailing_comma: MagicTrailingComma,
 
@@ -240,6 +241,7 @@ impl FormatterSettings {
             .with_quote_style(self.quote_style)
             .with_quote_symbol_regex(self.quote_symbol_regex.clone())
             .with_nested_string_quote_style(self.nested_string_quote_style)
+            .with_tali_mode(self.tali_mode)
             .with_magic_trailing_comma(self.magic_trailing_comma)
             .with_preview(self.preview)
             .with_line_ending(line_ending)
@@ -277,6 +279,7 @@ impl Default for FormatterSettings {
             quote_style: default_options.quote_style(),
             quote_symbol_regex: None,
             nested_string_quote_style: default_options.nested_string_quote_style(),
+            tali_mode: default_options.is_tali_mode(),
             magic_trailing_comma: default_options.magic_trailing_comma(),
             docstring_code_format: default_options.docstring_code(),
             docstring_code_line_width: default_options.docstring_code_line_width(),

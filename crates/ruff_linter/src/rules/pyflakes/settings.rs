@@ -8,6 +8,7 @@ use std::fmt;
 pub struct Settings {
     pub extend_generics: Vec<String>,
     pub allowed_unused_imports: Vec<String>,
+    pub allow_side_effect_imports_as_underscore: bool,
 }
 
 impl fmt::Display for Settings {

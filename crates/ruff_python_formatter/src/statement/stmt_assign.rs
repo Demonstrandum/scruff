@@ -3,6 +3,7 @@ use ruff_python_ast::{
     AnyNodeRef, Expr, ExprAttribute, ExprCall, FString, Operator, StmtAssign, StringLike, TString,
     TypeParams,
 };
+use ruff_text_size::Ranged;
 
 use crate::builders::parenthesize_if_expands;
 use crate::comments::{
@@ -12,6 +13,7 @@ use crate::context::{NodeLevel, WithNodeLevel};
 use crate::expression::expr_lambda::ExprLambdaLayout;
 use crate::expression::parentheses::{
     NeedsParentheses, OptionalParentheses, Parentheses, Parenthesize, optional_parentheses,
+    tali_parenthesized,
 };
 use crate::expression::{
     can_omit_optional_parentheses, has_own_parentheses, has_parentheses,
@@ -46,6 +48,11 @@ impl FormatNodeRule<StmtAssign> for FormatStmtAssign {
         let format_first = FormatTargetWithEqualOperator {
             target: first,
             preserve_parentheses: true,
+            spaces_before_equal: if rest.is_empty() {
+                f.context().tali_assignment_spaces(item.start())
+            } else {
+                1
+            },
         };
 
         // Avoid parenthesizing the value if the last target before the assigned value expands.
@@ -56,6 +63,7 @@ impl FormatNodeRule<StmtAssign> for FormatStmtAssign {
                 FormatTargetWithEqualOperator {
                     target,
                     preserve_parentheses: false,
+                    spaces_before_equal: 1,
                 }
                 .fmt(f)?;
             }
@@ -107,6 +115,7 @@ struct FormatTargetWithEqualOperator<'a> {
     /// Whether parentheses should be preserved as in the source or if the target
     /// should only be parenthesized if necessary (because of comments or because it doesn't fit).
     preserve_parentheses: bool,
+    spaces_before_equal: u16,
 }
 
 impl Format<PyFormatContext<'_>> for FormatTargetWithEqualOperator<'_> {
@@ -127,7 +136,10 @@ impl Format<PyFormatContext<'_>> for FormatTargetWithEqualOperator<'_> {
                 .fmt(f)?;
         }
 
-        write!(f, [space(), token("="), space()])
+        for _ in 0..self.spaces_before_equal {
+            space().fmt(f)?;
+        }
+        write!(f, [token("="), space()])
     }
 }
 
@@ -392,15 +404,19 @@ impl Format<PyFormatContext<'_>> for FormatStatementsLastExpression<'_> {
                         //      "testmorelong" # comment
                         // )
                         // ```
-                        let joined_parenthesized = format_with(|f| {
-                            group(&format_args![
-                                token("("),
-                                soft_block_indent(&format_args![flat, inline_comments]),
-                                token(")"),
-                            ])
-                            .with_id(Some(group_id))
-                            .should_expand(true)
-                            .fmt(f)
+                        let joined_parenthesized = format_with(|f: &mut PyFormatter| {
+                            if f.options().is_tali_mode() && inline_comments.is_empty() {
+                                tali_parenthesized(&flat, f)
+                            } else {
+                                group(&format_args![
+                                    token("("),
+                                    soft_block_indent(&format_args![flat, inline_comments]),
+                                    token(")"),
+                                ])
+                                .with_id(Some(group_id))
+                                .should_expand(true)
+                                .fmt(f)
+                            }
                         });
 
                         // Keep the implicit concatenated string multiline and don't inline the comment.
@@ -411,16 +427,26 @@ impl Format<PyFormatContext<'_>> for FormatStatementsLastExpression<'_> {
                         //      "long"
                         // ) # comment
                         // ```
-                        let implicit_expanded = format_with(|f| {
-                            group(&format_args![
-                                token("("),
-                                block_indent(&expanded),
-                                token(")"),
-                                inline_comments,
-                            ])
-                            .with_id(Some(group_id))
-                            .should_expand(true)
-                            .fmt(f)
+                        let implicit_expanded = format_with(|f: &mut PyFormatter| {
+                            if f.options().is_tali_mode() && inline_comments.is_empty() {
+                                tali_parenthesized(
+                                    &FormatImplicitConcatenatedStringExpanded::new(
+                                        string,
+                                        ImplicitConcatenatedLayout::MaybeFlat,
+                                    ),
+                                    f,
+                                )
+                            } else {
+                                group(&format_args![
+                                    token("("),
+                                    block_indent(&expanded),
+                                    token(")"),
+                                    inline_comments,
+                                ])
+                                .with_id(Some(group_id))
+                                .should_expand(true)
+                                .fmt(f)
+                            }
                         });
 
                         // We can't use `optional_parentheses` here because the `inline_comments` contains

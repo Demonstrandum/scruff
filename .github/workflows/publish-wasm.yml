@@ -13,6 +13,8 @@ on:
 
 jobs:
   publish:
+    # Built packages still become workflow artifacts; publishing is limited to the Astral npm scope owner.
+    if: ${{ github.repository == 'astral-sh/ruff' }}
     runs-on: ubuntu-latest
     environment: release
     permissions:

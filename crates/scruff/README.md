@@ -1,16 +1,15 @@
 <!-- This file is generated. DO NOT EDIT -->
 
-# Ruff
+# Scruff
 
-Ruff is an extremely fast Python linter and code formatter.
+Scruff is an opinionated fork of Ruff with additional linting and formatting modes.
 
-See the [documentation](https://docs.astral.sh/ruff/) or
-[repository](https://github.com/astral-sh/ruff) for more information.
+See the [repository](https://github.com/Demonstrandum/scruff) for more information.
 
-This crate is the entry point to the Ruff command-line interface. The Rust API exposed here is not
+This crate is the entry point to the Scruff command-line interface. The Rust API exposed here is not
 considered public interface.
 
-This is version 0.15.21. The source can be found [here](https://github.com/astral-sh/ruff/blob/0.15.21/crates/ruff).
+This is version 0.15.21. The source can be found [here](https://github.com/Demonstrandum/scruff/blob/0.15.21/crates/scruff).
 
 The following Ruff workspace members are also available:
 

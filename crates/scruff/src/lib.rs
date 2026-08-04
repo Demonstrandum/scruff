@@ -148,13 +148,13 @@ pub fn run(
                     r#"
 {}{} {} If you could open an issue at:
 
-    https://github.com/astral-sh/ruff/issues/new?title=%5BPanic%5D
+    https://github.com/Demonstrandum/scruff/issues/new?title=%5BPanic%5D
 
 ...quoting the executed command, along with the relevant file contents and `pyproject.toml` settings, we'd be very appreciative!
 "#,
                     "error".red().bold(),
                     ":".bold(),
-                    "Ruff crashed.".bold(),
+                    "Scruff crashed.".bold(),
                 );
             }
             default_panic_hook(info);
@@ -489,9 +489,9 @@ pub fn check(args: CheckCommand, global_options: GlobalConfigArgs) -> Result<Exi
                 // message here instead of attaching it to the diagnostic ensures that we only print
                 // it once instead of repeating it for each diagnostic. Prints to stderr to prevent
                 // the message from being captured by tools parsing the normal output.
-                let message = "Panic during linting indicates a bug in Ruff. If you could open an issue at:
+                let message = "Panic during linting indicates a bug in Scruff. If you could open an issue at:
 
-https://github.com/astral-sh/ruff/issues/new?title=%5BLinter%20panic%5D
+https://github.com/Demonstrandum/scruff/issues/new?title=%5BLinter%20panic%5D
 
 ...with the relevant file contents, the `pyproject.toml` settings, and the stack trace above, we'd be very appreciative!
 ";

@@ -232,6 +232,14 @@ impl Mode {
             Self::Default | Self::Minimal | Self::Strict | Self::Black => None,
         }
     }
+
+    const fn allows_side_effect_imports_as_underscore(&self) -> bool {
+        matches!(self, Self::Tali)
+    }
+
+    const fn is_tali(&self) -> bool {
+        matches!(self, Self::Tali)
+    }
 }
 
 #[derive(Debug, Default, Clone)]
@@ -328,6 +336,7 @@ impl Configuration {
             nested_string_quote_style: format
                 .nested_string_quote_style
                 .unwrap_or(format_defaults.nested_string_quote_style),
+            tali_mode: mode.is_tali(),
             magic_trailing_comma: format
                 .magic_trailing_comma
                 .unwrap_or(format_defaults.magic_trailing_comma),
@@ -396,6 +405,12 @@ impl Configuration {
         conflicting_required_import_pyi025(&isort, &rules)?;
 
         let future_annotations = lint.future_annotations.unwrap_or_default();
+        let mut pyflakes = lint
+            .pyflakes
+            .map(PyflakesOptions::into_settings)
+            .unwrap_or_default();
+        pyflakes.allow_side_effect_imports_as_underscore =
+            mode.allows_side_effect_imports_as_underscore();
 
         Ok(Settings {
             cache_dir: self
@@ -579,10 +594,7 @@ impl Configuration {
                     .pydocstyle
                     .map(PydocstyleOptions::into_settings)
                     .unwrap_or_default(),
-                pyflakes: lint
-                    .pyflakes
-                    .map(PyflakesOptions::into_settings)
-                    .unwrap_or_default(),
+                pyflakes,
                 pylint: lint
                     .pylint
                     .map(PylintOptions::into_settings)
@@ -1940,7 +1952,7 @@ mod tests {
     }
 
     #[test]
-    fn tali_mode_enables_symbol_quotes() -> Result<()> {
+    fn tali_mode_defaults() -> Result<()> {
         let settings = Configuration {
             mode: Some(Mode::Tali),
             ..Configuration::default()
@@ -1951,6 +1963,13 @@ mod tests {
             settings.formatter.quote_style,
             ruff_python_formatter::QuoteStyle::Symbol
         );
+        assert!(
+            settings
+                .linter
+                .pyflakes
+                .allow_side_effect_imports_as_underscore
+        );
+        assert!(settings.formatter.tali_mode);
         Ok(())
     }
 

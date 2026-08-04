@@ -64,6 +64,16 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
             let nested_string_quote_style = self.context.options().nested_string_quote_style();
 
             if !parent_flags.is_triple_quoted() || string.flags().is_triple_quoted() {
+                if preferred_quote_style == QuoteStyle::Symbol {
+                    let symbol_style = self.resolve_symbol_quote_style(string);
+                    let symbol_quote = Quote::try_from(symbol_style)
+                        .expect("Symbol quote style should resolve to a concrete quote");
+                    if supports_pep_701 || symbol_quote != parent_flags.quote_style() {
+                        return symbol_style;
+                    }
+                    return QuoteStyle::from(parent_flags.quote_style().opposite());
+                }
+
                 // When `nested-string-quote-style = "preferred"` and we're targeting Python
                 // 3.12+, use the preferred quote style consistently.
                 if supports_pep_701
@@ -181,6 +191,10 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
             // if it doesn't have perfect alignment with PEP8.
             if let Some(quote) = self.context.docstring() {
                 QuoteStyle::from(quote.opposite())
+            } else if preferred_quote_style == QuoteStyle::Symbol
+                && self.triple_single_is_preferred(string)
+            {
+                QuoteStyle::Single
             } else {
                 QuoteStyle::Double
             }
@@ -237,6 +251,15 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
         }
     }
 
+    pub(super) fn resolve_symbol_quote_style(&self, string: StringLikePart) -> QuoteStyle {
+        self.quote_style_for_symbol_mode(string)
+    }
+
+    fn triple_single_is_preferred(&self, string: StringLikePart) -> bool {
+        let content = &self.context.source()[string.content_range()];
+        content.contains('"') && !content.contains("'''")
+    }
+
     /// Default symbol detection: letters, numbers, underscores, hyphens, dots, colons
     fn is_default_symbol(content: &str) -> QuoteStyle {
         let is_symbol = !content.is_empty()
@@ -258,7 +281,10 @@ impl<'a, 'src> StringNormalizer<'a, 'src> {
             .bytes()
             .position(|b| matches!(b, b'\\' | b'"' | b'\'' | b'\r'));
         let string_flags = string.flags();
-        let preferred_style = self.preferred_quote_style(string);
+        let preferred_style = match self.preferred_quote_style(string) {
+            QuoteStyle::Symbol => self.resolve_symbol_quote_style(string),
+            style => style,
+        };
 
         let new_kind = match (
             Quote::try_from(preferred_style),

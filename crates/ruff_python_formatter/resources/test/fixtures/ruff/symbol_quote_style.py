@@ -30,6 +30,8 @@ mixed_symbols = "a-b_c.d:e"
 # F-strings and raw strings should respect the quote choice for their content
 f_string_symbol = f"value_{name}"
 f_string_text = f"Hello {name}, how are you?"
+nested_f_string_symbol = f"before {'api_key'} after"
+nested_f_string_text = f'prefix {"Hello world"} suffix'
 raw_symbol = r"regex_pattern"
 raw_text = r"This is a raw string with text"
 
@@ -38,6 +40,7 @@ docstring = """
 This is a docstring and should use double quotes.
 Even if it contains symbols like: config_value, api_key.
 """
+triple_with_double = """Line with "double" quotes."""
 
 # Complex expressions with string literals
 config = {

@@ -22,6 +22,8 @@ permissions:
 
 jobs:
   mkdocs:
+    # This workflow publishes to astral-sh/docs.
+    if: ${{ github.repository == 'astral-sh/ruff' }}
     environment:
       name: release
     runs-on: ubuntu-latest

@@ -1,6 +1,6 @@
 <!-- Begin section: Overview -->
 
-# Ruff
+# Scruff
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![image](https://img.shields.io/pypi/v/ruff.svg)](https://pypi.python.org/pypi/ruff)
@@ -10,6 +10,11 @@
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?logo=discord&logoColor=white)](https://discord.com/invite/astral-sh)
 
 [**Docs**](https://docs.astral.sh/ruff/) | [**Playground**](https://play.ruff.rs/)
+
+Scruff is an opinionated fork of Ruff that adds Tali mode and symbol-aware quote formatting while
+staying close to upstream so that Ruff improvements can be merged regularly. Commands below use the
+`scruff` package and executable; other Ruff references describe shared upstream behavior, and
+third-party packages named `ruff` install upstream Ruff.
 
 An extremely fast Python linter and code formatter, written in Rust.
 
@@ -124,36 +129,36 @@ Ruff is available as [`ruff`](https://pypi.org/project/ruff/) on PyPI.
 Invoke Ruff directly with [`uvx`](https://docs.astral.sh/uv/):
 
 ```shell
-uvx ruff check   # Lint all files in the current directory.
-uvx ruff format  # Format all files in the current directory.
+uvx scruff check   # Lint all files in the current directory.
+uvx scruff format  # Format all files in the current directory.
 ```
 
 Or install Ruff with `uv` (recommended), `pip`, or `pipx`:
 
 ```shell
 # With uv.
-uv tool install ruff@latest  # Install Ruff globally.
-uv add --dev ruff            # Or add Ruff to your project.
+uv tool install scruff@latest  # Install Scruff globally.
+uv add --dev scruff            # Or add Scruff to your project.
 
 # With pip.
-pip install ruff
+pip install scruff
 
 # With pipx.
-pipx install ruff
+pipx install scruff
 ```
 
 Starting with version `0.5.0`, Ruff can be installed with our standalone installers:
 
 ```shell
 # On macOS and Linux.
-curl -LsSf https://astral.sh/ruff/install.sh | sh
+curl -LsSf https://github.com/Demonstrandum/scruff/releases/latest/download/scruff-installer.sh | sh
 
 # On Windows.
-powershell -c "irm https://astral.sh/ruff/install.ps1 | iex"
+powershell -c "irm https://github.com/Demonstrandum/scruff/releases/latest/download/scruff-installer.ps1 | iex"
 
 # For a specific version.
-curl -LsSf https://astral.sh/ruff/0.15.21/install.sh | sh
-powershell -c "irm https://astral.sh/ruff/0.15.21/install.ps1 | iex"
+curl -LsSf https://github.com/Demonstrandum/scruff/releases/download/0.15.21/scruff-installer.sh | sh
+powershell -c "irm https://github.com/Demonstrandum/scruff/releases/download/0.15.21/scruff-installer.ps1 | iex"
 ```
 
 You can also install Ruff via [Homebrew](https://formulae.brew.sh/formula/ruff), [Conda](https://anaconda.org/conda-forge/ruff),
@@ -164,21 +169,21 @@ and with [a variety of other package managers](https://docs.astral.sh/ruff/insta
 To run Ruff as a linter, try any of the following:
 
 ```shell
-ruff check                          # Lint all files in the current directory (and any subdirectories).
-ruff check path/to/code/            # Lint all files in `/path/to/code` (and any subdirectories).
-ruff check path/to/code/*.py        # Lint all `.py` files in `/path/to/code`.
-ruff check path/to/code/to/file.py  # Lint `file.py`.
-ruff check @arguments.txt           # Lint using an input file, treating its contents as newline-delimited command-line arguments.
+scruff check                          # Lint all files in the current directory (and any subdirectories).
+scruff check path/to/code/            # Lint all files in `/path/to/code` (and any subdirectories).
+scruff check path/to/code/*.py        # Lint all `.py` files in `/path/to/code`.
+scruff check path/to/code/to/file.py  # Lint `file.py`.
+scruff check @arguments.txt           # Lint using an input file, treating its contents as newline-delimited command-line arguments.
 ```
 
 Or, to run Ruff as a formatter:
 
 ```shell
-ruff format                          # Format all files in the current directory (and any subdirectories).
-ruff format path/to/code/            # Format all files in `/path/to/code` (and any subdirectories).
-ruff format path/to/code/*.py        # Format all `.py` files in `/path/to/code`.
-ruff format path/to/code/to/file.py  # Format `file.py`.
-ruff format @arguments.txt           # Format using an input file, treating its contents as newline-delimited command-line arguments.
+scruff format                          # Format all files in the current directory (and any subdirectories).
+scruff format path/to/code/            # Format all files in `/path/to/code` (and any subdirectories).
+scruff format path/to/code/*.py        # Format all `.py` files in `/path/to/code`.
+scruff format path/to/code/to/file.py  # Format `file.py`.
+scruff format @arguments.txt           # Format using an input file, treating its contents as newline-delimited command-line arguments.
 ```
 
 Ruff can also be used as a [pre-commit](https://pre-commit.com/) hook via [`ruff-pre-commit`](https://github.com/astral-sh/ruff-pre-commit):
@@ -290,13 +295,13 @@ Some configuration options can be provided via dedicated command-line arguments,
 related to rule enablement and disablement, file discovery, and logging level:
 
 ```shell
-ruff check --select F401 --select F403 --quiet
+scruff check --select F401 --select F403 --quiet
 ```
 
 The remaining configuration options can be provided through a catch-all `--config` argument:
 
 ```shell
-ruff check --config "lint.per-file-ignores = {'some_file.py' = ['F841']}"
+scruff check --config "lint.per-file-ignores = {'some_file.py' = ['F841']}"
 ```
 
 To opt in to the latest lint rules, formatter style changes, interface updates, and more, enable
@@ -316,7 +321,7 @@ isort, pyupgrade, and others. Regardless of the rule's origin, Ruff re-implement
 Rust as a first-party feature.
 
 By default, Ruff enables Flake8's `F` rules, along with a subset of the `E` rules, omitting any
-stylistic rules that overlap with the use of a formatter, like `ruff format` or
+stylistic rules that overlap with the use of a formatter, like `scruff format` or
 [Black](https://github.com/psf/black).
 
 If you're just getting started with Ruff, **the default rule set is a great place to start**: it

@@ -1,5 +1,9 @@
 [
   {
     "quote_style": "symbol"
+  },
+  {
+    "quote_style": "symbol",
+    "target_version": "3.12"
   }
 ]

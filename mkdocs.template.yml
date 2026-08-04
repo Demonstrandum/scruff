@@ -1,4 +1,4 @@
-site_name: Ruff
+site_name: Scruff
 theme:
   name: material
   logo: assets/bolt.svg
@@ -32,12 +32,11 @@ theme:
         icon: material/brightness-4
         name: Switch to system preference
   custom_dir: docs/.overrides
-repo_url: https://github.com/astral-sh/ruff
-repo_name: ruff
-site_author: charliermarsh
-site_url: https://docs.astral.sh/ruff/
-site_dir: site/ruff
-site_description: An extremely fast Python linter and code formatter, written in Rust.
+repo_url: https://github.com/Demonstrandum/scruff
+repo_name: Demonstrandum/scruff
+site_author: Demonstrandum
+site_dir: site/scruff
+site_description: An opinionated fork of Ruff, the fast Python linter and formatter.
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -63,42 +62,6 @@ markdown_extensions:
 plugins:
   - search
   - gh-admonitions
-  - llmstxt:
-      markdown_description: |
-        Ruff is an extremely fast Python linter and code formatter, written in Rust.
-        It can be used to replace Flake8 (plus dozens of plugins), Black, isort, pydocstyle,
-        pyupgrade, autoflake, and more, all while executing tens or hundreds of times faster
-        than any individual tool.
-
-        Ruff includes both a linter (`ruff check`) and a formatter (`ruff format`).
-
-        When fetching documentation, use explicit `index.md` paths for directories, e.g.,
-        `https://docs.astral.sh/ruff/editors/index.md`. This returns clean markdown instead
-        of rendered HTML with JS/CSS.
-      sections:
-        Getting started:
-          - installation.md
-          - tutorial.md
-        Configuration:
-          - configuration.md
-        Linter:
-          - linter.md
-        Formatter:
-          - formatter.md
-          - formatter/black.md
-        Editors:
-          - editors/index.md
-          - editors/setup.md
-          - editors/settings.md
-          - editors/features.md
-          - editors/migration.md
-        Integrations:
-          - integrations.md
-        Concepts:
-          - preview.md
-          - versioning.md
-        Reference:
-          - faq.md
 extra_css:
   - stylesheets/extra.css
 extra_javascript:
@@ -111,13 +74,9 @@ extra:
     provider: fathom
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/astral-sh/ruff
-    - icon: fontawesome/brands/discord
-      link: https://discord.com/invite/astral-sh
+      link: https://github.com/Demonstrandum/scruff
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/ruff/
-    - icon: fontawesome/brands/x-twitter
-      link: https://x.com/astral_sh
+      link: https://pypi.org/project/scruff/
 validation:
   omitted_files: warn
   absolute_links: warn

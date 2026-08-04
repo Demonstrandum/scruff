@@ -1,0 +1,403 @@
+---
+source: crates/ruff_python_formatter/tests/fixtures.rs
+input_file: crates/ruff_python_formatter/resources/test/fixtures/ruff/tali_layout.py
+---
+## Input
+```python
+def keyword_groups(self, *,
+    first,
+    second,
+):
+    pass
+
+
+def positional_groups(
+    a, b, /,
+    c, d,
+):
+    pass
+
+
+def semantic_groups(
+    a,
+    b,
+    /,
+    c,
+    d,
+    *,
+    e,
+    f,
+):
+    pass
+
+
+def adjacent_markers(
+    a,
+    b,
+    /,
+    *,
+    c,
+    d,
+):
+    pass
+
+
+def width_aware_blocks(
+    first_positional_parameter_with_a_long_name,
+    second_positional_parameter_with_a_long_name,
+    /,
+    *,
+    first_keyword_parameter_with_a_long_name,
+    second_keyword_parameter_with_a_long_name,
+):
+    pass
+
+
+matrix = [
+    [1,   20, 300],
+    [400, 5,  6],
+]
+
+
+normalized_matrix = [
+    [1.E2,  3],
+    [40.0, 500],
+]
+
+
+decimal_matrix = [
+    [1.2,   30.45],
+    [100, 4.0],
+]
+
+
+string_matrix = [
+    ['short',         r"raw"],
+    ["a longer value", 'symbol'],
+]
+
+
+unary_matrix = [
+    [-1.2,    +30],
+    [+100, -4.0],
+]
+
+
+expression_matrix = [
+    [point.x,          factory(1), values[0], left + right],
+    [longer_point.x, build("item"), mapping['key'], first or second],
+]
+
+
+literal_matrix = [
+    [None,         ..., b"bytes", {"key": 1}],
+    [True, a_name, b"longer", {"other": 2}],
+]
+
+
+tuple_matrix = (
+    (1,    20, 300),
+    (400, 5,   6),
+)
+
+
+commented_tuple_matrix = (
+    (1, 20),       #first tuple row
+    (300, 4),      # second tuple row
+)
+
+
+mixed_row_matrix = [
+    (first,    second),
+    [long_name, value],
+]
+
+
+comment_aligned_matrix = [
+    [1, 20],       #first row
+    [300, 4],      # second row
+]
+
+
+partly_commented_matrix = [
+    [1,   20],  # first row
+    [300, 4],
+]
+
+
+formatted_comment_matrix = [
+    [1,    20],  #comment needs formatting
+    [300, 4],    #  deliberately spaced
+]
+
+
+unaligned_matrix = [
+    [1, 20],
+    [300, 4],
+]
+
+
+tensor = [
+    [
+        [1,  20],
+        [300, 4],
+    ],
+    [
+        [50, 6],
+        [7,  800],
+    ],
+]
+
+
+ragged = [
+    [1,   2],
+    [3, 4, 5],
+]
+
+
+unsafe_multiline_cell = [
+    [
+        call(
+            first,
+            second,
+        ),
+        2,
+    ],
+    [short_call(), 3],
+]
+
+
+too_wide_matrix = [
+    ["first value that fits alone but not beside another value",   "second value that also fits by itself but not in the row"],
+    ["third value that fits alone but not beside another value", "fourth value that also fits by itself but not in the row"],
+]
+
+
+commented_cell = [
+    [
+        first,  # Cell comments use the normal formatter.
+        second,
+    ],
+    [third, fourth],
+]
+
+
+render(
+    [
+        1,
+        2,
+        3,
+    ]
+)
+
+
+configure(
+    {
+        "enabled": True,
+        "options": ["a", "b"],
+    }
+)
+```
+
+## Outputs
+### Output 1
+```
+indent-style               = space
+line-width                 = 88
+indent-width               = 4
+quote-style                = Double
+line-ending                = LineFeed
+magic-trailing-comma       = Respect
+docstring-code             = Disabled
+docstring-code-line-width  = "dynamic"
+preview                    = Disabled
+target_version             = 3.10
+source_type                = Python
+nested-string-quote-style  = alternating
+```
+
+```python
+def keyword_groups(self, *,
+    first, second,
+):
+    pass
+
+
+def positional_groups(
+    a, b, /,
+    c, d,
+):
+    pass
+
+
+def semantic_groups(
+    a, b, /,
+    c, d, *,
+    e, f,
+):
+    pass
+
+
+def adjacent_markers(
+    a, b, /, *,
+    c, d,
+):
+    pass
+
+
+def width_aware_blocks(
+    first_positional_parameter_with_a_long_name,
+    second_positional_parameter_with_a_long_name, /, *,
+    first_keyword_parameter_with_a_long_name,
+    second_keyword_parameter_with_a_long_name,
+):
+    pass
+
+
+matrix = [
+    [  1, 20, 300],
+    [400,  5,   6],
+]
+
+
+normalized_matrix = [
+    [ 1.0e2,   3],
+    [40.0  , 500],
+]
+
+
+decimal_matrix = [
+    [  1.2, 30.45],
+    [100  ,  4.0 ],
+]
+
+
+string_matrix = [
+    ["short"         , r"raw"  ],
+    ["a longer value", "symbol"],
+]
+
+
+unary_matrix = [
+    [  -1.2, +30  ],
+    [+100  ,  -4.0],
+]
+
+
+expression_matrix = [
+    [point.x       , factory(1)   , values[0]     , left + right   ],
+    [longer_point.x, build("item"), mapping["key"], first or second],
+]
+
+
+literal_matrix = [
+    [None, ...   , b"bytes" , {"key": 1}  ],
+    [True, a_name, b"longer", {"other": 2}],
+]
+
+
+tuple_matrix = (
+    (  1, 20, 300),
+    (400,  5,   6),
+)
+
+
+commented_tuple_matrix = (
+    (  1, 20),  # first tuple row
+    (300,  4),  # second tuple row
+)
+
+
+mixed_row_matrix = [
+    (first    , second),
+    [long_name, value ],
+]
+
+
+comment_aligned_matrix = [
+    [  1, 20],  # first row
+    [300,  4],  # second row
+]
+
+
+partly_commented_matrix = [
+    [  1, 20],  # first row
+    [300,  4],
+]
+
+
+formatted_comment_matrix = [
+    [  1, 20],  # comment needs formatting
+    [300,  4],  #  deliberately spaced
+]
+
+
+unaligned_matrix = [
+    [1, 20],
+    [300, 4],
+]
+
+
+tensor = [
+    [
+        [  1,  20],
+        [300,   4],
+    ],
+    [
+        [ 50,   6],
+        [  7, 800],
+    ],
+]
+
+
+ragged = [
+    [1, 2],
+    [3, 4, 5],
+]
+
+
+unsafe_multiline_cell = [
+    [
+        call(
+            first,
+            second,
+        ),
+        2,
+    ],
+    [short_call(), 3],
+]
+
+
+too_wide_matrix = [
+    [
+        "first value that fits alone but not beside another value",
+        "second value that also fits by itself but not in the row",
+    ],
+    [
+        "third value that fits alone but not beside another value",
+        "fourth value that also fits by itself but not in the row",
+    ],
+]
+
+
+commented_cell = [
+    [
+        first,  # Cell comments use the normal formatter.
+        second,
+    ],
+    [third, fourth],
+]
+
+
+render([
+    1,
+    2,
+    3,
+])
+
+
+configure({
+    "enabled": True,
+    "options": ["a", "b"],
+})
+```

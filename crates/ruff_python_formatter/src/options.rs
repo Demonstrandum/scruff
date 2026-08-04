@@ -74,6 +74,9 @@ pub struct PyFormatOptions {
     /// inside interpolated string expressions. When set to `preferred`, Ruff will use
     /// the configured `quote-style`.
     nested_string_quote_style: NestedStringQuoteStyle,
+
+    /// Enables Scruff's Tali-specific layout rules.
+    tali_mode: bool,
 }
 
 fn default_line_width() -> LineWidth {
@@ -105,6 +108,7 @@ impl Default for PyFormatOptions {
             docstring_code_line_width: DocstringCodeLineWidth::default(),
             preview: PreviewMode::default(),
             nested_string_quote_style: NestedStringQuoteStyle::default(),
+            tali_mode: false,
         }
     }
 }
@@ -166,6 +170,10 @@ impl PyFormatOptions {
         self.nested_string_quote_style
     }
 
+    pub const fn is_tali_mode(&self) -> bool {
+        self.tali_mode
+    }
+
     #[must_use]
     pub fn with_target_version(mut self, target_version: ast::PythonVersion) -> Self {
         self.target_version = target_version;
@@ -187,6 +195,12 @@ impl PyFormatOptions {
     #[must_use]
     pub fn with_quote_symbol_regex(mut self, regex: Option<regex::Regex>) -> Self {
         self.quote_symbol_regex = regex;
+        self
+    }
+
+    #[must_use]
+    pub fn with_tali_mode(mut self, tali_mode: bool) -> Self {
+        self.tali_mode = tali_mode;
         self
     }
 

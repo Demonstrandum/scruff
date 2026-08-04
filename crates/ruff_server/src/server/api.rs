@@ -82,7 +82,7 @@ pub(super) fn request(req: server::Request) -> Task {
 
         Task::sync(move |_session, client| {
             client.show_error_message(
-                "Ruff failed to handle a request from the editor. Check the logs for more details.",
+                "Scruff failed to handle a request from the editor. Check the logs for more details.",
             );
             respond_silent_error(
                 id,
@@ -138,7 +138,7 @@ pub(super) fn notification(notif: server::Notification) -> Task {
         tracing::error!("Encountered error when routing notification: {err}");
         Task::sync(|_session, client| {
             client.show_error_message(
-                "Ruff failed to handle a notification from the editor. Check the logs for more details."
+                "Scruff failed to handle a notification from the editor. Check the logs for more details."
             );
         })
     })
@@ -232,8 +232,9 @@ fn sync_notification_task<N: SyncNotificationHandler>(notif: server::Notificatio
         let _span = tracing::debug_span!("notification", method = %N::METHOD).entered();
         if let Err(err) = N::run(session, client, params) {
             tracing::error!("An error occurred while running {id}: {err}");
-            client
-                .show_error_message("Ruff encountered a problem. Check the logs for more details.");
+            client.show_error_message(
+                "Scruff encountered a problem. Check the logs for more details.",
+            );
         }
     }))
 }
@@ -272,7 +273,7 @@ where
 
                         tracing::error!(message);
                         client.show_error_message(
-                            "Ruff encountered a panic. Check the logs for more details.",
+                            "Scruff encountered a panic. Check the logs for more details.",
                         );
                         return;
                     }
@@ -281,7 +282,7 @@ where
             if let Err(err) = result {
                 tracing::error!("An error occurred while running {id}: {err}");
                 client.show_error_message(
-                    "Ruff encountered a problem. Check the logs for more details.",
+                    "Scruff encountered a problem. Check the logs for more details.",
                 );
             }
         })
@@ -326,7 +327,7 @@ fn respond<Req>(
 {
     if let Err(err) = &result {
         tracing::error!("An error occurred with request ID {id}: {err}");
-        client.show_error_message("Ruff encountered a problem. Check the logs for more details.");
+        client.show_error_message("Scruff encountered a problem. Check the logs for more details.");
     }
     if let Err(err) = client.respond(id, result) {
         tracing::error!("Failed to send response: {err}");

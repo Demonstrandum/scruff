@@ -2,7 +2,9 @@ use ruff_formatter::{FormatRuleWithOptions, format_args, write};
 use ruff_python_ast::AnyNodeRef;
 use ruff_python_ast::ExprGenerator;
 
-use crate::expression::parentheses::{NeedsParentheses, OptionalParentheses, parenthesized};
+use crate::expression::parentheses::{
+    NeedsParentheses, OptionalParentheses, parenthesized, tali_parenthesized,
+};
 use crate::prelude::*;
 
 #[derive(Eq, PartialEq, Debug, Default)]
@@ -61,19 +63,32 @@ impl FormatNodeRule<ExprGenerator> for FormatExprGenerator {
                 [group(&elt.format()), soft_line_break_or_space(), &joined]
             )
         } else {
-            write!(
-                f,
-                [parenthesized(
-                    "(",
-                    &group(&format_args!(
-                        group(&elt.format()),
-                        soft_line_break_or_space(),
-                        joined
-                    )),
-                    ")"
+            if f.options().is_tali_mode()
+                && dangling.is_empty()
+                && !comments.contains_comments(item.into())
+            {
+                let content = format_with(|f| {
+                    write!(
+                        f,
+                        [group(&elt.format()), soft_line_break_or_space(), &joined]
+                    )
+                });
+                tali_parenthesized(&content, f)
+            } else {
+                write!(
+                    f,
+                    [parenthesized(
+                        "(",
+                        &group(&format_args!(
+                            group(&elt.format()),
+                            soft_line_break_or_space(),
+                            joined
+                        )),
+                        ")"
+                    )
+                    .with_dangling_comments(dangling)]
                 )
-                .with_dangling_comments(dangling)]
-            )
+            }
         }
     }
 }

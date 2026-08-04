@@ -22,6 +22,8 @@ permissions: {}
 
 jobs:
   publish:
+    # The configured Cloudflare project belongs to the upstream deployment.
+    if: ${{ github.repository == 'astral-sh/ruff' }}
     runs-on: ubuntu-latest
     environment: release-playground
     env:

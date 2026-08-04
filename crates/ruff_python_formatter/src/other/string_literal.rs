@@ -41,8 +41,12 @@ impl FormatNodeRule<StringLiteral> for FormatStringLiteral {
         let quote_style = f.options().quote_style();
         let quote_style = if self.layout.is_docstring() && !quote_style.is_preserve() {
             // Per PEP 8 and PEP 257, always prefer double quotes for docstrings,
-            // except when using quote-style=preserve
-            QuoteStyle::Double
+            // except when preserving quotes or when symbol mode selects quotes by content.
+            if quote_style == QuoteStyle::Symbol {
+                quote_style
+            } else {
+                QuoteStyle::Double
+            }
         } else {
             quote_style
         };
