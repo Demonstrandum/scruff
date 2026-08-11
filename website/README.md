@@ -1,11 +1,12 @@
 # Scruff Tali showcase (GitHub Pages)
 
-Static site documenting Tali mode formatting rules with before/after showcases
-and amalgamated examples. `public/` holds everything that gets published; this
-README stays out of the deployed site.
+An [Astro](https://astro.build/) and MDX site documenting Tali mode formatting
+rules with before/after showcases and amalgamated examples. The documentation
+content lives in `src/pages/index.mdx`; reusable presentation lives in
+`src/components/`.
 
-`.github/workflows/github-pages.yml` publishes `public/` to the `gh-pages`
-branch:
+`.github/workflows/github-pages.yml` builds the site and publishes `dist/` to
+the `gh-pages` branch:
 
 - pushes to `master` publish to the Pages root
 - pull requests touching `website/**` publish a preview at
@@ -13,10 +14,15 @@ branch:
 
 Pages must be configured as **Deploy from a branch** using `gh-pages` (root).
 
-Local preview:
+Install dependencies and start the development server:
 
 ```sh
-python -m http.server -d website/public 8080
+npm ci
+npm run dev
 ```
 
-Then open <http://127.0.0.1:8080/>
+Run a production build with:
+
+```sh
+npm run build
+```

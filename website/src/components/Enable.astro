@@ -1,0 +1,27 @@
+<section id="enable" class="enable band">
+  <div class="band__inner">
+    <h2>Enable Tali mode</h2>
+    <p>Pin Scruff’s version before turning Tali on in automated format workflows.</p>
+    <div class="enable__grids">
+      <pre class="enable__block"><code><span class="tok-comment"># pyproject.toml</span>
+[tool.scruff]
+mode = "tali"
+
+[tool.scruff.format]
+quote-style = "symbol"
+quote-symbol-regex = "^[A-Za-z_][A-Za-z0-9_.-]*$"</code></pre>
+      <pre class="enable__block"><code><span class="tok-comment"># or scruff.toml</span>
+mode = "tali"
+
+<span class="tok-comment"># CLI</span>
+scruff format \
+  --config "format.quote-style = 'symbol'" .</code></pre>
+    </div>
+    <p class="enable__note">
+      Full checklist:
+      <a href="https://github.com/Demonstrandum/scruff/blob/master/TALI-MODE.md">TALI-MODE.md</a>
+      · Docs:
+      <a href="https://github.com/Demonstrandum/scruff/blob/master/docs/tali.md">docs/tali.md</a>
+    </p>
+  </div>
+</section>

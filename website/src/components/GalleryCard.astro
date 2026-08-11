@@ -1,0 +1,15 @@
+---
+interface Props {
+  title: string;
+  summary: string;
+  code: string;
+}
+
+const { title, summary, code } = Astro.props;
+---
+
+<article class="gallery__item" data-reveal>
+  <h3>{title}</h3>
+  <p>{summary}</p>
+  <pre><code>{code}</code></pre>
+</article>

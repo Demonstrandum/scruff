@@ -1,0 +1,44 @@
+---
+interface Props {
+  number: string;
+  id: string;
+  title: string;
+  description: string;
+  before: string;
+  after: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  config?: string;
+}
+
+const {
+  number,
+  id,
+  title,
+  description,
+  before,
+  after,
+  beforeLabel = "Standard",
+  afterLabel = "Tali",
+  config,
+} = Astro.props;
+---
+
+<article id={id} class="rule" data-reveal>
+  <div class="rule__meta">
+    <span class="rule__num">{number}</span>
+    <h3>{title}</h3>
+    <p>{description}</p>
+    {config && <p class="rule__config"><code>{config}</code></p>}
+  </div>
+  <div class="compare">
+    <figure class="pane pane--before">
+      <figcaption>{beforeLabel}</figcaption>
+      <pre><code>{before}</code></pre>
+    </figure>
+    <figure class="pane pane--after">
+      <figcaption>{afterLabel}</figcaption>
+      <pre><code>{after}</code></pre>
+    </figure>
+  </div>
+</article>
