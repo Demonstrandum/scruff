@@ -1,4 +1,10 @@
 # Deploy the Tali showcase site to GitHub Pages.
+#
+# Pushes to `master` publish the site at the Pages root. Pull requests that touch
+# the site publish a preview at `/pr-preview/pr-<number>/` and receive a comment
+# linking to it; closing the pull request removes the preview again.
+#
+# Requires Pages to be configured as "Deploy from a branch" using `gh-pages` (root).
 name: Deploy GitHub Pages
 
 on:
@@ -8,34 +14,61 @@ on:
     paths:
       - "website/**"
       - ".github/workflows/github-pages.yml"
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+    paths:
+      - "website/**"
+      - ".github/workflows/github-pages.yml"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
+# Both jobs commit to the same `gh-pages` branch, so they must never overlap.
 concurrency:
-  group: pages
+  group: github-pages
   cancel-in-progress: false
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    name: Deploy site
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Configure Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
-          path: website
+          persist-credentials: false
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: website
+          # Preserve `pr-preview/` directories owned by the preview job.
+          keep_files: true
+
+  preview:
+    name: Deploy pull request preview
+    # Fork pull requests only receive a read-only token, so they cannot publish.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1.8.1
+        with:
+          source-dir: website
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto
