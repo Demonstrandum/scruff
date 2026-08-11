@@ -34,6 +34,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
 }
 
 body {
@@ -622,11 +623,15 @@ a:hover {
   filter: none;
 }
 
-/* —— Reveal motion —— */
+/* —— Reveal motion ——
+   Content stays visible by default; JavaScript opts elements into animation. */
 [data-reveal] {
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+[data-reveal].is-pending {
   opacity: 0;
   transform: translateY(18px);
-  transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
 [data-reveal].is-visible {
