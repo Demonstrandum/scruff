@@ -1,21 +1,32 @@
-<section id="enable" class="enable band">
-  <div class="band__inner">
-    <h2>Enable Tali mode</h2>
-    <p>Pin Scruff’s version before turning Tali on in automated format workflows.</p>
-    <div class="enable__grids">
-      <pre class="enable__block"><code><span class="tok-comment"># pyproject.toml</span>
+---
+import { Code } from "astro:components";
+
+import { CODE_THEME } from "../lib/highlight";
+
+const pyproject = `# pyproject.toml
 [tool.scruff]
 mode = "tali"
 
 [tool.scruff.format]
 quote-style = "symbol"
-quote-symbol-regex = "^[A-Za-z_][A-Za-z0-9_.-]*$"</code></pre>
-      <pre class="enable__block"><code><span class="tok-comment"># or scruff.toml</span>
-mode = "tali"
+quote-symbol-regex = "^[A-Za-z_][A-Za-z0-9_.-]*$"`;
 
-<span class="tok-comment"># CLI</span>
-scruff format \
-  --config "format.quote-style = 'symbol'" .</code></pre>
+const scruffToml = `# scruff.toml
+mode = "tali"`;
+
+const cli = `# CLI
+scruff format \\
+  --config "format.quote-style = 'symbol'" .`;
+---
+
+<section id="enable" class="enable band">
+  <div class="band__inner">
+    <h2>Enable Tali mode</h2>
+    <p>Pin Scruff’s version before turning Tali on in automated format workflows.</p>
+    <div class="enable__grids">
+      <div class="enable__block"><Code code={pyproject} lang="toml" theme={CODE_THEME} /></div>
+      <div class="enable__block"><Code code={scruffToml} lang="toml" theme={CODE_THEME} /></div>
+      <div class="enable__block"><Code code={cli} lang="bash" theme={CODE_THEME} /></div>
     </div>
     <p class="enable__note">
       Full checklist:

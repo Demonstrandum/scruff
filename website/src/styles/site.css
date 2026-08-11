@@ -308,11 +308,22 @@ a:hover {
   }
 }
 
-.tok-kw { color: var(--code-kw); }
-.tok-fn { color: var(--code-fn); }
-.tok-num { color: var(--code-num); }
-.tok-str { color: var(--code-string); }
-.tok-comment { color: var(--code-muted); }
+/* Shiki (`<Code>`) output. The containers already supply a dark background,
+   so make Shiki's inline background transparent and inherit the mono font. */
+.astro-code {
+  margin: 0;
+  font-family: var(--font-mono);
+}
+
+.pane pre.astro-code,
+.enable__block .astro-code,
+.hero__code .astro-code {
+  background: transparent !important;
+}
+
+.gallery__item pre.astro-code {
+  background: rgba(0, 0, 0, 0.35) !important;
+}
 
 /* —— Bands —— */
 .band {

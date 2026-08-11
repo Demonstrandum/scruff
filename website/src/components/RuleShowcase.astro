@@ -1,4 +1,8 @@
 ---
+import { Code } from "astro:components";
+
+import { CODE_THEME } from "../lib/highlight";
+
 interface Props {
   number: string;
   id: string;
@@ -9,6 +13,7 @@ interface Props {
   beforeLabel?: string;
   afterLabel?: string;
   config?: string;
+  lang?: "python" | "toml" | "bash";
 }
 
 const {
@@ -21,6 +26,7 @@ const {
   beforeLabel = "Standard",
   afterLabel = "Tali",
   config,
+  lang = "python",
 } = Astro.props;
 ---
 
@@ -34,11 +40,11 @@ const {
   <div class="compare">
     <figure class="pane pane--before">
       <figcaption>{beforeLabel}</figcaption>
-      <pre><code>{before}</code></pre>
+      <Code code={before} lang={lang} theme={CODE_THEME} />
     </figure>
     <figure class="pane pane--after">
       <figcaption>{afterLabel}</figcaption>
-      <pre><code>{after}</code></pre>
+      <Code code={after} lang={lang} theme={CODE_THEME} />
     </figure>
   </div>
 </article>

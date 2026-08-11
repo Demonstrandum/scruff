@@ -1,4 +1,8 @@
 ---
+import { Code } from "astro:components";
+
+import { CODE_THEME } from "../lib/highlight";
+
 interface Props {
   title: string;
   summary: string;
@@ -11,5 +15,5 @@ const { title, summary, code } = Astro.props;
 <article class="gallery__item" data-reveal>
   <h3>{title}</h3>
   <p>{summary}</p>
-  <pre><code>{code}</code></pre>
+  <Code code={code} lang="python" theme={CODE_THEME} />
 </article>

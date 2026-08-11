@@ -1,3 +1,24 @@
+---
+import { Code } from "astro:components";
+
+import { CODE_THEME } from "../lib/highlight";
+
+const heroCode = `def fit(self, /, *,
+    learning_rate, epochs,
+):
+    matrix = [
+        [  1, 20, 300],
+        [400,  5,   6],
+    ]
+    render([
+        'ready',
+        "Hello, Tali",
+    ])
+    total = (alpha
+        + beta
+        + gamma)`;
+---
+
 <section class="hero" aria-labelledby="hero-brand">
   <div class="hero__atmosphere" aria-hidden="true"></div>
   <div class="hero__content">
@@ -14,19 +35,6 @@
     </div>
   </div>
   <div class="hero__visual" aria-hidden="true">
-    <pre class="hero__code"><code><span class="tok-kw">def</span> <span class="tok-fn">fit</span>(self, /, *,
-    learning_rate, epochs,
-):
-    matrix = [
-        [  <span class="tok-num">1</span>, <span class="tok-num">20</span>, <span class="tok-num">300</span>],
-        [<span class="tok-num">400</span>,  <span class="tok-num">5</span>,   <span class="tok-num">6</span>],
-    ]
-    render([
-        <span class="tok-str">'ready'</span>,
-        <span class="tok-str">"Hello, Tali"</span>,
-    ])
-    total = (alpha
-        + beta
-        + gamma)</code></pre>
+    <div class="hero__code"><Code code={heroCode} lang="python" theme={CODE_THEME} /></div>
   </div>
 </section>
