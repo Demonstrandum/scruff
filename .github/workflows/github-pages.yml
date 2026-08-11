@@ -48,7 +48,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: website
+          publish_dir: website/public
           # Preserve `pr-preview/` directories owned by the preview job.
           keep_files: true
 
@@ -68,7 +68,7 @@ jobs:
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1.8.1
         with:
-          source-dir: website
+          source-dir: website/public
           preview-branch: gh-pages
           umbrella-dir: pr-preview
           action: auto
