@@ -1,0 +1,38 @@
+---
+import { Code } from "astro:components";
+
+import { CODE_THEME } from "../utils/highlight";
+
+const pyproject = `# pyproject.toml
+[tool.scruff]
+mode = "tali"
+
+[tool.scruff.format]
+quote-style = "symbol"
+quote-symbol-regex = "^[A-Za-z_][A-Za-z0-9_.-]*$"`;
+
+const scruffToml = `# scruff.toml
+mode = "tali"`;
+
+const cli = `# CLI
+scruff format \\
+  --config "format.quote-style = 'symbol'" .`;
+---
+
+<section id="enable" class="enable band">
+  <div class="band__inner">
+    <h2>Enable Tali mode</h2>
+    <p>Pin Scruff’s version before turning Tali on in automated format workflows.</p>
+    <div class="enable__grids">
+      <div class="enable__block"><Code code={pyproject} lang="toml" theme={CODE_THEME} /></div>
+      <div class="enable__block"><Code code={scruffToml} lang="toml" theme={CODE_THEME} /></div>
+      <div class="enable__block"><Code code={cli} lang="bash" theme={CODE_THEME} /></div>
+    </div>
+    <p class="enable__note">
+      Full checklist:
+      <a href="https://github.com/Demonstrandum/scruff/blob/master/TALI-MODE.md">TALI-MODE.md</a>
+      · Docs:
+      <a href="https://github.com/Demonstrandum/scruff/blob/master/docs/tali.md">docs/tali.md</a>
+    </p>
+  </div>
+</section>

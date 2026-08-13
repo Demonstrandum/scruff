@@ -1,0 +1,40 @@
+---
+import { Code } from "astro:components";
+
+import { CODE_THEME } from "../utils/highlight";
+
+const heroCode = `def fit(self, /, *,
+    learning_rate, epochs,
+):
+    matrix = [
+        [  1, 20, 300],
+        [400,  5,   6],
+    ]
+    render([
+        'ready',
+        "Hello, Tali",
+    ])
+    total = (alpha
+        + beta
+        + gamma)`;
+---
+
+<section class="hero" aria-labelledby="hero-brand">
+  <div class="hero__atmosphere" aria-hidden="true"></div>
+  <div class="hero__content">
+    <p class="hero__eyebrow">Opinionated fork of Ruff</p>
+    <h1 id="hero-brand" class="hero__brand">Scruff</h1>
+    <p class="hero__headline">Tali mode formats Python the way you meant it to read.</p>
+    <p class="hero__lede">
+      Symbol-aware quotes, semantic signatures, rectangular matrices, hugged containers, compact
+      parentheses, and intentional alignment — documented here with live showcases.
+    </p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="#rules">Browse the rules</a>
+      <a class="btn btn--ghost" href="#amalgam">See combined examples</a>
+    </div>
+  </div>
+  <div class="hero__visual" aria-hidden="true">
+    <div class="hero__code"><Code code={heroCode} lang="python" theme={CODE_THEME} /></div>
+  </div>
+</section>

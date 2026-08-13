@@ -1,0 +1,25 @@
+---
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  lede: string;
+  variant?: "rules" | "gallery";
+}
+
+const { id, eyebrow, title, lede, variant = "rules" } = Astro.props;
+const sectionClass = variant === "gallery" ? "amalgam" : "rules";
+const headerClass =
+  variant === "gallery" ? "section-head section-head--on-dark" : "section-head";
+---
+
+<section id={id} class={sectionClass}>
+  <header class={headerClass}>
+    <p class="section-head__kicker">{eyebrow}</p>
+    <h2>{title}</h2>
+    <p>{lede}</p>
+  </header>
+  <div class:list={{ gallery: variant === "gallery" }}>
+    <slot />
+  </div>
+</section>

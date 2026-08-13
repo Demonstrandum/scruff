@@ -1,0 +1,283 @@
+---
+layout: ../layouts/SiteLayout.astro
+title: Scruff · Tali Mode
+description: "Tali mode: Scruff's opinionated Python formatting — symbol quotes, aligned matrices, hugged containers, compact parentheses, and more."
+---
+
+import Enable from "../components/Enable.astro";
+import GalleryCard from "../components/GalleryCard.astro";
+import Hero from "../components/Hero.astro";
+import Introduction from "../components/Introduction.astro";
+import RuleShowcase from "../components/RuleShowcase.astro";
+import ShowcaseSection from "../components/ShowcaseSection.astro";
+
+<Hero />
+
+<Introduction />
+
+<ShowcaseSection
+  id="rules"
+  eyebrow="Rule showcase"
+  title="Each formatting rule, side by side"
+  lede="Standard Ruff layout on the left. Tali mode on the right."
+>
+  <RuleShowcase
+    number="01"
+    id="symbol-quotes"
+    title="Symbol quote style"
+    description="Identifier-like strings get single quotes; natural-language text keeps double quotes. Nesting inside f-strings follows the same classification."
+    config={'format.quote-style = "symbol"'}
+    before={String.raw`api_key = "prod_key"
+greeting = "Welcome to our app!"
+timeout = "30"
+nested = f"before {'api_key'} after"`}
+    after={String.raw`api_key = 'prod_key'
+greeting = "Welcome to our app!"
+timeout = '30'
+nested = f"before {'api_key'} after"`}
+  />
+
+  <RuleShowcase
+    number="02"
+    id="side-effect-imports"
+    title="Side-effect imports"
+    description="Alias a module as _ to mark an intentional side-effect import. Member imports aliased to _ still count as unused."
+    beforeLabel="Without Tali"
+    before={String.raw`# noqa: F401 — keep for side effects
+import package`}
+    after={String.raw`import package as _`}
+  />
+
+  <RuleShowcase
+    number="03"
+    id="grouped-signatures"
+    title="Grouped signatures"
+    description="/ and * are semantic block delimiters. Parameters pack within each block; long names still wrap by width."
+    before={String.raw`def semantic_groups(
+    a,
+    b,
+    /,
+    c,
+    d,
+    *,
+    e,
+    f,
+):
+    ...`}
+    after={String.raw`def semantic_groups(
+    a, b, /,
+    c, d, *,
+    e, f,
+):
+    ...`}
+  />
+
+  <RuleShowcase
+    number="04"
+    id="rectangular-data"
+    title="Rectangular data"
+    description="Extra whitespace that lines up columns is treated as alignment intent. Cells format normally, then column widths and decimal points are enforced across the matrix."
+    beforeLabel="Input intent"
+    before={String.raw`matrix = [
+    [1,   20, 300],
+    [400, 5,  6],
+]
+
+decimal = [
+    [1.2,   30.45],
+    [100, 4.0],
+]`}
+    after={String.raw`matrix = [
+    [  1, 20, 300],
+    [400,  5,   6],
+]
+
+decimal = [
+    [  1.2, 30.45],
+    [100  ,  4.0 ],
+]`}
+  />
+
+  <RuleShowcase
+    number="05"
+    id="container-hug"
+    title="Nested container hug"
+    description="When a call’s only argument is a multiline list, tuple, set, or dict, Tali hugs the delimiters instead of adding another indentation layer."
+    before={String.raw`render(
+    [
+        1,
+        2,
+        3,
+    ]
+)
+
+configure(
+    {
+        "enabled": True,
+        "options": ["a", "b"],
+    }
+)`}
+    after={String.raw`render([
+    1,
+    2,
+    3,
+])
+
+configure({
+    "enabled": True,
+    "options": ["a", "b"],
+})`}
+  />
+
+  <RuleShowcase
+    number="06"
+    id="compact-parens"
+    title="Compact parentheses"
+    description="Prefer an expression’s own split points before wrapping it in stand-alone parenthesis lines. When parens are needed, keep them beside the expression or use a compact hanging layout."
+    before={String.raw`total = (
+    first_component
+    + second_component
+    + third_component
+)
+
+value_with_a_long_target = (
+    first_component
+    + second_component
+)`}
+    after={String.raw`total = (first_component
+    + second_component
+    + third_component)
+
+value_with_a_long_target = (
+    first_component
+    + second_component)`}
+  />
+
+  <RuleShowcase
+    number="07"
+    id="horizontal-align"
+    title="Horizontal alignment"
+    description="Extra source spacing opts consecutive related statements into alignment: = operators, annotation content after :, and trailing comments when a wide gap signals intent."
+    beforeLabel="Input intent"
+    before={String.raw`short   = 1
+long_name = 2
+
+x:    int       = 1
+long: str = 2
+
+a=1        # first
+long_name=2  # second`}
+    after={String.raw`short     = 1
+long_name = 2
+
+x:    int       = 1
+long: str       = 2
+
+a = 1          # first
+long_name = 2  # second`}
+  />
+
+  <RuleShowcase
+    number="08"
+    id="pointer-comments"
+    title="Pointer comments"
+    description="Trailing comments never force the code before them to wrap. If the full line exceeds the width, the comment drops below as a pointer. Pragmas stay attached."
+    beforeLabel="Input"
+    before={String.raw`result = some_function(argument)  # This deliberately long explanation makes the complete source line exceed the configured formatter width.
+
+pragma_result = some_function(argument)  # noqa: E501`}
+    after={String.raw`result = some_function(argument)
+# ^ This deliberately long explanation makes the complete source line exceed the configured formatter width.
+
+pragma_result = some_function(argument)  # noqa: E501`}
+  />
+</ShowcaseSection>
+
+<ShowcaseSection
+  id="amalgam"
+  eyebrow="Gallery"
+  title="Amalgamated examples"
+  lede="Several Tali rules working together in realistic snippets."
+  variant="gallery"
+>
+  <GalleryCard
+    title="Training config"
+    summary="Symbol quotes, hugged dict, and assignment alignment."
+    code={String.raw`import torch.backends.cudnn as _
+
+config = {
+    'device':  'cuda:0',
+    'seed':    '42',
+    'epochs':  100,
+    'message': "Warm start from checkpoint",
+}
+
+learning_rate = 3e-4
+weight_decay  = 1e-2
+batch_size    = 64
+
+configure({
+    'enabled': True,
+    'options': ['amp', 'compile'],
+})`}
+  />
+
+  <GalleryCard
+    title="Model forward"
+    summary="Grouped signature, compact parentheses, matrix alignment."
+    code={String.raw`def forward(self, x, /, *,
+    training, dropout,
+):
+    weights = [
+        [  0.12, -1.5 ,  3.0],
+        [ 4.0  ,  0.05, -0.2],
+    ]
+    logits = (self.proj(x)
+        @ weights
+        + self.bias)
+    return logits`}
+  />
+
+  <GalleryCard
+    title="API handler"
+    summary="Symbol quotes, pointer comments, hugged containers."
+    code={String.raw`def handle(request, *,
+    timeout, retries,
+):
+    payload = {
+        'route':   '/v1/predict',
+        'status':  'ok',
+        'detail':  "Prediction ready for client",
+    }
+    respond([
+        payload,
+        request.headers,
+    ])
+    log_result(payload)
+    # ^ Emit structured telemetry when the response path is unusually long.`}
+  />
+
+  <GalleryCard
+    title="Numeric tableau"
+    summary="Decimal alignment, row comments, nested tensor hug."
+    code={String.raw`observations = (
+    (  1.2, 30.45),  # dawn
+    (100  ,  4.0 ),  # noon
+)
+
+tensor = [
+    [
+        [  1,  20],
+        [300,   4],
+    ],
+    [
+        [ 50,   6],
+        [  7, 800],
+    ],
+]
+
+plot(tensor)`}
+  />
+</ShowcaseSection>
+
+<Enable />

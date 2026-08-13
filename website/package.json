@@ -1,0 +1,28 @@
+{
+  "name": "scruff-tali-showcase",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Scruff Tali mode documentation and showcase",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "keywords": [
+    "scruff",
+    "tali",
+    "python",
+    "formatter"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@astrojs/mdx": "^7.0.5",
+    "astro": "^7.2.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
+}
