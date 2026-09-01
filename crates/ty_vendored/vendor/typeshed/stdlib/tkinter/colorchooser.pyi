@@ -1,3 +1,4 @@
+"""Interface to the native Tk color selection dialog."""
 from tkinter import Misc
 from tkinter.commondialog import Dialog
 from typing import ClassVar

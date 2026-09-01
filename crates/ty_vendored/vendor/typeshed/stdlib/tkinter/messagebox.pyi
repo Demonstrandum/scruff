@@ -1,3 +1,4 @@
+"""Interface to the standard Tk message boxes."""
 from tkinter import Misc
 from tkinter.commondialog import Dialog
 from typing import ClassVar, Final, Literal

@@ -1620,7 +1620,19 @@ corresponding attributes.
         def wm_attributes(self, option: Literal["-type"], /) -> str: ...
     elif sys.platform == "win32":
         @overload
-        def wm_attributes(self, option: Literal["-transparentcolor"], /) -> str: ...
+        def wm_attributes(self, option: Literal["-transparentcolor"], /) -> str:
+            """Return or sets platform specific attributes.
+
+When called with a single argument return_python_dict=True,
+return a dict of the platform specific attributes and their values.
+When called without arguments or with a single argument
+return_python_dict=False, return a tuple containing intermixed
+attribute names with the minus prefix and their values.
+
+When called with a single string value, return the value for the
+specific option.  When called with keyword arguments, set the
+corresponding attributes.
+"""
         @overload
         def wm_attributes(self, option: Literal["-disabled"], /) -> bool: ...
         @overload
@@ -1676,7 +1688,19 @@ corresponding attributes.
             def wm_attributes(self, option: Literal["type"], /) -> str: ...
         elif sys.platform == "win32":
             @overload
-            def wm_attributes(self, option: Literal["transparentcolor"], /) -> str: ...
+            def wm_attributes(self, option: Literal["transparentcolor"], /) -> str:
+                """Return or sets platform specific attributes.
+
+When called with a single argument return_python_dict=True,
+return a dict of the platform specific attributes and their values.
+When called without arguments or with a single argument
+return_python_dict=False, return a tuple containing intermixed
+attribute names with the minus prefix and their values.
+
+When called with a single string value, return the value for the
+specific option.  When called with keyword arguments, set the
+corresponding attributes.
+"""
             @overload
             def wm_attributes(self, option: Literal["disabled"], /) -> bool: ...
             @overload
@@ -1720,7 +1744,19 @@ corresponding attributes.
         def wm_attributes(self, option: Literal["-transparent"], value: bool, /) -> Literal[""]: ...
     elif sys.platform == "win32":
         @overload
-        def wm_attributes(self, option: Literal["-transparentcolor"], value: str, /) -> Literal[""]: ...
+        def wm_attributes(self, option: Literal["-transparentcolor"], value: str, /) -> Literal[""]:
+            """Return or sets platform specific attributes.
+
+When called with a single argument return_python_dict=True,
+return a dict of the platform specific attributes and their values.
+When called without arguments or with a single argument
+return_python_dict=False, return a tuple containing intermixed
+attribute names with the minus prefix and their values.
+
+When called with a single string value, return the value for the
+specific option.  When called with keyword arguments, set the
+corresponding attributes.
+"""
         @overload
         def wm_attributes(self, option: Literal["-disabled"], value: bool, /) -> Literal[""]: ...
         @overload
@@ -1774,7 +1810,19 @@ corresponding attributes.
                 fullscreen: bool = ...,
                 toolwindow: bool = ...,
                 topmost: bool = ...,
-            ) -> None: ...
+            ) -> None:
+                """Return or sets platform specific attributes.
+
+When called with a single argument return_python_dict=True,
+return a dict of the platform specific attributes and their values.
+When called without arguments or with a single argument
+return_python_dict=False, return a tuple containing intermixed
+attribute names with the minus prefix and their values.
+
+When called with a single string value, return the value for the
+specific option.  When called with keyword arguments, set the
+corresponding attributes.
+"""
         else:
             # X11
             @overload
@@ -4476,7 +4524,16 @@ class Menubutton(Widget):
         underline: int = -1,
         width: float | str = 0,
         wraplength: float | str = 0,
-    ) -> None: ...
+    ) -> None:
+        """Construct a menubutton widget with the parent MASTER.
+
+Valid option names: activebackground, activeforeground, anchor,
+background, bd, bg, bitmap, borderwidth, compound, cursor,
+direction, disabledforeground, fg, font, foreground, height,
+highlightbackground, highlightcolor, highlightthickness,
+image, indicatoron, justify, menu, padx, pady, relief, state,
+takefocus, text, textvariable, underline, width, wraplength.
+"""
 
     @overload
     def configure(
@@ -4566,7 +4623,14 @@ class Message(Widget):
         textvariable: Variable = ...,
         # there's width but no height
         width: float | str = 0,
-    ) -> None: ...
+    ) -> None:
+        """Construct a message widget with the parent MASTER.
+
+Valid option names: anchor, aspect, background, bd, bg, borderwidth,
+cursor, fg, font, foreground, highlightbackground,
+highlightcolor, highlightthickness, justify, padx, pady,
+relief, takefocus, text, textvariable, width.
+"""
 
     @overload
     def configure(
