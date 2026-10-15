@@ -1,3 +1,4 @@
+"""Utilities to help work with fonts in Tkinter."""
 import _tkinter
 import itertools
 import sys
